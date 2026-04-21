@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>高中模拟器</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- 顶部状态栏 -->
+  <header id="status-bar">
+    <div class="stat-item">
+      <div class="stat-ring-wrap">
+        <svg class="stat-ring-svg" viewBox="0 0 36 36">
+          <circle class="ring-track" cx="18" cy="18" r="15.9" fill="none" stroke-width="3"/>
+          <circle class="ring-fill health-ring" id="ring-health" cx="18" cy="18" r="15.9"
+                  fill="none" stroke-width="3" stroke-dasharray="0 100" stroke-linecap="round"
+                  transform="rotate(-90 18 18)"/>
+        </svg>
+        <span class="stat-icon-badge">💪</span>
+      </div>
+      <div class="stat-text">
+        <div class="stat-label">身体</div>
+        <div class="stat-num" id="num-health">--</div>
+      </div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-ring-wrap">
+        <svg class="stat-ring-svg" viewBox="0 0 36 36">
+          <circle class="ring-track" cx="18" cy="18" r="15.9" fill="none" stroke-width="3"/>
+          <circle class="ring-fill mental-ring" id="ring-mental" cx="18" cy="18" r="15.9"
+                  fill="none" stroke-width="3" stroke-dasharray="0 100" stroke-linecap="round"
+                  transform="rotate(-90 18 18)"/>
+        </svg>
+        <span class="stat-icon-badge">🧠</span>
+      </div>
+      <div class="stat-text">
+        <div class="stat-label">心理</div>
+        <div class="stat-num" id="num-mental">--</div>
+      </div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-ring-wrap">
+        <svg class="stat-ring-svg" viewBox="0 0 36 36">
+          <circle class="ring-track" cx="18" cy="18" r="15.9" fill="none" stroke-width="3"/>
+          <circle class="ring-fill effort-ring" id="ring-effort" cx="18" cy="18" r="15.9"
+                  fill="none" stroke-width="3" stroke-dasharray="0 100" stroke-linecap="round"
+                  transform="rotate(-90 18 18)"/>
+        </svg>
+        <span class="stat-icon-badge">🔥</span>
+      </div>
+      <div class="stat-text">
+        <div class="stat-label">努力</div>
+        <div class="stat-num" id="num-effort">--</div>
+      </div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-ring-wrap">
+        <svg class="stat-ring-svg" viewBox="0 0 36 36">
+          <circle class="ring-track" cx="18" cy="18" r="15.9" fill="none" stroke-width="3"/>
+          <circle class="ring-fill learning-ring" id="ring-learning" cx="18" cy="18" r="15.9"
+                  fill="none" stroke-width="3" stroke-dasharray="0 100" stroke-linecap="round"
+                  transform="rotate(-90 18 18)"/>
+        </svg>
+        <span class="stat-icon-badge">📖</span>
+      </div>
+      <div class="stat-text">
+        <div class="stat-label">学习</div>
+        <div class="stat-num" id="num-learning">--</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 精力条 -->
+  <div id="energy-bar">
+    <span class="energy-label">⚡ 精力</span>
+    <div id="energy-dots"></div>
+    <span id="energy-count"></span>
+  </div>
+
+  <!-- 主内容区 -->
+  <main id="content"></main>
+
+  <!-- 底部导航 -->
+  <nav id="bottom-nav">
+    <button class="nav-btn" data-page="home" onclick="switchPage('home')">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">主控</span>
+      <span class="nav-dot"></span>
+    </button>
+    <button class="nav-btn" data-page="social" onclick="switchPage('social')">
+      <span class="nav-icon">👥</span>
+      <span class="nav-label">人际</span>
+      <span class="nav-dot"></span>
+    </button>
+    <button class="nav-btn" data-page="study" onclick="switchPage('study')">
+      <span class="nav-icon">📚</span>
+      <span class="nav-label">学习</span>
+      <span class="nav-dot"></span>
+    </button>
+    <button class="nav-btn" data-page="fun" onclick="switchPage('fun')">
+      <span class="nav-icon">🎮</span>
+      <span class="nav-label">娱乐</span>
+      <span class="nav-dot"></span>
+    </button>
+  </nav>
+
+  <!-- 通用弹窗 -->
+  <div id="modal-overlay" class="hidden" onclick="handleOverlayClick(event)">
+    <div id="modal-box">
+      <div id="modal-body"></div>
+      <button class="btn btn-primary" id="modal-ok" onclick="closeModal()">确定</button>
+    </div>
+  </div>
+
+  <!-- 游戏全屏层（贪吃蛇） -->
+  <div id="game-overlay" class="hidden">
+    <div id="game-box">
+      <div id="game-header">
+        <span id="game-title">贪吃蛇</span>
+        <button class="btn btn-sm" onclick="closeGame()">退出</button>
+      </div>
+      <canvas id="game-canvas" width="300" height="300"></canvas>
+      <div id="snake-controls">
+        <button class="dir-btn" onpointerdown="setSnakeDir(0,-1)">↑</button>
+        <div class="dir-row">
+          <button class="dir-btn" onpointerdown="setSnakeDir(-1,0)">←</button>
+          <div class="dir-spacer"></div>
+          <button class="dir-btn" onpointerdown="setSnakeDir(1,0)">→</button>
+        </div>
+        <button class="dir-btn" onpointerdown="setSnakeDir(0,1)">↓</button>
+      </div>
+      <div id="game-info"></div>
+    </div>
+  </div>
+
+  <script src="basketball.js"></script>
+  <script src="swimming.js"></script>
+  <script src="breakout.js"></script>
+  <script src="skyfight.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
