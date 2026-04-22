@@ -12,14 +12,16 @@ const MONTH_MAP = [9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8]
 
 const DEFAULT_PLAYER = {
   month: 1,
-  health: 80,
+  health: 70,
   mental: 70,
-  effort: 60,
+  effort: 50,
   learning: 50,
   monthStarted: false,
   studyCount: 0,
   energy: 5,
   maxEnergy: 5,
+  money: 0,
+  tags: [],
   subjectHistory: [],
   pendingBias: null,
   examHistory: [],
@@ -27,6 +29,51 @@ const DEFAULT_PLAYER = {
   currentChoiceEvent: null,
   choiceEventDone: false,
   choiceEventChosen: null,
+  eventShown: false,
+  selectedSubjects: null,
+  profExamDone: false,
+  gaokaoResult: null,
+  placementDone: false,
+  classRoom: null,
+}
+
+// ─── 标签池 ──────────────────────────────────────────────────
+
+const TAG_POOL = {
+  智商: [
+    { id: 'smart', name: '高智商',   icon: '🧠', color: '#4d9fd4',
+      desc: '刷题时额外获得 2 点学习进度' },
+    { id: 'slow',  name: '笨鸟先飞', icon: '🐦', color: '#e09040',
+      desc: '刷题时减少 2 点学习进度，但额外获得 4 点努力程度' },
+  ],
+  情商: [
+    { id: 'charming', name: '社交恐怖分子', icon: '😏', color: '#4caf72',
+      desc: '互动时额外获得对方 2 点好感，更容易触发有利的随机事件' },
+    { id: 'awkward',  name: '话题终结者',   icon: '😬', color: '#d45555',
+      desc: '更容易触发损失好感的随机事件' },
+  ],
+  家庭: [
+    { id: 'kpi',   name: 'KPI之家', icon: '📊', color: '#d45555',
+      desc: '每月自动损失 10 点心理健康' },
+    { id: 'press', name: '高压锅',   icon: '🫙', color: '#b03020',
+      desc: '每月自动损失 10 点心理健康和身体健康' },
+    { id: 'free',  name: '溜达鸡',   icon: '🐓', color: '#4caf72',
+      desc: '获得初始 100 点身体健康和心理健康' },
+  ],
+  贫富: [
+    { id: 'poor', name: '家徒四壁', icon: '🏚️', color: '#8a8479',
+      desc: '每月不获得零花钱' },
+    { id: 'mid',  name: '小康之家', icon: '🏠', color: '#4d9fd4',
+      desc: '每月额外获得 100 零花钱（共 200）' },
+    { id: 'rich', name: '壕无人性', icon: '🏰', color: '#c9952a',
+      desc: '每月额外获得 500 零花钱（共 600）' },
+  ],
+  精力: [
+    { id: 'motor', name: '永动机', icon: '⚡', color: '#4d9fd4',
+      desc: '每月有 30% 几率额外获得 1 点精力' },
+    { id: 'sloth', name: '树懒',   icon: '🦥', color: '#8b6cc8',
+      desc: '每月有 30% 几率减少 1 点精力，但恢复 5 点身体和心理健康' },
+  ],
 }
 
 const DEFAULT_RELATIONS = {
@@ -64,23 +111,6 @@ const DEFAULT_RELATIONS = {
   ],
 }
 
-const EVENTS = [
-  { text: '老师宣布下周有数学小测，同学们面面相觑，班里气氛一下子紧张起来。', effect: { effort: 5, mental: -3 }, affinityEffect: { id: 'li', delta: 3 } },
-  { text: '学校举行秋季运动会，你报名了800米跑，赛场上风吹过来很舒服。', effect: { health: 8, mental: 5 }, affinityEffect: { group: 'classmates', delta: 4 } },
-  { text: '期末将近，图书馆座位一位难求，走廊里也有人在背单词。', effect: { effort: 7, mental: -4 } },
-  { text: '这周作业特别多，你连续三天熬夜到十二点，眼睛有些发酸。', effect: { health: -6, learning: 4 } },
-  { text: '好天气，午休时你和几个同学跑去操场踢毽子，心情舒畅。', effect: { mental: 6, health: 3 }, affinityEffect: { group: 'classmates', delta: 3 } },
-  { text: '班主任找你单独谈话，说最近状态不错，让你继续加油。', effect: { mental: 8, effort: 5 }, affinityEffect: { group: 'teachers', delta: 4 } },
-  { text: '食堂新出了红烧肉，同学们排起了长队，今天的午饭格外香。', effect: { health: 4, mental: 3 } },
-  { text: '一道压轴数学题困扰了你整整三天，凌晨突然想通，兴奋得睡不着。', effect: { learning: 6, mental: 4, effort: 3 }, affinityEffect: { id: 'li', delta: 5 } },
-  { text: '和同桌因为借橡皮的小事起了摩擦，课间两人都没说话，有点别扭。', effect: { mental: -6, effort: -2 }, affinityEffect: { group: 'classmates', delta: -3 } },
-  { text: '图书馆里发现一本讲相对论的课外书，读了半本，感觉世界开阔了。', effect: { mental: 5, learning: 3 } },
-  { text: '月考前你紧张得在床上辗转反侧，脑子里把错题又过了一遍。', effect: { mental: -7, health: -4, effort: 4 } },
-  { text: '周末被安排补课，少了两天休息，但把薄弱知识点补上了一些。', effect: { health: -5, mental: -4, learning: 5 }, affinityEffect: { id: 'zhang', delta: 3 } },
-  { text: '物理老师课上讲了一道有趣的思维题，你第一个举手答对，全班鼓掌。', effect: { mental: 6, effort: 4, learning: 2 }, affinityEffect: { group: 'teachers', delta: 3 } },
-  { text: '下雨天，教室里很安静，同学们都在埋头自习，气氛意外地专注。', effect: { effort: 5, learning: 3 } },
-  { text: '期中成绩出来了，比上次进步了不少，妈妈打来电话说晚上吃你喜欢的菜。', effect: { mental: 9, health: 3, effort: 3 }, affinityEffect: { group: 'teachers', delta: 5 } },
-]
 
 const CHOICE_EVENTS = [
   {
@@ -190,6 +220,31 @@ const CHOICE_EVENTS = [
   },
 ]
 
+const UNIVERSITY_TIERS = [
+  { min: 700, school: '清北大学',     badge: '清华 / 北大',
+    desc: '全宇宙唯二的顶流学府。考上后你的名字将永驻家族相册C位，七大姑八大姨排队转钱，从未谋面的亲戚也会把你当做每次聚餐的开场白，持续至少三年。' },
+  { min: 680, school: '滑舞大学',     badge: '华东五校',
+    desc: '名门望族，校园里同学步伐轻盈如滑步，据考证是因为图书馆地板高光打蜡——也可能只是连续熬夜后灵魂出窍的正常表现。' },
+  { min: 650, school: '酒吧舞大学',   badge: '985 高校',
+    desc: '985名校，学术与人脉并修。前辈经验总结：专业课低飘过关即可，但入学第一个月务必确认自己的酒量，否则圈子融不进去，毕业论文反倒好写。' },
+  { min: 600, school: '984.5大学',    badge: '顶尖 211 / 接近985',
+    desc: '永远与985差0.5之遥，这0.5是什么？是意难平，是每次聚会被追问"当初差多少分"时的那声叹气，将在你大学四年里精准重放，分毫不差。' },
+  { min: 550, school: '二妖妖大学',   badge: '211 高校',
+    desc: '211高校，国家认证背书。出门求职HR多扫一眼，虽然最终大多还是"等通知"，但好歹多等了那几秒，某种意义上也算是一种礼遇。' },
+  { min: 450, school: '双飞大学',     badge: '双非院校',
+    desc: '双非院校，双倍努力，立志飞翔。毕业后将正式起飞，目的地：各大招聘会普通展位、外卖平台的接单界面，以及月租两千的合租App。' },
+  { min: 350, school: '茶吾慈孝大学', badge: '查无此校',
+    desc: '全网搜不到，百度给不了，地图导不着，录取通知书却确实从天而降。每逢聚会被问"你哪儿上学的"，对方发出一声意味深长的"哦"，话题以光速消亡。' },
+  { min: 250, school: '豪华砖科学院', badge: '大专 / 专科',
+    desc: '豪华是相对的，砖是绝对的。课程涵盖理论砖技与现场砖法，毕业即入职，工地老师傅亲切迎接，手艺扎实者薪资碾压部分本科生，业界称之为"金蓝领"。' },
+  { min: 0,   school: '加里敦大学',   badge: '家里蹲',
+    desc: '坐落于你家客厅，图书馆即家里书架，食堂即妈妈厨房，操场即楼下便利店门口。唯一必修课：《如何向父母解释这学期学了什么》，学制不限，毕业遥遥无期。' },
+]
+
+function getUniversityTier(score) {
+  return UNIVERSITY_TIERS.find(t => score >= t.min) || UNIVERSITY_TIERS[UNIVERSITY_TIERS.length - 1]
+}
+
 const INTERACT_OPTS = {
   ask:     { label: '请教问题', desc: '请教了一道难题，老师讲解得很耐心，感觉豁然开朗。',                          eff: { learning: 4, mental: 2 },  aff: 5 },
   greet:   { label: '礼貌问好', desc: '走廊里遇到，礼貌地打了招呼，老师微笑点头。',                                eff: { mental: 2 },               aff: 3 },
@@ -201,138 +256,548 @@ const INTERACT_OPTS = {
   help:    { label: '主动帮忙', desc: '主动帮对方解答了一道卡了很久的题，对方感激地说了声谢谢，心情很好。',         eff: { learning: 2, mental: 4 },  aff: 7 },
 }
 
-const SUBJECTS = ['数学','语文','英语','物理','化学','生物','历史','地理','政治']
-
-const QUIZ_BANK = {
-  '数学': [
-    { q: '若 f(x) = x² + 2x + 1，则 f(2) = ?', opts: ['A. 7', 'B. 9', 'C. 8', 'D. 6'], ans: 1 },
-    { q: '1 + 2 + 3 + … + 100 的值为？', opts: ['A. 4950', 'B. 5000', 'C. 5050', 'D. 5100'], ans: 2 },
-    { q: '下列哪个函数是奇函数？', opts: ['A. y = x²', 'B. y = x³', 'C. y = |x|', 'D. y = x² + 1'], ans: 1 },
-    { q: '直线 y = 2x + 3 的斜率是？', opts: ['A. 3', 'B. 2', 'C. −2', 'D. ½'], ans: 1 },
-    { q: 'sin 30° 的值是？', opts: ['A. √3/2', 'B. 1/2', 'C. √2/2', 'D. 1'], ans: 1 },
-    { q: '等差数列 2, 5, 8, … 的公差是？', opts: ['A. 2', 'B. 3', 'C. 4', 'D. 5'], ans: 1 },
-    { q: '圆的面积公式是？', opts: ['A. πr', 'B. 2πr', 'C. πr²', 'D. 2πr²'], ans: 2 },
-    { q: 'log₂ 8 = ?', opts: ['A. 2', 'B. 3', 'C. 4', 'D. 6'], ans: 1 },
-    { q: '函数 y = sin x 的最大值是？', opts: ['A. 0', 'B. π', 'C. 1', 'D. 2'], ans: 2 },
-    { q: '(a + b)² 展开等于？', opts: ['A. a² + b²', 'B. a² + ab + b²', 'C. a² + 2ab + b²', 'D. 2a² + 2b²'], ans: 2 },
-  ],
-  '语文': [
-    { q: '《红楼梦》的作者是？', opts: ['A. 施耐庵', 'B. 罗贯中', 'C. 曹雪芹', 'D. 吴承恩'], ans: 2 },
-    { q: '"春眠不觉晓，处处闻啼鸟"出自哪位诗人？', opts: ['A. 李白', 'B. 杜甫', 'C. 孟浩然', 'D. 王维'], ans: 2 },
-    { q: '"先天下之忧而忧"出自哪篇名文？', opts: ['A. 《出师表》', 'B. 《岳阳楼记》', 'C. 《醉翁亭记》', 'D. 《桃花源记》'], ans: 1 },
-    { q: '下列词语中没有错别字的是？', opts: ['A. 迫不急待', 'B. 再接再励', 'C. 相辅相成', 'D. 出奇至胜'], ans: 2 },
-    { q: '"知之为知之，不知为不知"出自？', opts: ['A. 《庄子》', 'B. 《论语》', 'C. 《孟子》', 'D. 《大学》'], ans: 1 },
-    { q: '下列句子没有语病的是？', opts: ['A. 他的意见基本上完全正确', 'B. 我们要防止不发生类似事故', 'C. 这本书的内容丰富多彩', 'D. 他非常地十分喜欢读书'], ans: 2 },
-    { q: '《离骚》的作者是？', opts: ['A. 屈原', 'B. 杜甫', 'C. 李白', 'D. 苏轼'], ans: 0 },
-    { q: '"举头望明月，低头思故乡"出自哪首诗？', opts: ['A. 《静夜思》', 'B. 《望庐山瀑布》', 'C. 《将进酒》', 'D. 《春晓》'], ans: 0 },
-    { q: '"烽火连三月，家书抵万金"出自杜甫的？', opts: ['A. 《望岳》', 'B. 《春望》', 'C. 《茅屋为秋风所破歌》', 'D. 《登高》'], ans: 1 },
-    { q: '《水浒传》中"及时雨"指的是？', opts: ['A. 武松', 'B. 林冲', 'C. 宋江', 'D. 鲁智深'], ans: 2 },
-  ],
-  '英语': [
-    { q: '"I have been studying for 3 hours." 用的是什么时态？', opts: ['A. 一般过去时', 'B. 过去进行时', 'C. 现在完成进行时', 'D. 将来完成时'], ans: 2 },
-    { q: 'The synonym of "happy" is?', opts: ['A. sad', 'B. angry', 'C. joyful', 'D. tired'], ans: 2 },
-    { q: '"She ___ to school every day." 空格处应填？', opts: ['A. go', 'B. goes', 'C. going', 'D. gone'], ans: 1 },
-    { q: '"I ___ my homework before dinner." 空格处应填？', opts: ['A. finish', 'B. finished', 'C. had finished', 'D. will finish'], ans: 2 },
-    { q: 'Which word means "important"?', opts: ['A. trivial', 'B. crucial', 'C. minor', 'D. slight'], ans: 1 },
-    { q: 'The antonym of "difficult" is?', opts: ['A. easy', 'B. hard', 'C. tough', 'D. complex'], ans: 0 },
-    { q: '"She is taller ___ her sister." 空格处应填？', opts: ['A. than', 'B. then', 'C. as', 'D. of'], ans: 0 },
-    { q: 'Which is the correct plural of "child"?', opts: ['A. childs', 'B. childes', 'C. children', 'D. child'], ans: 2 },
-    { q: '"I ___ to Beijing last year." 空格处应填？', opts: ['A. go', 'B. goes', 'C. going', 'D. went'], ans: 3 },
-    { q: 'The word "enormous" means?', opts: ['A. tiny', 'B. average', 'C. huge', 'D. narrow'], ans: 2 },
-  ],
-  '物理': [
-    { q: '牛顿第一定律又称为什么？', opts: ['A. 能量守恒定律', 'B. 万有引力定律', 'C. 惯性定律', 'D. 胡克定律'], ans: 2 },
-    { q: '重力加速度 g 的通常取值约为？', opts: ['A. 10 m/s²', 'B. 9.8 m/s²', 'C. 8 m/s²', 'D. 1 m/s²'], ans: 1 },
-    { q: '光在真空中的速度约为？', opts: ['A. 3×10⁶ m/s', 'B. 3×10⁸ m/s', 'C. 3×10¹⁰ m/s', 'D. 3×10⁴ m/s'], ans: 1 },
-    { q: '声音不能在以下哪种介质中传播？', opts: ['A. 空气', 'B. 水', 'C. 钢铁', 'D. 真空'], ans: 3 },
-    { q: '电流 I=2A，电压 U=10V，则功率 P = ?', opts: ['A. 5 W', 'B. 12 W', 'C. 20 W', 'D. 8 W'], ans: 2 },
-    { q: '以下哪种波不是机械波？', opts: ['A. 声波', 'B. 水波', 'C. 光波', 'D. 地震波'], ans: 2 },
-    { q: '物体做匀速直线运动，合力情况是？', opts: ['A. 合力不为零', 'B. 合力为零', 'C. 不受任何力', 'D. 只受重力'], ans: 1 },
-    { q: '"焦耳（J）"是哪个物理量的单位？', opts: ['A. 力', 'B. 功或能量', 'C. 速度', 'D. 加速度'], ans: 1 },
-    { q: '凸透镜对光线的作用是？', opts: ['A. 发散', 'B. 完全反射', 'C. 会聚', 'D. 不改变方向'], ans: 2 },
-    { q: '汽车刹车后乘客向前倾，原因是？', opts: ['A. 受到向前的力', 'B. 惯性', 'C. 摩擦力消失', 'D. 重力变大'], ans: 1 },
-  ],
-  '化学': [
-    { q: '水的化学式是？', opts: ['A. H₂O₂', 'B. CO₂', 'C. H₂O', 'D. HO'], ans: 2 },
-    { q: '元素周期表中原子序数最小的元素是？', opts: ['A. 氦', 'B. 锂', 'C. 氢', 'D. 碳'], ans: 2 },
-    { q: '下列哪种物质是氧化物？', opts: ['A. NaCl', 'B. H₂O', 'C. O₂', 'D. NaOH'], ans: 1 },
-    { q: '酸的 pH 值范围是？', opts: ['A. pH = 7', 'B. pH > 7', 'C. pH < 7', 'D. 任意值'], ans: 2 },
-    { q: '铁的化学符号是？', opts: ['A. Al', 'B. Fe', 'C. Cu', 'D. Ag'], ans: 1 },
-    { q: '下列哪种变化是化学变化？', opts: ['A. 水蒸发', 'B. 铁生锈', 'C. 冰融化', 'D. 玻璃破碎'], ans: 1 },
-    { q: '碳酸钙（CaCO₃）的俗名是？', opts: ['A. 食盐', 'B. 纯碱', 'C. 石灰石', 'D. 烧碱'], ans: 2 },
-    { q: '中性原子中，核外电子数等于？', opts: ['A. 中子数', 'B. 质量数', 'C. 质子数', 'D. 质量数的一半'], ans: 2 },
-    { q: '有机物中一定含有的元素是？', opts: ['A. 氧', 'B. 氮', 'C. 碳', 'D. 氢'], ans: 2 },
-    { q: '金刚石与石墨物理性质差异大，原因是？', opts: ['A. 碳原子个数不同', 'B. 碳原子排列方式不同', 'C. 相对原子质量不同', 'D. 化学性质不同'], ans: 1 },
-  ],
-  '生物': [
-    { q: '细胞的"控制中心"是？', opts: ['A. 线粒体', 'B. 核糖体', 'C. 细胞核', 'D. 细胞膜'], ans: 2 },
-    { q: '植物光合作用的场所是？', opts: ['A. 线粒体', 'B. 叶绿体', 'C. 核糖体', 'D. 高尔基体'], ans: 1 },
-    { q: 'DNA 的全称是？', opts: ['A. 核糖核酸', 'B. 脱氧核糖核酸', 'C. 氨基酸链', 'D. 多糖'], ans: 1 },
-    { q: '人体最大的器官是？', opts: ['A. 肝脏', 'B. 肺', 'C. 皮肤', 'D. 心脏'], ans: 2 },
-    { q: '人体能量的主要来源是？', opts: ['A. 蛋白质', 'B. 脂肪', 'C. 糖类', 'D. 维生素'], ans: 2 },
-    { q: '遗传的基本单位是？', opts: ['A. 细胞', 'B. 染色体', 'C. 基因', 'D. DNA'], ans: 2 },
-    { q: '植物细胞与动物细胞最主要的区别是植物细胞有？', opts: ['A. 核糖体', 'B. 细胞核', 'C. 细胞壁和叶绿体', 'D. 线粒体'], ans: 2 },
-    { q: '神经调节的基本单位是？', opts: ['A. 脑', 'B. 脊髓', 'C. 突触', 'D. 神经元'], ans: 3 },
-    { q: '蛋白质的合成场所是？', opts: ['A. 线粒体', 'B. 细胞核', 'C. 核糖体', 'D. 叶绿体'], ans: 2 },
-    { q: '有丝分裂的意义是？', opts: ['A. 减少染色体数目', 'B. 产生配子', 'C. 保持亲子代染色体数目不变', 'D. 促进基因突变'], ans: 2 },
-  ],
-  '历史': [
-    { q: '中国历史上第一个王朝是？', opts: ['A. 商', 'B. 夏', 'C. 周', 'D. 秦'], ans: 1 },
-    { q: '秦始皇统一六国的年份是？', opts: ['A. 公元前481年', 'B. 公元前221年', 'C. 公元前206年', 'D. 公元前100年'], ans: 1 },
-    { q: '"仁"是哪位思想家的核心主张？', opts: ['A. 老子', 'B. 孟子', 'C. 孔子', 'D. 墨子'], ans: 2 },
-    { q: '古代丝绸之路的起点城市是？', opts: ['A. 南京', 'B. 洛阳', 'C. 长安（西安）', 'D. 北京'], ans: 2 },
-    { q: '中国四大发明不包括？', opts: ['A. 火药', 'B. 指南针', 'C. 望远镜', 'D. 印刷术'], ans: 2 },
-    { q: '鸦片战争爆发于哪一年？', opts: ['A. 1800年', 'B. 1840年', 'C. 1900年', 'D. 1860年'], ans: 1 },
-    { q: '"五四运动"发生于哪一年？', opts: ['A. 1911年', 'B. 1919年', 'C. 1921年', 'D. 1927年'], ans: 1 },
-    { q: '中华人民共和国成立于？', opts: ['A. 1945年', 'B. 1949年', 'C. 1950年', 'D. 1956年'], ans: 1 },
-    { q: '法国大革命爆发于哪一年？', opts: ['A. 1776年', 'B. 1789年', 'C. 1800年', 'D. 1815年'], ans: 1 },
-    { q: '"贞观之治"是哪位皇帝在位时期的盛世？', opts: ['A. 汉武帝', 'B. 唐太宗', 'C. 宋太祖', 'D. 明成祖'], ans: 1 },
-  ],
-  '地理': [
-    { q: '世界上面积最大的洲是？', opts: ['A. 非洲', 'B. 北美洲', 'C. 亚洲', 'D. 南极洲'], ans: 2 },
-    { q: '被称为中国"母亲河"的是？', opts: ['A. 长江', 'B. 黄河', 'C. 珠江', 'D. 淮河'], ans: 1 },
-    { q: '地球自转的方向是？', opts: ['A. 自东向西', 'B. 自西向东', 'C. 自南向北', 'D. 自北向南'], ans: 1 },
-    { q: '北极圈以内地区在夏至日会出现？', opts: ['A. 极夜', 'B. 极昼', 'C. 日食', 'D. 月食'], ans: 1 },
-    { q: '世界上最长的河流是？', opts: ['A. 亚马孙河', 'B. 长江', 'C. 密西西比河', 'D. 尼罗河'], ans: 3 },
-    { q: '我国地势总体特征是？', opts: ['A. 东高西低', 'B. 西高东低', 'C. 南高北低', 'D. 四周高中间低'], ans: 1 },
-    { q: '以下哪个城市是中国的直辖市？', opts: ['A. 广州', 'B. 成都', 'C. 重庆', 'D. 武汉'], ans: 2 },
-    { q: '季风气候主要受什么影响？', opts: ['A. 洋流', 'B. 地形阻隔', 'C. 海陆热力差异', 'D. 纬度位置'], ans: 2 },
-    { q: '煤、石油、天然气都属于？', opts: ['A. 可再生能源', 'B. 化石燃料', 'C. 新能源', 'D. 核能'], ans: 1 },
-    { q: '地球上最大的大洋是？', opts: ['A. 大西洋', 'B. 印度洋', 'C. 太平洋', 'D. 北冰洋'], ans: 2 },
-  ],
-  '政治': [
-    { q: '在政治经济学中，商品价格的决定因素是？', opts: ['A. 供求关系', 'B. 商品的价值', 'C. 政府规定', 'D. 生产成本'], ans: 1 },
-    { q: '下列说法符合唯物主义观点的是？', opts: ['A. 物质由意识决定', 'B. 意识是第一性的', 'C. 物质是客观存在的', 'D. 神创造了世界'], ans: 2 },
-    { q: '商品的两个基本属性是？', opts: ['A. 价格和价值', 'B. 使用价值和价值', 'C. 质量和数量', 'D. 供给和需求'], ans: 1 },
-    { q: '"冰冻三尺非一日之寒"体现了哪个哲学原理？', opts: ['A. 对立统一', 'B. 量变引起质变', 'C. 事物是运动的', 'D. 矛盾的普遍性'], ans: 1 },
-    { q: '市场经济中，资源配置的主要手段是？', opts: ['A. 政府计划', 'B. 行政命令', 'C. 价格机制', 'D. 道德约束'], ans: 2 },
-    { q: '事物之间的联系是？', opts: ['A. 任意的', 'B. 主观创造的', 'C. 客观的、有条件的', 'D. 绝对不变的'], ans: 2 },
-    { q: '通货膨胀时，货币的购买力会？', opts: ['A. 上升', 'B. 不变', 'C. 下降', 'D. 先升后降'], ans: 2 },
-    { q: '哲学中"矛盾"是指？', opts: ['A. 战争冲突', 'B. 思维混乱', 'C. 观点对立', 'D. 事物内部或事物之间的对立统一关系'], ans: 3 },
-    { q: 'GDP 是指？', opts: ['A. 国内生产总值', 'B. 国民总收入', 'C. 居民消费价格指数', 'D. 外汇储备总量'], ans: 0 },
-    { q: '"实践出真知"说明？', opts: ['A. 实践和认识无关', 'B. 认识决定实践', 'C. 实践是认识的基础和来源', 'D. 只有实践没有认识'], ans: 2 },
-  ],
-}
+const SUBJECTS         = ['数学','语文','英语','物理','化学','生物','历史','地理','政治']
+const CORE_SUBJECTS    = ['数学','语文','英语']
+const ELECTIVE_SUBJECTS = ['物理','化学','生物','历史','政治','地理']
 
 // ─── 运行时状态 ─────────────────────────────────────────────
 
 let player    = {}
 let relations = {}
 let currentPage = 'home'
-let currentQuiz = null
+let currentQuiz     = null
+let currentExam     = null
+let currentGaokao   = null
 let currentSocialTab = 'teachers'
+let _quizTimer      = null
+
+// 标签抽取临时状态
+let _pendingTags    = []
+let _tagRerollUsed  = false
+
+// ─── 标签辅助 ────────────────────────────────────────────────
+
+function hasTag(id) { return (player.tags || []).includes(id) }
+
+function getTagObj(id) {
+  for (const pool of Object.values(TAG_POOL)) {
+    const t = pool.find(x => x.id === id)
+    if (t) return t
+  }
+  return null
+}
+
+function getTagCategory(id) {
+  for (const [cat, pool] of Object.entries(TAG_POOL)) {
+    if (pool.some(x => x.id === id)) return cat
+  }
+  return ''
+}
 
 // ─── 初始化 ─────────────────────────────────────────────────
 
 function init() {
   loadState()
-  // 如果是全新游戏或月份未开始，自动进入当月
+  showTitleScreen()
+}
+
+// ─── 标题屏幕 ────────────────────────────────────────────────
+
+function showTitleScreen() {
+  const ts = document.getElementById('title-screen')
+  ts.classList.remove('hidden')
+  const hasExisting = player.tags && player.tags.length > 0
+  document.getElementById('title-inner').innerHTML = `
+    <div class="title-school">水 衡 高 中</div>
+    <div class="title-main">模 拟 器</div>
+    <div class="title-start" onclick="handleTitleStart()">${hasExisting ? '继 续 游 戏' : '开 始 游 戏'}</div>
+    ${hasExisting ? '<div class="title-hint">已有存档，点击继续</div>' : '<div class="title-hint">点击开始你的高中旅程</div>'}
+  `
+}
+
+function handleTitleStart() {
+  if (player.tags && player.tags.length > 0) {
+    if (!player.placementDone) {
+      showPlacementExam()
+    } else {
+      enterGame()
+    }
+  } else {
+    showTagSelection()
+  }
+}
+
+function enterGame() {
+  document.getElementById('title-screen').classList.add('hidden')
   if (!player.monthStarted && player.month <= TOTAL_MONTHS) {
     autoStartMonth()
   }
   renderStatusBar()
   renderEnergyBar()
-  switchPage('home')
+  if (!player.eventShown && player.month <= TOTAL_MONTHS) {
+    showMonthlyEventPopups(() => switchPage('home'))
+  } else {
+    switchPage('home')
+  }
+}
+
+// ─── 月度事件弹窗链 ──────────────────────────────────────────
+
+let _choicePopupCb = null
+
+function showStudyEventPopup(callback) {
+  const m = player.month
+  let title, text, effect
+
+  if (m >= 30) {
+    title = '📝 二轮复习'
+    text = '高三下学期开始，进入二轮复习阶段，针对薄弱知识点专项突破，冲刺高考。'
+    effect = { effort: -15, health: -5, mental: -5 }
+  } else if (m >= 21) {
+    title = '📝 一轮复习'
+    text = '高考备考正式启动，课程转入全面复习，系统梳理各科知识，打牢基础。'
+    effect = { effort: -15 }
+  } else {
+    title = '📖 学习新知识'
+    text = '新的一月开始了，老师讲授了大量新知识点，课业负担加重，需要花时间消化吸收。'
+    effect = { learning: -15, effort: -15 }
+  }
+
+  applyChanges(effect)
+  saveState()
+
+  const effectTagsHtml = Object.entries(effect).map(([k, v]) => {
+    const label = STAT_LABELS[k] ?? k
+    return `<span class="effect-tag ${v > 0 ? 'effect-tag-pos' : 'effect-tag-neg'}">${label} ${v > 0 ? '+' : ''}${v}</span>`
+  }).join('')
+
+  showModal(`
+    <div class="modal-title">${title}</div>
+    <div class="event-box" style="margin-bottom:10px">${text}</div>
+    <div class="effect-tags">${effectTagsHtml}</div>
+  `, callback)
+}
+
+function showMonthlyEventPopups(callback) {
+  player.eventShown = true
+  saveState()
+  showStudyEventPopup(() => {
+    const ev = player.currentEvent
+    const afterEvents = () => {
+      if (player.month === 16 && !player.profExamDone && player.selectedSubjects) {
+        showProfExamIntroPopup()
+      } else {
+        callback()
+      }
+    }
+    if (!ev) { afterEvents(); return }
+    showRandomEventPopup(() => {
+      if (player.currentChoiceEvent && !player.choiceEventDone) {
+        showChoiceEventPopup(afterEvents)
+      } else {
+        afterEvents()
+      }
+    })
+  })
+}
+
+function showRandomEventPopup(callback) {
+  const ev   = player.currentEvent
+  const info = getMonthInfo(player.month)
+  const effectTagsHtml = Object.entries(ev.effect || {}).map(([k, v]) => {
+    const label = STAT_LABELS[k] ?? k
+    return `<span class="effect-tag ${v > 0 ? 'effect-tag-pos' : 'effect-tag-neg'}">${label} ${v > 0 ? '+' : ''}${v}</span>`
+  }).join('')
+  showModal(`
+    <div class="modal-title">📅 ${info.grade} ${info.month}月 · 本月事件</div>
+    ${ev.name ? `<div class="event-name-tag">【${ev.name}】</div>` : ''}
+    <div class="event-box" style="margin-bottom:10px">${ev.text}</div>
+    <div class="effect-tags">${effectTagsHtml}</div>
+  `, callback)
+}
+
+function showChoiceEventPopup(callback) {
+  const ev = player.currentChoiceEvent
+  _choicePopupCb = callback
+  const btnsHtml = ev.choices.map((c, i) =>
+    `<button class="choice-btn" onclick="handleChoicePopup(${i})">${c.label}</button>`
+  ).join('')
+  showModal(`
+    <div class="modal-title">⚡ 本月抉择</div>
+    <div class="choice-event-text">${ev.text}</div>
+    <div class="choice-btns">${btnsHtml}</div>
+  `, null, true, true)
+}
+
+function handleChoicePopup(index) {
+  const ev = player.currentChoiceEvent
+  if (!ev) return
+  const choice = ev.choices[index]
+  player.choiceEventDone  = true
+  player.choiceEventChosen = index
+  saveState()
+  applyChanges(choice.effect)
+
+  const effectRows = Object.entries(choice.effect).map(([k, v]) => {
+    const label = STAT_LABELS[k] ?? k
+    return `<div class="modal-row"><span>${label}</span><span class="${v >= 0 ? 'chg-pos' : 'chg-neg'}">${v >= 0 ? '+' : ''}${v}</span></div>`
+  }).join('')
+
+  const cb = _choicePopupCb; _choicePopupCb = null
+  // Force-close the noDismiss modal first, then show result
+  document.getElementById('modal-overlay').classList.add('hidden')
+  _modalNoDismiss = false
+  _modalCb = null
+
+  showModal(`
+    <div class="modal-title">✓ 你选择了：${choice.label}</div>
+    <div class="choice-result-box" style="margin-bottom:12px">${choice.desc}</div>
+    <hr class="modal-divider">
+    ${effectRows}
+  `, cb)
+}
+
+// ─── 会考强制弹窗 ──────────────────────────────────────────────
+
+function showProfExamIntroPopup() {
+  if (!player.selectedSubjects) return
+  const subjects = ELECTIVE_SUBJECTS.filter(s => !player.selectedSubjects.includes(s))
+  showModal(`
+    <div class="modal-title">📋 高二会考</div>
+    <div class="event-box" style="margin-bottom:12px">
+      高二学业水平测试正式开始。本次考察文理分科中未选择的三科，
+      成绩将影响心理健康，不计入高考总分。
+    </div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">
+      考察科目：${subjects.join(' · ')}
+    </div>
+  `, () => {
+    startProficiencyExam()
+  }, false, true)
+}
+
+// ─── 分科事件 ────────────────────────────────────────────────
+
+let _subjectSelCb      = null
+let _subjectSelPending = []
+
+function showSubjectSelection(callback) {
+  _subjectSelCb      = callback
+  _subjectSelPending = []
+  renderSubjectSelModal()
+}
+
+function renderSubjectSelModal() {
+  const sel = _subjectSelPending
+  const btnsHtml = ELECTIVE_SUBJECTS.map(s =>
+    `<button class="subject-sel-btn ${sel.includes(s) ? 'active' : ''}" onclick="toggleSubjectSel('${s}')">${s}</button>`
+  ).join('')
+  const canConfirm = sel.length === 3
+  showModal(`
+    <div class="modal-title">📚 文理分科</div>
+    <div class="event-box" style="margin-bottom:14px">
+      高考需要进行选科，请从以下六科中任选 <strong>三科</strong>。<br>
+      <span style="font-size:12px;color:var(--text-muted)">之后刷题只出现所选科目和语文数学英语。</span>
+    </div>
+    <div class="subject-sel-grid">${btnsHtml}</div>
+    <div style="text-align:center;font-size:12px;color:var(--text-muted);margin:8px 0">
+      已选 ${sel.length} / 3 科
+    </div>
+    <button class="btn btn-primary full-width" ${canConfirm ? '' : 'disabled'} onclick="confirmSubjectSel()">
+      ${canConfirm ? '确认选科' : '请选择三科'}
+    </button>
+  `, null, true, true)
+}
+
+function toggleSubjectSel(subject) {
+  const idx = _subjectSelPending.indexOf(subject)
+  if (idx >= 0) {
+    _subjectSelPending.splice(idx, 1)
+  } else if (_subjectSelPending.length < 3) {
+    _subjectSelPending.push(subject)
+  }
+  renderSubjectSelModal()
+}
+
+function confirmSubjectSel() {
+  if (_subjectSelPending.length !== 3) return
+  player.selectedSubjects = [...CORE_SUBJECTS, ..._subjectSelPending]
+  saveState()
+  document.getElementById('modal-overlay').classList.add('hidden')
+  _modalNoDismiss = false; _modalCb = null
+  const cb = _subjectSelCb; _subjectSelCb = null
+  cb?.()
+}
+
+// ─── 标签选择 ────────────────────────────────────────────────
+
+function drawTags() {
+  const cats = shuffle(Object.keys(TAG_POOL))
+  return [cats[0], cats[1]].map(cat => {
+    const pool = TAG_POOL[cat]
+    const t = pool[rndInt(pool.length)]
+    return { ...t, category: cat }
+  })
+}
+
+function showTagSelection() {
+  _pendingTags = drawTags()
+  _tagRerollUsed = false
+  renderTagSelectionUI()
+}
+
+function renderTagSelectionUI() {
+  document.getElementById('title-inner').innerHTML = `
+    <div class="tag-sel-title">抽取命运标签</div>
+    <div class="tag-sel-sub">两个标签将伴随你的整个高中生涯</div>
+    <div class="tag-cards-row">
+      ${_pendingTags.map(t => `
+        <div class="tag-card" style="border-color:${t.color}44;background:${t.color}12">
+          <div class="tag-card-icon">${t.icon}</div>
+          <div class="tag-card-name">【${t.name}】</div>
+          <div class="tag-card-desc">${t.desc}</div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="tag-action-row">
+      <button class="tag-btn tag-btn-reroll" onclick="rerollTagsDraw()" ${_tagRerollUsed ? 'disabled' : ''}>
+        ${_tagRerollUsed ? '已用重抽' : '重新抽取'}
+      </button>
+      <button class="tag-btn tag-btn-confirm" onclick="confirmTagsDraw()">确认开始</button>
+    </div>
+    <div class="tag-sel-sub" style="margin-top:14px;margin-bottom:0">共有一次重抽机会</div>
+  `
+}
+
+function rerollTagsDraw() {
+  if (_tagRerollUsed) return
+  _tagRerollUsed = true
+  _pendingTags = drawTags()
+  renderTagSelectionUI()
+}
+
+function confirmTagsDraw() {
+  player.tags = _pendingTags.map(t => t.id)
+  applyInitialTagEffects()
+  saveState()
+  showIntroOverlay()
+}
+
+// ─── 过场界面 ────────────────────────────────────────────────
+
+let _introTimer = null
+
+function showIntroOverlay() {
+  const overlay = document.getElementById('intro-overlay')
+  const textEl  = document.getElementById('intro-text')
+  const hintEl  = document.getElementById('intro-hint')
+  const fullText = '这年秋天，你如愿来到山河省的顶级学府水衡中学，然而迎接你的，首先是一场考试……'
+
+  overlay.classList.add('active')
+  textEl.innerHTML = ''
+  hintEl.className = 'intro-hint'
+
+  let idx = 0
+  let done = false
+
+  function finishTyping() {
+    if (_introTimer) { clearInterval(_introTimer); _introTimer = null }
+    textEl.textContent = fullText
+    done = true
+    hintEl.classList.add('visible')
+    setTimeout(() => {
+      if (!done) return
+      hintEl.classList.remove('visible')
+      hintEl.style.opacity = '1'
+      hintEl.classList.add('pulsing')
+    }, 800)
+  }
+
+  _introTimer = setInterval(() => {
+    idx++
+    textEl.innerHTML = fullText.slice(0, idx) + '<span class="intro-cursor"></span>'
+    if (idx >= fullText.length) finishTyping()
+  }, 72)
+
+  overlay.onclick = () => {
+    if (!done) {
+      finishTyping()
+    } else {
+      overlay.classList.remove('active')
+      showPlacementExam()
+    }
+  }
+}
+
+function applyInitialTagEffects() {
+  if (hasTag('free')) {
+    player.health = 100
+    player.mental = 100
+  }
+}
+
+// ─── 分班考试 ────────────────────────────────────────────────
+
+const PLACEMENT_QUESTIONS = [
+  {
+    q: '"水皆缥碧，千丈见底。游鱼细石，直视无碍。"出自哪篇文言文？',
+    opts: ['A.《与朱元思书》', 'B.《小石潭记》', 'C.《醉翁亭记》', 'D.《答谢中书书》'],
+    ans: 0,
+  },
+  {
+    q: '下列句子中，没有语病的一项是（　）',
+    opts: ['A. 通过阅读经典，使我们不仅积累了素材，还提升了语文素养', 'B. 能否坚持体育锻炼，是保持身体健康、增强免疫力的关键因素', 'C. 同学们聚精会神地注视和记录着老师在实验课上的每一个步骤', 'D. 传承中华优秀传统文化，是我们青少年义不容辞的责任'],
+    ans: 3,
+  },
+  {
+    q: '下列关于函数概念的判断，正确的是（　）',
+    opts: ['A. y²=x 中，y 是 x 的函数', 'B. 函数中，一个 x 值只能对应一个 y 值', 'C. 正比例函数是特殊的一次函数', 'D. 一次函数一定是正比例函数'],
+    ans: 2,
+  },
+  {
+    q: '下列关于图形性质的说法，错误的是（　）',
+    opts: ['A. 平行四边形对边平行且相等', 'B. 矩形的对角线互相垂直', 'C. 菱形的四条边都相等', 'D. 正方形既是矩形又是菱形'],
+    ans: 1,
+  },
+  {
+    q: '—I\'m afraid I can\'t pass the math exam tomorrow. —______! You\'ve studied so hard, and you will make it.',
+    opts: ['A. Bad luck', 'B. Don\'t worry', 'C. That\'s right', 'D. Congratulations'],
+    ans: 1,
+  },
+  {
+    q: 'We should try our best ______ English well, because it\'s very important ______ us.',
+    opts: ['A. learn; for', 'B. to learn; for', 'C. learning; to', 'D. to learn; to'],
+    ans: 1,
+  },
+]
+
+let _placementAnswers = []
+
+function showPlacementExam() {
+  document.getElementById('title-screen').classList.add('hidden')
+  document.getElementById('status-bar').classList.add('hidden')
+  document.getElementById('energy-bar').classList.add('hidden')
+  document.getElementById('bottom-nav').classList.add('hidden')
+  _placementAnswers = new Array(PLACEMENT_QUESTIONS.length).fill(null)
+  renderPlacementExam()
+}
+
+function renderPlacementExam() {
+  const content = document.getElementById('content')
+  const answered = _placementAnswers.filter(a => a !== null).length
+  const total = PLACEMENT_QUESTIONS.length
+
+  const questionsHtml = PLACEMENT_QUESTIONS.map((q, qi) => `
+    <div class="exam-q-block">
+      <div class="exam-q-meta">
+        <span class="exam-q-num">${qi + 1}</span>
+      </div>
+      <div class="exam-q-text">${q.q}</div>
+      <div class="exam-q-opts">
+        ${q.opts.map((opt, oi) => `
+          <label class="exam-opt ${_placementAnswers[qi] === oi ? 'chosen' : ''}" onclick="setPlacementAnswer(${qi},${oi})">
+            ${opt}
+          </label>
+        `).join('')}
+      </div>
+    </div>
+  `).join('')
+
+  content.innerHTML = `
+    <div class="exam-paper">
+      <div class="exam-paper-head">
+        <div class="exam-paper-school">水衡高中</div>
+        <div class="exam-paper-title">新生入学分班考试</div>
+        <div class="exam-paper-info">共 ${total} 题 · 单项选择</div>
+      </div>
+      <div class="exam-progress">
+        <div class="exam-progress-fill" style="width:${(answered / total * 100).toFixed(0)}%"></div>
+      </div>
+      <div class="exam-paper-body">${questionsHtml}</div>
+      <div class="exam-submit-row">
+        <span class="exam-submit-count">${answered} / ${total} 已作答</span>
+        <button class="btn btn-primary" onclick="submitPlacementExam()" ${answered < total ? 'disabled' : ''}>提交试卷</button>
+      </div>
+    </div>
+  `
+}
+
+function setPlacementAnswer(qi, oi) {
+  _placementAnswers[qi] = oi
+  renderPlacementExam()
+}
+
+function submitPlacementExam() {
+  const correct = _placementAnswers.reduce((acc, ans, i) => acc + (ans === PLACEMENT_QUESTIONS[i].ans ? 1 : 0), 0)
+  let classRoom, classIcon
+  if (correct <= 2) { classRoom = '普通班'; classIcon = '📝' }
+  else if (correct <= 4) { classRoom = '重点班'; classIcon = '⭐' }
+  else { classRoom = '实验班'; classIcon = '🔬' }
+
+  player.classRoom = classRoom
+  player.placementDone = true
+  saveState()
+
+  document.getElementById('status-bar').classList.remove('hidden')
+  document.getElementById('energy-bar').classList.remove('hidden')
+  document.getElementById('bottom-nav').classList.remove('hidden')
+
+  showModal(`
+    <div style="text-align:center">
+      <div style="font-size:2.4rem;margin-bottom:.5rem">${classIcon}</div>
+      <div style="font-size:1.2rem;font-weight:700;margin-bottom:.5rem">分班结果揭晓</div>
+      <div style="color:var(--text-secondary);margin-bottom:1rem">答对 ${correct} / ${PLACEMENT_QUESTIONS.length} 题</div>
+      <div style="font-size:1.5rem;font-weight:700;color:var(--accent)">你被分配到了</div>
+      <div style="font-size:2rem;font-weight:700;margin:.4rem 0">${classRoom}</div>
+      <div style="color:var(--text-secondary);font-size:.9rem;margin-top:.5rem">祝你高中三年一切顺利！</div>
+    </div>
+  `, () => {
+    showMilitaryTrainingEvent()
+  })
+}
+
+// ─── 军训事件 ────────────────────────────────────────────────
+
+function showMilitaryTrainingEvent() {
+  showModal(`
+    <div style="text-align:center;margin-bottom:1rem">
+      <div style="font-size:2rem;margin-bottom:.4rem">🪖</div>
+      <div style="font-size:1.1rem;font-weight:700;margin-bottom:.5rem">军训汇演</div>
+      <div style="color:var(--text-secondary);font-size:.9rem;line-height:1.6;margin-bottom:1.2rem">
+        军训进入最后一天，学校要举行汇演。教官问你是否愿意参加展示项目，你想了想……
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:.6rem">
+      <button class="btn full-width" onclick="chooseMilitaryOption(0)">🚶 行列式展示</button>
+      <button class="btn full-width" onclick="chooseMilitaryOption(1)">🥋 军体拳展示</button>
+      <button class="btn full-width" onclick="chooseMilitaryOption(2)">😌 不参与展示</button>
+    </div>
+  `, null, true, true)
+}
+
+function chooseMilitaryOption(idx) {
+  const options = [
+    { label: '行列式展示', icon: '🚶', desc: '你站在方阵里，步伐整齐，气势十足。教官满意地点头，感觉整个人精气神都提升了不少。', effect: { health: 15 } },
+    { label: '军体拳展示', icon: '🥋', desc: '你在台上打出了一套干净利落的军体拳，同学们在台下喝彩。高强度的练习让你身体有些酸，但内心充实极了。', effect: { health: 5, effort: 10 } },
+    { label: '不参与展示', icon: '😌', desc: '你退到一旁，安静地看着同学们展示。没有那种聚光灯下的紧张，反而觉得轻松自在，心情很平静。', effect: { mental: 15 } },
+  ]
+  const opt = options[idx]
+  applyChanges(opt.effect)
+  saveState()
+
+  const effKeys = { health: '身体', mental: '心理', effort: '努力' }
+  const effDesc = Object.entries(opt.effect).map(([k, v]) => `${effKeys[k] || k} ${v > 0 ? '+' : ''}${v}`).join('　')
+
+  showModal(`
+    <div style="text-align:center">
+      <div style="font-size:2rem;margin-bottom:.4rem">${opt.icon}</div>
+      <div class="event-name-tag" style="margin-bottom:.8rem">【${opt.label}】</div>
+      <div style="color:var(--text-secondary);font-size:.9rem;line-height:1.6;margin-bottom:1rem">${opt.desc}</div>
+      <div style="font-size:.85rem;color:var(--accent);font-weight:600">${effDesc}</div>
+    </div>
+  `, () => {
+    enterGame()
+  })
 }
 
 // ─── 存档 ───────────────────────────────────────────────────
@@ -412,21 +877,52 @@ function applyAffinityEffect(ae) {
 
 // ─── 自动开月 ────────────────────────────────────────────────
 
+function pickMonthlyEvent() {
+  const basePool = player.month >= 25 ? EVENTS_HIGH3 : EVENTS_HIGH1_2
+  if (hasTag('charming') && Math.random() < 0.6) {
+    const pool = basePool.filter(e => !e.affinityEffect || (e.affinityEffect.delta ?? 0) >= 0)
+    if (pool.length) return pool[rndInt(pool.length)]
+  }
+  if (hasTag('awkward') && Math.random() < 0.6) {
+    const pool = basePool.filter(e => e.affinityEffect && (e.affinityEffect.delta ?? 0) < 0)
+    if (pool.length) return pool[rndInt(pool.length)]
+  }
+  return basePool[rndInt(basePool.length)]
+}
+
 function autoStartMonth() {
   if (!player.currentEvent) {
-    player.currentEvent = EVENTS[Math.floor(Math.random() * EVENTS.length)]
+    player.currentEvent = pickMonthlyEvent()
   }
   if (!player.currentChoiceEvent) {
     player.currentChoiceEvent = CHOICE_EVENTS[Math.floor(Math.random() * CHOICE_EVENTS.length)]
     player.choiceEventDone = false
     player.choiceEventChosen = null
   }
-  if (player.currentEvent?.effect) applyChanges(player.currentEvent.effect)
-  if (player.currentEvent?.affinityEffect) applyAffinityEffect(player.currentEvent.affinityEffect)
   player.monthStarted = true
   player.studyCount = 0
-  player.energy = player.maxEnergy ?? 5
+  player.energy = player.maxEnergy ?? 5   // 先重置精力，再应用事件效果（事件可能扣精力）
+
+  if (player.currentEvent?.effect) applyChanges(player.currentEvent.effect)
+  if (player.currentEvent?.affinityEffect) applyAffinityEffect(player.currentEvent.affinityEffect)
+
+  // 精力类标签（在事件应用后再调整）
+  if (hasTag('motor') && Math.random() < 0.3) {
+    player.energy = Math.min(player.maxEnergy ?? 5, player.energy + 1)
+  }
+  if (hasTag('sloth') && Math.random() < 0.3) {
+    player.energy = Math.max(0, player.energy - 1)
+    player.mental = Math.min(100, (player.mental || 0) + 5)
+    player.health = Math.min(100, (player.health || 0) + 5)
+  }
+
+  // 家庭类标签
+  if (hasTag('kpi'))   player.mental = Math.max(0, (player.mental || 0) - 10)
+  if (hasTag('press')) { player.mental = Math.max(0, (player.mental || 0) - 10); player.health = Math.max(0, (player.health || 0) - 10) }
+
+  player.eventShown = false
   saveState()
+  renderStatusBar()
   renderEnergyBar()
 }
 
@@ -453,6 +949,8 @@ function renderEnergyBar() {
     `<div class="energy-dot ${i < cur ? 'full' : 'empty'}"></div>`
   ).join('')
   if (countEl) countEl.textContent = `${cur} / ${max}`
+  const moneyEl = document.getElementById('money-display')
+  if (moneyEl) moneyEl.textContent = player.money ?? 0
 }
 
 function useEnergy() {
@@ -526,16 +1024,23 @@ function getBiasWarnings() {
 
 function applyChanges(changes) {
   Object.entries(changes).forEach(([k, d]) => {
-    if (k in player) player[k] = clamp(player[k] + d)
+    if (k === 'money') {
+      player.money = Math.round((player.money || 0) + d)
+    } else if (k === 'energy') {
+      player.energy = Math.max(0, Math.min(player.maxEnergy ?? 5, Math.round((player.energy || 0) + d)))
+    } else if (k in player) {
+      player[k] = clamp(player[k] + d)
+    }
   })
   renderStatusBar()
+  renderEnergyBar()
   saveState()
 }
 
 // ─── 页面路由 ────────────────────────────────────────────────
 
 function switchPage(page) {
-  if (page !== 'study') currentQuiz = null
+  if (page !== 'study') { currentQuiz = null; clearQuizTimer() }
   currentPage = page
   document.querySelectorAll('.nav-btn').forEach(b =>
     b.classList.toggle('active', b.dataset.page === page)
@@ -704,6 +1209,401 @@ function buildScoreChart(history) {
   `
 }
 
+// ─── 会考 ─────────────────────────────────────────────────────
+
+function buildProfExamCard() {
+  if (player.month !== 16 || player.profExamDone || !player.selectedSubjects) return ''
+  const subjects = ELECTIVE_SUBJECTS.filter(s => !player.selectedSubjects.includes(s))
+  return `
+    <div class="card exam-notice-card" onclick="startProficiencyExam()">
+      <div class="card-label" style="margin-bottom:6px">📋 高二学业水平测试</div>
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:10px;line-height:1.6">
+        本月举行会考，涵盖未选科目。成绩将影响心理状态，但不计入高考。
+      </div>
+      <div style="font-size:12px;color:var(--text-sub);margin-bottom:12px">
+        考察科目：${subjects.join(' · ')}
+      </div>
+      <button class="btn btn-primary full-width">进入会考</button>
+    </div>
+  `
+}
+
+function startProficiencyExam() {
+  if (!player.selectedSubjects) return
+  const subjects = ELECTIVE_SUBJECTS.filter(s => !player.selectedSubjects.includes(s))
+  const questions = []
+  subjects.forEach(subj => {
+    const bank = QUIZ_BANK[subj] || []
+    shuffle([...bank]).slice(0, 3).forEach(q => questions.push({ ...q, subject: subj }))
+  })
+  currentExam = { questions, answers: new Array(questions.length).fill(-1), submitted: false }
+  renderHome()
+}
+
+function renderProfExam() {
+  const c  = document.getElementById('content')
+  const ex = currentExam
+  const answered = ex.answers.filter(a => a >= 0).length
+  const canSubmit = answered === ex.questions.length
+
+  const questionsHtml = ex.questions.map((q, idx) => `
+    <div class="exam-q-block">
+      <div class="exam-q-meta">
+        <span class="exam-q-num">${idx + 1}</span>
+        <span class="exam-q-subj">${q.subject}</span>
+      </div>
+      <div class="exam-q-text">${q.q}</div>
+      <div class="exam-q-opts">
+        ${q.opts.map((opt, i) => `
+          <label class="exam-opt ${ex.answers[idx] === i ? 'chosen' : ''}">
+            <input type="radio" name="eq${idx}" value="${i}" onchange="setExamAnswer(${idx},${i})" ${ex.answers[idx] === i ? 'checked' : ''}>
+            ${opt}
+          </label>
+        `).join('')}
+      </div>
+    </div>
+  `).join('')
+
+  c.innerHTML = `
+    <div class="exam-paper">
+      <div class="exam-paper-head">
+        <div class="exam-paper-school">水衡高中</div>
+        <div class="exam-paper-title">高二学业水平测试（合格考）</div>
+        <div class="exam-paper-info">共 ${ex.questions.length} 题 · 单项选择</div>
+      </div>
+      <div class="exam-paper-body">
+        ${questionsHtml}
+      </div>
+      <div class="exam-submit-row">
+        <span class="exam-submit-count">${answered} / ${ex.questions.length} 已作答</span>
+        <button class="btn btn-primary" ${canSubmit ? '' : 'disabled'} onclick="submitProfExam()">
+          交卷
+        </button>
+      </div>
+    </div>
+  `
+}
+
+function setExamAnswer(idx, choice) {
+  if (!currentExam || currentExam.submitted) return
+  currentExam.answers[idx] = choice
+  renderProfExam()
+}
+
+function submitProfExam() {
+  if (!currentExam || currentExam.submitted) return
+  const ex = currentExam
+  const correct = ex.questions.filter((q, i) => ex.answers[i] === q.ans).length
+  const total   = ex.questions.length  // 9
+
+  let grade, mentalEff, gradeDesc, gradeColor
+  if      (correct >= 7) { grade = 'A'; mentalEff =   8; gradeDesc = '优秀';  gradeColor = '#4caf72' }
+  else if (correct >= 5) { grade = 'B'; mentalEff =   0; gradeDesc = '良好';  gradeColor = '#4d9fd4' }
+  else if (correct >= 3) { grade = 'C'; mentalEff =  -6; gradeDesc = '及格';  gradeColor = '#e09040' }
+  else                   { grade = 'D'; mentalEff = -15; gradeDesc = '不合格'; gradeColor = '#d45555' }
+
+  ex.submitted      = true
+  player.profExamDone = true
+  saveState()
+  if (mentalEff !== 0) applyChanges({ mental: mentalEff })
+
+  showModal(`
+    <div class="modal-title">📋 会考成绩单</div>
+    <div style="text-align:center;padding:16px 0 10px">
+      <div style="font-size:80px;font-weight:900;color:${gradeColor};line-height:1;font-variant-numeric:tabular-nums">${grade}</div>
+      <div style="font-size:13px;color:${gradeColor};font-weight:700;margin-top:6px;letter-spacing:1px">${gradeDesc}</div>
+    </div>
+    <hr class="modal-divider">
+    <div class="modal-row">
+      <span>心理健康</span>
+      <span class="${mentalEff > 0 ? 'chg-pos' : mentalEff < 0 ? 'chg-neg' : ''}">${mentalEff > 0 ? '+' + mentalEff : mentalEff === 0 ? '无变化' : mentalEff}</span>
+    </div>
+  `, () => { currentExam = null; renderHome() })
+}
+
+function showGameOverModal(title, desc) {
+  document.getElementById('content').innerHTML = ''
+  showModal(`
+    <div class="modal-title">${title}</div>
+    <p class="muted tc" style="padding:8px 0 14px;line-height:1.7">${desc}</p>
+    <button class="btn btn-primary full-width" onclick="doResetGame()">重新开始</button>
+  `, null, true, true)
+}
+
+function buildTagsCard() {
+  const tags = (player.tags || []).map(id => getTagObj(id)).filter(Boolean)
+  if (!tags.length) return ''
+  const chips = tags.map(t =>
+    `<span class="player-tag-chip" style="color:${t.color};background:${t.color}18;border-color:${t.color}44">
+      ${t.icon} ${t.name}
+    </span>`
+  ).join('')
+  return `
+    <div class="card">
+      <div class="card-label">我的标签</div>
+      <div class="player-tags-row">${chips}</div>
+    </div>
+  `
+}
+
+// ─── 高考 ──────────────────────────────────────────────────────
+
+const GAOKAO_PERF = {
+  灾难发挥: { delta: -50, color: '#d45555', desc: '考场上突然脑子一片空白，平时会的题也做错了好几道，走出考场时双腿有点发软。' },
+  失常发挥: { delta: -30, color: '#e09040', desc: '临场有些紧张，几道本来有把握的题犯了低级错误，成绩比预期稍低。' },
+  正常发挥: { delta:   0, color: '#4d9fd4', desc: '发挥稳定，基本呈现出了平时的实力水平，没有太多遗憾。' },
+  超常发挥: { delta:  10, color: '#4caf72', desc: '思路格外清晰，还碰到了几道之前专门复习过的题，超水平完成了考试！' },
+}
+
+function startGaokao() {
+  const subjects = player.selectedSubjects || [...CORE_SUBJECTS, ...ELECTIVE_SUBJECTS.slice(0, 3)]
+  const questions = []
+  subjects.forEach(subj => {
+    const bank = QUIZ_BANK[subj] || []
+    shuffle([...bank]).slice(0, 3).forEach(q => questions.push({ ...q, subject: subj }))
+  })
+  currentGaokao = { questions, answers: new Array(questions.length).fill(-1), submitted: false }
+  renderGaokaoExam()
+}
+
+function renderGaokaoExam() {
+  const c  = document.getElementById('content')
+  const ex = currentGaokao
+  const answered = ex.answers.filter(a => a >= 0).length
+  const total = ex.questions.length
+  const canSubmit = answered === total
+
+  const questionsHtml = ex.questions.map((q, idx) => `
+    <div class="exam-q-block">
+      <div class="exam-q-meta">
+        <span class="exam-q-num">${idx + 1}</span>
+        <span class="exam-q-subj">${q.subject}</span>
+      </div>
+      <div class="exam-q-text">${q.q}</div>
+      <div class="exam-q-opts">
+        ${q.opts.map((opt, i) => `
+          <label class="exam-opt ${ex.answers[idx] === i ? 'chosen' : ''}">
+            <input type="radio" name="gq${idx}" value="${i}" onchange="setGaokaoAnswer(${idx},${i})" ${ex.answers[idx] === i ? 'checked' : ''}>
+            ${opt}
+          </label>`).join('')}
+      </div>
+    </div>`).join('')
+
+  c.innerHTML = `
+    <div class="exam-paper">
+      <div class="exam-paper-head">
+        <div class="exam-paper-school">水衡高中</div>
+        <div class="exam-paper-title">普通高等学校招生全国统一考试</div>
+        <div class="exam-paper-info">共 ${total} 题 · 已答 <span id="gk-answered">${answered}</span> 题</div>
+      </div>
+      <div class="exam-progress">
+        <div class="exam-progress-fill" id="gk-progress" style="width:${(answered/total*100).toFixed(0)}%"></div>
+      </div>
+      <div class="exam-paper-body">${questionsHtml}</div>
+      <div class="exam-submit-row">
+        <button class="btn btn-primary full-width" ${canSubmit ? '' : 'disabled'} id="gk-submit" onclick="submitGaokao()">
+          ${canSubmit ? '交卷' : `还有 ${total - answered} 题未作答`}
+        </button>
+      </div>
+    </div>`
+}
+
+function setGaokaoAnswer(idx, choice) {
+  if (!currentGaokao) return
+  currentGaokao.answers[idx] = choice
+  const answered = currentGaokao.answers.filter(a => a >= 0).length
+  const total    = currentGaokao.questions.length
+  const canSubmit = answered === total
+  const el = id => document.getElementById(id)
+  if (el('gk-answered')) el('gk-answered').textContent = answered
+  if (el('gk-progress'))  el('gk-progress').style.width = (answered/total*100).toFixed(0) + '%'
+  const btn = el('gk-submit')
+  if (btn) { btn.disabled = !canSubmit; btn.textContent = canSubmit ? '交卷' : `还有 ${total - answered} 题未作答` }
+  document.querySelectorAll(`[name="gq${idx}"]`).forEach(r =>
+    r.closest('.exam-opt').classList.toggle('chosen', parseInt(r.value) === choice))
+}
+
+function submitGaokao() {
+  if (!currentGaokao) return
+  const ex = currentGaokao
+  const correct = ex.questions.reduce((n, q, i) => n + (ex.answers[i] === q.ans ? 1 : 0), 0)
+  const rawBase  = correct / ex.questions.length * 0.30
+                 + player.learning / 100 * 0.50
+                 + player.mental   / 100 * 0.10
+                 + player.health   / 100 * 0.10
+  const rawScore = Math.round(Math.max(200, Math.min(710, rawBase * 510 + 200)))
+
+  // Draw performance event
+  const r = Math.random()
+  let perfKey
+  if (player.mental >= 80) {
+    perfKey = r < 0.20 ? '失常发挥' : r < 0.80 ? '正常发挥' : '超常发挥'
+  } else {
+    perfKey = r < 0.10 ? '灾难发挥' : r < 0.50 ? '失常发挥' : r < 0.90 ? '正常发挥' : '超常发挥'
+  }
+  const perf = GAOKAO_PERF[perfKey]
+  const finalScore = Math.max(150, Math.min(750, rawScore + perf.delta))
+
+  ex.submitted       = true
+  ex.rawScore        = rawScore
+  ex.perfKey         = perfKey
+  ex.finalScore      = finalScore
+  player.gaokaoResult = { rawScore, perfKey, finalScore }
+  saveState()
+
+  showModal(`
+    <div class="modal-title">🎲 高考发挥</div>
+    <div style="text-align:center;padding:20px 0 14px">
+      <div style="font-size:30px;font-weight:900;color:${perf.color};letter-spacing:2px">${perfKey}</div>
+      <div style="font-size:20px;font-weight:700;color:${perf.color};margin-top:10px">
+        ${perf.delta !== 0 ? (perf.delta > 0 ? '+' : '') + perf.delta + ' 分' : '分数不变'}
+      </div>
+    </div>
+    <div class="event-box">${perf.desc}</div>
+  `, () => renderGaokaoResult())
+}
+
+function renderGaokaoResult() {
+  const c    = document.getElementById('content')
+  const data = currentGaokao?.finalScore ? currentGaokao : player.gaokaoResult
+  if (!data) { c.innerHTML = renderGraduation(); return }
+
+  const { finalScore, rawScore, perfKey } = data
+  const perf = GAOKAO_PERF[perfKey] || GAOKAO_PERF['正常发挥']
+  const tier = getUniversityTier(finalScore)
+  const avg  = player.examHistory.length
+    ? Math.round(player.examHistory.reduce((s, e) => s + e.score, 0) / player.examHistory.length) : 0
+
+  c.innerHTML = `
+    <div class="card gaokao-result-card">
+      <div class="gaokao-result-label">🎓 高考成绩</div>
+      <div class="gaokao-score-big">${finalScore}<span class="gaokao-score-unit">分</span></div>
+      <div class="gaokao-event-tag" style="color:${perf.color};border-color:${perf.color}55;background:${perf.color}12">
+        ${perfKey}${perf.delta !== 0 ? `（${perf.delta > 0 ? '+' : ''}${perf.delta}）` : ''}
+      </div>
+      <hr class="modal-divider" style="margin:18px 0">
+      <div class="gaokao-school-name">${tier.school}</div>
+      <div class="gaokao-tier-badge">${tier.badge}</div>
+      <div class="gaokao-desc">${tier.desc}</div>
+      <button class="btn btn-primary full-width" style="margin-top:16px" onclick="saveResultCard()">📸 保存成绩单</button>
+    </div>
+    <div class="card">
+      <div class="card-label">高中旅程小结</div>
+      <div class="info-row"><span class="muted">最终学习进度</span><span class="info-val">${player.learning}</span></div>
+      <div class="info-row"><span class="muted">最终心理健康</span><span class="info-val">${player.mental}</span></div>
+      <div class="info-row"><span class="muted">最终身体健康</span><span class="info-val">${player.health}</span></div>
+      <div class="info-row"><span class="muted">月考平均分</span><span class="info-val">${avg}</span></div>
+      <div class="info-row"><span class="muted">高考原始分</span><span class="info-val">${rawScore}</span></div>
+    </div>
+    <div class="card">
+      <button class="btn full-width" onclick="resetGame()">重新开始</button>
+    </div>`
+}
+
+function saveResultCard() {
+  const data = currentGaokao?.finalScore ? currentGaokao : player.gaokaoResult
+  if (!data) return
+  const { finalScore, perfKey } = data
+  const perf = GAOKAO_PERF[perfKey] || GAOKAO_PERF['正常发挥']
+  const tier = getUniversityTier(finalScore)
+
+  const dpr = Math.min(window.devicePixelRatio || 1, 2)
+  const W = 540, H = 800
+  const cv = document.createElement('canvas')
+  cv.width  = W * dpr
+  cv.height = H * dpr
+  const ctx = cv.getContext('2d')
+  ctx.scale(dpr, dpr)
+
+  const font = (size, weight) => `${weight || '500'} ${size}px "PingFang SC","Microsoft YaHei",sans-serif`
+
+  // Background
+  ctx.fillStyle = '#f7f4ee'
+  ctx.fillRect(0, 0, W, H)
+  // Top accent
+  ctx.fillStyle = '#3d5a4c'
+  ctx.fillRect(0, 0, W, 8)
+  // Bottom accent
+  ctx.fillStyle = '#3d5a4c'
+  ctx.fillRect(0, H - 8, W, 8)
+
+  ctx.textAlign = 'center'
+
+  // School
+  ctx.fillStyle = '#8a8479'
+  ctx.font = font(13)
+  ctx.fillText('水 衡 高 中', W / 2, 52)
+
+  // Exam title
+  ctx.fillStyle = '#2a2925'
+  ctx.font = font(15, 'bold')
+  ctx.fillText('普通高等学校招生全国统一考试', W / 2, 84)
+
+  // Divider
+  ctx.strokeStyle = '#e2ddd5'; ctx.lineWidth = 1
+  ctx.beginPath(); ctx.moveTo(40, 104); ctx.lineTo(W - 40, 104); ctx.stroke()
+
+  // Score label
+  ctx.fillStyle = '#8a8479'
+  ctx.font = font(13)
+  ctx.fillText('高考成绩', W / 2, 136)
+
+  // Score number
+  ctx.fillStyle = '#3d5a4c'
+  ctx.font = font(88, '900')
+  ctx.fillText(finalScore + ' 分', W / 2, 258)
+
+  // Divider
+  ctx.beginPath(); ctx.moveTo(40, 282); ctx.lineTo(W - 40, 282); ctx.stroke()
+
+  // Performance event
+  ctx.fillStyle = perf.color
+  ctx.font = font(20, 'bold')
+  ctx.fillText(perfKey + (perf.delta !== 0 ? `（${perf.delta > 0 ? '+' : ''}${perf.delta}）` : ''), W / 2, 322)
+
+  // University name
+  ctx.fillStyle = '#2a2925'
+  ctx.font = font(34, 'bold')
+  ctx.fillText(tier.school, W / 2, 388)
+
+  // Badge
+  ctx.fillStyle = '#8a8479'
+  ctx.font = font(14)
+  ctx.fillText(tier.badge, W / 2, 416)
+
+  // Divider
+  ctx.strokeStyle = '#e2ddd5'
+  ctx.beginPath(); ctx.moveTo(40, 436); ctx.lineTo(W - 40, 436); ctx.stroke()
+
+  // Description (wrapped)
+  ctx.fillStyle = '#5a5650'
+  ctx.font = font(13)
+  ctx.textAlign = 'left'
+  const maxW = W - 80, lineH = 24
+  let x0 = 40, y = 464, line = ''
+  for (const ch of tier.desc) {
+    const test = line + ch
+    if (ctx.measureText(test).width > maxW) { ctx.fillText(line, x0, y); line = ch; y += lineH }
+    else line = test
+  }
+  if (line) ctx.fillText(line, x0, y)
+
+  // Footer
+  ctx.textAlign = 'center'
+  ctx.fillStyle = '#b8b3aa'
+  ctx.font = font(11)
+  ctx.fillText('水衡高中模拟器', W / 2, H - 22)
+
+  cv.toBlob(blob => {
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url; a.download = `高考成绩单_${finalScore}分.png`
+    document.body.appendChild(a); a.click()
+    document.body.removeChild(a)
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+  }, 'image/png')
+}
+
 // ─── 主控页面 ────────────────────────────────────────────────
 
 function renderHome() {
@@ -711,12 +1611,33 @@ function renderHome() {
   const done = player.month > TOTAL_MONTHS
 
   if (done) {
+    if (currentGaokao) {
+      if (!currentGaokao.submitted) { renderGaokaoExam(); return }
+      else { renderGaokaoResult(); return }
+    }
+    if (player.gaokaoResult) { renderGaokaoResult(); return }
+    if (player.selectedSubjects) { startGaokao(); return }
     c.innerHTML = renderGraduation()
     return
   }
 
+  if (player.health <= 0) {
+    showGameOverModal('😷 生病休学', '身体健康跌至零点，你不得不休学在家静养，高中旅程就此终止。')
+    return
+  }
+  if (player.mental <= 0) {
+    showGameOverModal('😔 抑郁休学', '心理健康跌至零点，你陷入严重的抑郁状态，不得不暂停学业。')
+    return
+  }
+
+  // 会考答题中
+  if (currentExam && !currentExam.submitted) {
+    renderProfExam()
+    return
+  }
+
   if (!player.currentEvent) {
-    player.currentEvent = EVENTS[Math.floor(Math.random() * EVENTS.length)]
+    player.currentEvent = pickMonthlyEvent()
     saveState()
   }
 
@@ -753,6 +1674,8 @@ function renderHome() {
       ${buildChoiceEventCard(player.currentChoiceEvent)}
     </div>` : ''}
 
+    ${buildProfExamCard()}
+
     <div class="card">
       <button class="btn btn-primary full-width btn-end-month" onclick="endMonth()">
         结束本月
@@ -761,6 +1684,12 @@ function renderHome() {
     </div>
 
     ${scoreHtml}
+
+    ${buildTagsCard()}
+
+    <div style="text-align:center;padding:4px 0 12px">
+      <button class="btn-restart-small" onclick="resetGame()">↺ 重新开始</button>
+    </div>
   `
 }
 
@@ -794,9 +1723,14 @@ function endMonth() {
   const currentMonth = player.month
   const score  = calcExamScore()
   const lgain  = clamp(Math.ceil(player.effort * 0.06 + player.learning * 0.04 + Math.random() * 4) - 2)
+  const effortBonus = player.effort > 80 ? 5 : 0
   const mgain  = player.studyCount >= 2 ? -1 : -4
   const efchg  = player.studyCount >= 1 ? 2 : -2
-  const changes = { learning: lgain, mental: mgain, effort: efchg }
+  const changes = { learning: lgain + effortBonus, mental: mgain, effort: efchg }
+
+  // 零花钱结算
+  const moneyGain = hasTag('poor') ? 0 : hasTag('rich') ? 600 : hasTag('mid') ? 200 : 100
+  player.money = (player.money || 0) + moneyGain
 
   player.examHistory.push({ month: currentMonth, score })
   applyChanges(changes)
@@ -809,6 +1743,7 @@ function endMonth() {
   player.choiceEventChosen = null
   player.studyCount   = 0
   saveState()
+  renderEnergyBar()
 
   // 自动开始新月（包含新月事件效果）
   const isGameOver = player.month > TOTAL_MONTHS
@@ -816,12 +1751,15 @@ function endMonth() {
     autoStartMonth()
   }
 
-  const chgRows = Object.entries(changes).map(([k, v]) =>
-    `<div class="modal-row">
-      <span>${STAT_LABELS[k]}</span>
+  const chgRows = Object.entries(changes).map(([k, v]) => {
+    const bonusNote = k === 'learning' && effortBonus > 0
+      ? ` <span style="font-size:11px;color:var(--text-muted)">(含努力满溢+5)</span>`
+      : ''
+    return `<div class="modal-row">
+      <span>${STAT_LABELS[k]}${bonusNote}</span>
       <span class="${v >= 0 ? 'chg-pos' : 'chg-neg'}">${v >= 0 ? '+' : ''}${v}</span>
     </div>`
-  ).join('')
+  }).join('')
 
   const info = getMonthInfo(currentMonth)
 
@@ -831,25 +1769,52 @@ function endMonth() {
       <span>本月考试成绩</span>
       <span class="info-val">${score} / 750</span>
     </div>
+    <div class="modal-row">
+      <span>零花钱</span>
+      <span class="${moneyGain > 0 ? 'chg-pos' : 'chg-neg'}">${moneyGain > 0 ? '+' : ''}${moneyGain} 💰</span>
+    </div>
     <hr class="modal-divider">
     ${chgRows}
-  `, renderHome)
+  `, () => {
+    if (isGameOver) { startGaokao(); return }
+    // 高一12月结束后触发分科事件
+    if (currentMonth === 4 && !player.selectedSubjects) {
+      showSubjectSelection(() => showMonthlyEventPopups(renderHome))
+    } else {
+      showMonthlyEventPopups(renderHome)
+    }
+  })
 }
 
 function calcExamScore() {
-  const base = player.learning * 4.2 + player.effort * 1.5 + player.mental * 0.5
+  const base = player.learning * 5.25 + player.mental * 1.125 + player.health * 1.125
   const noise = (Math.random() * 80) - 40
   return Math.min(750, Math.max(0, Math.round(base + noise)))
 }
 
 function resetGame() {
-  if (!confirm('确定要重新开始吗？所有进度将丢失。')) return
+  showModal(`
+    <div class="modal-title">⚠️ 重新开始</div>
+    <p class="muted tc" style="padding:4px 0 10px">所有进度将丢失，包括存档和标签，<br>此操作无法撤销。</p>
+    <div style="display:flex;gap:8px">
+      <button class="btn full-width" onclick="closeModal()">取消</button>
+      <button class="btn btn-primary full-width" onclick="doResetGame()">确认重置</button>
+    </div>
+  `, null, true)
+}
+
+function doResetGame() {
+  closeModal()
   player    = { ...DEFAULT_PLAYER }
   relations = deepClone(DEFAULT_RELATIONS)
+  _pendingTags   = []
+  _tagRerollUsed = false
+  currentExam    = null
+  currentGaokao  = null
   saveState()
-  autoStartMonth()
   renderStatusBar()
-  renderHome()
+  renderEnergyBar()
+  showTitleScreen()
 }
 
 // ─── 人际页面 ────────────────────────────────────────────────
@@ -951,7 +1916,8 @@ function interact(personId, action) {
   const person = all.find(p => p.id === personId)
   if (!person) return
 
-  person.affinity = clamp(person.affinity + opt.aff)
+  const affBonus = hasTag('charming') ? 2 : 0
+  person.affinity = clamp(person.affinity + opt.aff + affBonus)
   const justBonded = !person.bonded && person.affinity >= 100
   if (justBonded) { person.bonded = true; person.affinity = 100 }
   applyChanges(opt.eff)
@@ -994,9 +1960,56 @@ function interact(personId, action) {
     ${rows}
     <div class="modal-row">
       <span>与 ${person.name} 好感度</span>
-      <span class="chg-pos">+${opt.aff}</span>
+      <span class="chg-pos">+${opt.aff + affBonus}${affBonus > 0 ? ' 😏' : ''}</span>
     </div>
   `, afterInteract)
+}
+
+// ─── 刷题计时器 ──────────────────────────────────────────────
+
+function clearQuizTimer() {
+  if (_quizTimer) { clearInterval(_quizTimer); _quizTimer = null }
+}
+
+function startQuizTimer() {
+  clearQuizTimer()
+  const TOTAL = 10
+  let left = TOTAL
+
+  const refresh = () => {
+    const numEl = document.getElementById('quiz-timer-num')
+    const barEl = document.getElementById('quiz-timer-bar')
+    if (numEl) {
+      numEl.textContent = left
+      numEl.style.color = left <= 3 ? 'var(--red)' : left <= 5 ? 'var(--orange)' : 'var(--text-muted)'
+    }
+    if (barEl) {
+      barEl.style.width = `${(left / TOTAL) * 100}%`
+      barEl.style.background = left <= 3 ? 'var(--red)' : left <= 5 ? 'var(--orange)' : 'var(--blue)'
+    }
+  }
+
+  refresh()
+  _quizTimer = setInterval(() => {
+    left--
+    refresh()
+    if (left <= 0) { clearQuizTimer(); autoExpireQuiz() }
+  }, 1000)
+}
+
+function autoExpireQuiz() {
+  if (!currentQuiz || currentQuiz.answered) return
+  currentQuiz.answered = true
+  const q = currentQuiz.questions[currentQuiz.current]
+  document.querySelectorAll('.option-btn').forEach((btn, i) => {
+    btn.disabled = true
+    if (i === q.ans) btn.classList.add('correct')
+  })
+  setTimeout(() => {
+    currentQuiz.current++
+    currentQuiz.answered = false
+    renderQuizActive()
+  }, 900)
 }
 
 // ─── 学习页面 ────────────────────────────────────────────────
@@ -1036,8 +2049,9 @@ function renderStudy() {
     ${warningsHtml}
     <div class="card">
       <div class="card-label">选择科目刷题</div>
+      ${player.selectedSubjects ? `<div class="card-sub-label" style="margin-bottom:8px">已选科：${player.selectedSubjects.join(' · ')}</div>` : ''}
       <div class="subject-row">
-        ${SUBJECTS.map(s =>
+        ${(player.selectedSubjects || SUBJECTS).map(s =>
           `<button class="subject-btn" onclick="startQuiz('${s}')"
             ${noEnergy ? 'disabled' : ''}>${s}</button>`
         ).join('')}
@@ -1108,6 +2122,10 @@ function renderQuizActive() {
         <span class="quiz-subject-badge">${qz.subject}</span>
         <span class="quiz-counter">第 ${qz.current + 1} / ${qz.questions.length} 题</span>
       </div>
+      <div class="quiz-timer-wrap">
+        <div class="quiz-timer-track"><div class="quiz-timer-bar" id="quiz-timer-bar"></div></div>
+        <span class="quiz-timer-num" id="quiz-timer-num">10</span>
+      </div>
       <div class="quiz-question">${q.q}</div>
       <div class="quiz-options">
         ${q.opts.map((opt, i) =>
@@ -1119,11 +2137,13 @@ function renderQuizActive() {
       已答对 ${qz.correct} 题
     </div>
   `
+  startQuizTimer()
 }
 
 function answerQuiz(choice) {
   if (!currentQuiz || currentQuiz.answered) return
   currentQuiz.answered = true
+  clearQuizTimer()
 
   const q = currentQuiz.questions[currentQuiz.current]
   const ok = choice === q.ans
@@ -1143,18 +2163,30 @@ function answerQuiz(choice) {
 }
 
 function renderQuizResult() {
+  clearQuizTimer()
   const c  = document.getElementById('content')
   const qz = currentQuiz
   const correct = qz.correct
   const total   = qz.questions.length
 
-  const lgain = Math.ceil(correct * 1.8)
-  const egain = correct >= 4 ? 3 : correct >= 2 ? 1 : -1
+  let lgain = Math.ceil(correct * 1.8)
+  let egain = correct >= 4 ? 3 : correct >= 2 ? 1 : -1
+
+  // 智商类标签
+  const smartBonus = hasTag('smart') ? 2 : 0
+  const slowPenalty = hasTag('slow') ? 2 : 0
+  const slowEffort  = hasTag('slow') ? 4 : 0
+  lgain = Math.max(0, lgain + smartBonus - slowPenalty)
+  egain += slowEffort
 
   const msg = correct === total ? '全对！太厉害了！'
             : correct >= 4     ? '做得不错！'
             : correct >= 2     ? '继续努力！'
             : '需要多加练习哦'
+
+  const tagRows = (smartBonus > 0 ? `<div class="modal-row"><span>🧠 高智商加成</span><span class="chg-pos">+${smartBonus}</span></div>` : '')
+               + (slowPenalty > 0 ? `<div class="modal-row"><span>🐦 笨鸟学习减成</span><span class="chg-neg">−${slowPenalty}</span></div>` : '')
+               + (slowEffort  > 0 ? `<div class="modal-row"><span>🐦 笨鸟努力加成</span><span class="chg-pos">+${slowEffort}</span></div>` : '')
 
   c.innerHTML = `
     <div class="card tc">
@@ -1172,6 +2204,7 @@ function renderQuizResult() {
         <span>努力程度</span>
         <span class="${egain > 0 ? 'chg-pos' : 'chg-neg'}">${egain > 0 ? '+' : ''}${egain}</span>
       </div>
+      ${tagRows}
     </div>
     <button class="btn btn-primary full-width" onclick="finishQuiz()">确认</button>
   `
@@ -1451,23 +2484,27 @@ function closeGame() {
 
 // ─── 弹窗系统 ────────────────────────────────────────────────
 
-let _modalCb = null
+let _modalCb       = null
+let _modalNoDismiss = false
 
-function showModal(html, callback, hideOk = false) {
+function showModal(html, callback, hideOk = false, noDismiss = false) {
   document.getElementById('modal-body').innerHTML = html
   document.getElementById('modal-overlay').classList.remove('hidden')
   document.getElementById('modal-ok').style.display = hideOk ? 'none' : ''
-  _modalCb = callback || null
+  _modalCb        = callback || null
+  _modalNoDismiss = noDismiss
 }
 
 function closeModal() {
   document.getElementById('modal-overlay').classList.add('hidden')
   document.getElementById('modal-ok').style.display = ''
+  _modalNoDismiss = false
   const cb = _modalCb; _modalCb = null
   cb?.()
 }
 
 function handleOverlayClick(e) {
+  if (_modalNoDismiss) return
   if (e.target === document.getElementById('modal-overlay')) closeModal()
 }
 
@@ -1476,6 +2513,7 @@ function handleOverlayClick(e) {
 const STAT_LABELS = {
   health: '身体健康', mental: '心理健康',
   effort: '努力程度', learning: '学习进度',
+  money: '零花钱',  energy: '本月精力',
 }
 
 function clamp(v) { return Math.max(0, Math.min(100, Math.round(v))) }

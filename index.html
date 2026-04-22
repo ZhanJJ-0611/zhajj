@@ -4,9 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>高中模拟器</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+  <!-- 过场界面 -->
+  <div id="intro-overlay">
+    <div class="intro-deco">水 衡</div>
+    <p class="intro-text" id="intro-text"></p>
+    <div class="intro-hint" id="intro-hint">点按以继续</div>
+  </div>
+
+  <!-- 标题 / 标签选择屏幕 -->
+  <div id="title-screen">
+    <div id="title-inner"></div>
+  </div>
 
   <!-- 顶部状态栏 -->
   <header id="status-bar">
@@ -77,6 +91,9 @@
     <span class="energy-label">⚡ 精力</span>
     <div id="energy-dots"></div>
     <span id="energy-count"></span>
+    <span class="energy-money-sep">·</span>
+    <span class="energy-label">💰</span>
+    <span id="money-display">0</span>
   </div>
 
   <!-- 主内容区 -->
@@ -139,6 +156,8 @@
   <script src="swimming.js"></script>
   <script src="breakout.js"></script>
   <script src="skyfight.js"></script>
+  <script src="events.js"></script>
+  <script src="questions.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
