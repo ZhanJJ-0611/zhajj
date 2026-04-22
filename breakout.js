@@ -5,7 +5,7 @@
 
 function startBreakout() {
   if (player.monthStarted && !useEnergy()) return
-  tryInvite('打砖块', () => openBreakout())
+  tryInvite('乒乓球', () => openBreakout())
 }
 
 function openBreakout() {
@@ -15,8 +15,10 @@ function openBreakout() {
   const controls = document.getElementById('snake-controls')
   const ctx      = canvas.getContext('2d')
 
-  document.getElementById('game-title').textContent = '打砖块 🏓'
+  document.getElementById('game-title').textContent = '乒乓球 🏓'
   controls.style.display = ''
+  document.getElementById('dir-up').style.visibility   = 'hidden'
+  document.getElementById('dir-down').style.visibility = 'hidden'
   overlay.classList.remove('hidden')
   infoEl.textContent = '← → 移动挡板   别让球掉下去！'
 
@@ -42,7 +44,7 @@ function openBreakout() {
   // ── 球 ──
   const BALL_R = 5.5
   let bx = W / 2, by = PAD_Y - BALL_R - 1
-  const initSpeed = 3.4
+  const initSpeed = 2.55
   let bdx = initSpeed * 0.55   // 初始向右上方
   let bdy = -initSpeed * 0.835
 
@@ -140,7 +142,7 @@ function openBreakout() {
           // 每消灭 5 块加速一次
           if (broken % 5 === 0) {
             const spd = Math.hypot(bdx, bdy)
-            const newSpd = Math.min(6.8, spd + 0.35)
+            const newSpd = Math.min(5.1, spd + 0.26)
             const ratio  = newSpd / spd
             bdx *= ratio; bdy *= ratio
           }
@@ -292,19 +294,20 @@ function openBreakout() {
 
   function endBreakout() {
     cancelAnimationFrame(raf); raf = null
-    const mg  = Math.min(14, Math.floor(score / 20) + 2)
-    const hg  = Math.min(6,  Math.floor(score / 60) + 1)
+    const MAX_SCORE = 640
+    const hg = Math.round(Math.min(score, MAX_SCORE) / MAX_SCORE * 5)
+    const mg = Math.round(Math.min(score, MAX_SCORE) / MAX_SCORE * 10)
     const win = state === 'win'
-    if (player.monthStarted) applyChanges({ mental: mg + (win ? 5 : 0), health: hg })
+    if (player.monthStarted) applyChanges({ mental: mg, health: hg })
     setTimeout(() => {
       closeGame()
       if (player.monthStarted) showModal(`
-        <div class="modal-title">${win ? '🎉 全部通关！' : '打砖块结束'}</div>
+        <div class="modal-title">${win ? '🎉 全部通关！' : '🏓 乒乓球结束'}</div>
         <div style="font-size:36px;font-weight:800;text-align:center;margin:10px 0">${score}<span style="font-size:14px;font-weight:500;color:var(--text-muted)"> 分</span></div>
-        <div style="text-align:center;margin-bottom:10px;color:var(--text-muted);font-size:13px">消灭了 ${broken} / ${TOTAL} 块砖</div>
+        <div style="text-align:center;margin-bottom:10px;color:var(--text-muted);font-size:13px">消灭了 ${broken} / ${TOTAL} 块</div>
         <hr class="modal-divider">
-        <div class="modal-row"><span>心理健康</span><span class="chg-pos">+${mg + (win ? 5 : 0)}</span></div>
         <div class="modal-row"><span>身体健康</span><span class="chg-pos">+${hg}</span></div>
+        <div class="modal-row"><span>心理健康</span><span class="chg-pos">+${mg}</span></div>
       `)
     }, 600)
   }
@@ -363,6 +366,8 @@ function openBreakout() {
       canvas.removeEventListener('mousemove',   onMouseMove)
       window.setSnakeDir = origSetSnakeDir
       controls.style.display = ''
+      document.getElementById('dir-up').style.visibility   = ''
+      document.getElementById('dir-down').style.visibility = ''
     }
   }
 

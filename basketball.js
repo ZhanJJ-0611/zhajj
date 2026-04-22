@@ -187,11 +187,11 @@ function openBasketball() {
   // ── 逻辑 ──
 
   function calcSuccess() {
-    const da = Math.abs(dk)             // 0=完美方向, 1=最差
-    const pa = Math.abs(pk - 0.5) * 2  // 0=完美力度, 1=最差
-    if (da < 0.3 && pa < 0.3) return Math.random() < 0.85
-    if (da < 0.6 && pa < 0.6) return Math.random() < 0.45
-    return Math.random() < 0.08
+    const dirPos = (dk + 1) / 2        // 0..1 on the direction bar
+    const powPos = 1 - pk              // 0..1 on the power bar
+    const dirGreen = dirPos >= 0.35 && dirPos <= 0.65
+    const powGreen = powPos >= 0.35 && powPos <= 0.65
+    return dirGreen && powGreen
   }
 
   // ── 渲染 ──
@@ -273,17 +273,17 @@ function openBasketball() {
   // ── 结束 ──
 
   function finish() {
-    const mg = Math.min(12, made * 2 + 2)
-    const hg = Math.min(8,  made     + 2)
+    const hg = Math.round(made / TOTAL * 5)
+    const mg = Math.round(made / TOTAL * 5)
     if (player.monthStarted) applyChanges({ mental: mg, health: hg })
     setTimeout(() => {
       closeGame()
       if (player.monthStarted) showModal(`
         <div class="modal-title">🏀 篮球结束</div>
-        <div style="font-size:36px;font-weight:800;text-align:center;margin:10px 0;">${made}<span style="font-size:15px;font-weight:500;color:var(--text-muted)"> / 5 进球</span></div>
+        <div style="font-size:36px;font-weight:800;text-align:center;margin:10px 0;">${made}<span style="font-size:15px;font-weight:500;color:var(--text-muted)"> / ${TOTAL} 进球</span></div>
         <hr class="modal-divider">
-        <div class="modal-row"><span>心理健康</span><span class="chg-pos">+${mg}</span></div>
         <div class="modal-row"><span>身体健康</span><span class="chg-pos">+${hg}</span></div>
+        <div class="modal-row"><span>心理健康</span><span class="chg-pos">+${mg}</span></div>
       `)
     }, 700)
   }

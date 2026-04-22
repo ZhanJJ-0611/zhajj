@@ -16,7 +16,9 @@ function openSwimming() {
   const ctx      = canvas.getContext('2d')
 
   document.getElementById('game-title').textContent = '游泳 🏊'
-  controls.style.display = ''   // 显示方向键（只用左右）
+  controls.style.display = ''
+  document.getElementById('dir-up').style.visibility   = 'hidden'
+  document.getElementById('dir-down').style.visibility = 'hidden'
   overlay.classList.remove('hidden')
   infoEl.textContent = '← → 切换泳道   躲开对面的人   收集 ⭐'
 
@@ -33,7 +35,7 @@ function openSwimming() {
   let entities   = []          // { type:'star'|'obs', lane, y }
   let score      = 0
   let dist       = 0
-  let speed      = 2.0
+  let speed      = 1.5
   let spawnCD    = 55
   let tileOff    = 0
   let frames     = 0
@@ -50,7 +52,7 @@ function openSwimming() {
     dist += speed * 0.09
 
     // 每 300 帧加速一次
-    if (frames % 300 === 0 && speed < 5.5) speed += 0.4
+    if (frames % 300 === 0 && speed < 4.1) speed += 0.3
 
     // 生成实体
     spawnCD--
@@ -267,8 +269,8 @@ function openSwimming() {
 
   function endSwimming() {
     cancelAnimationFrame(raf); raf = null
-    const mg = Math.min(12, score + 2)
-    const hg = Math.min(8,  Math.floor(dist / 25) + 2)
+    const hg = Math.round(Math.min(dist, 2000) / 2000 * 8)
+    const mg = Math.round(Math.min(dist, 2000) / 2000 * 8)
     if (player.monthStarted) applyChanges({ mental: mg, health: hg })
     setTimeout(() => {
       closeGame()
@@ -277,8 +279,8 @@ function openSwimming() {
         <div style="font-size:32px;font-weight:800;text-align:center;margin:8px 0">${Math.floor(dist)}<span style="font-size:14px;font-weight:500;color:var(--text-muted)"> 米</span></div>
         <div style="text-align:center;margin-bottom:10px;color:var(--text-muted);font-size:13px">⭐ 收集了 ${score} 颗星星</div>
         <hr class="modal-divider">
-        <div class="modal-row"><span>心理健康</span><span class="chg-pos">+${mg}</span></div>
         <div class="modal-row"><span>身体健康</span><span class="chg-pos">+${hg}</span></div>
+        <div class="modal-row"><span>心理健康</span><span class="chg-pos">+${mg}</span></div>
       `)
     }, 600)
   }
@@ -327,6 +329,8 @@ function openSwimming() {
       document.removeEventListener('keydown', onKey)
       window.setSnakeDir = origSetSnakeDir
       controls.style.display = ''
+      document.getElementById('dir-up').style.visibility   = ''
+      document.getElementById('dir-down').style.visibility = ''
     }
   }
 

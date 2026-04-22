@@ -32,9 +32,15 @@ const DEFAULT_PLAYER = {
   eventShown: false,
   selectedSubjects: null,
   profExamDone: false,
+  olympiadDone: false,
+  baosong: false,
+  esportsDone: false,
+  weireai: false,
   gaokaoResult: null,
   placementDone: false,
   classRoom: null,
+  activeTeachers: [],
+  activeClassmates: [],
 }
 
 // ─── 标签池 ──────────────────────────────────────────────────
@@ -57,7 +63,7 @@ const TAG_POOL = {
       desc: '每月自动损失 10 点心理健康' },
     { id: 'press', name: '高压锅',   icon: '🫙', color: '#b03020',
       desc: '每月自动损失 10 点心理健康和身体健康' },
-    { id: 'free',  name: '溜达鸡',   icon: '🐓', color: '#4caf72',
+    { id: 'free',  name: '放养溜达鸡', icon: '🐓', color: '#4caf72',
       desc: '获得初始 100 点身体健康和心理健康' },
   ],
   贫富: [
@@ -76,39 +82,15 @@ const TAG_POOL = {
   ],
 }
 
+// 游戏中途解锁的成就标签（不参与初始抽取）
+const EARNED_TAGS = {
+  qiangjiben: { id: 'qiangjiben', name: '强基计划', icon: '🏆', color: '#c9952a',
+    desc: '竞赛中表现优异，高考成绩额外 +40 分' },
+}
+
 const DEFAULT_RELATIONS = {
-  teachers: [
-    {
-      id: 'li', name: '李老师', subject: '数学', trait: '严格', affinity: 50, emoji: '👨‍🏫',
-      desc: '教数学二十年，出了名的严格，但对认真求学的学生格外关照。',
-      bonded: false,
-      specialEvent: '毕业前，李老师特意把他珍藏多年的解题笔记悄悄塞给了你，扉页上写着"好好考"。',
-      specialReward: { learning: 15, effort: 8 },
-    },
-    {
-      id: 'zhang', name: '张老师', subject: '英语', trait: '温和', affinity: 48, emoji: '👩‍🏫',
-      desc: '总是面带微笑，会在课后留下来帮同学答疑，课堂气氛很好，大家都喜欢她。',
-      bonded: false,
-      specialEvent: '张老师推荐你参加校英语演讲比赛，并亲手写了一封热情洋溢的推荐信交给你。',
-      specialReward: { mental: 12, learning: 10 },
-    },
-  ],
-  classmates: [
-    {
-      id: 'wang', name: '小王', trait: '活泼', affinity: 62, emoji: '😄',
-      desc: '班里的开心果，总能在最难熬的备考期带来欢笑，但有时会影响你学习。',
-      bonded: false,
-      specialEvent: '小王把他珍藏的笔记本送给了你，扉页上写着"好兄弟，一起上大学！"。',
-      specialReward: { mental: 15, health: 8 },
-    },
-    {
-      id: 'li_s', name: '小李', trait: '内向', affinity: 40, emoji: '🤓',
-      desc: '成绩稳居全班前三，平时话不多，但愿意和你分享学习心得。',
-      bonded: false,
-      specialEvent: '小李把自己三年整理的错题本悄悄放在你桌上，附了一张便条："别辜负自己，加油。"',
-      specialReward: { learning: 18, effort: 6 },
-    },
-  ],
+  teachers: [],
+  classmates: [],
 }
 
 
@@ -245,16 +227,6 @@ function getUniversityTier(score) {
   return UNIVERSITY_TIERS.find(t => score >= t.min) || UNIVERSITY_TIERS[UNIVERSITY_TIERS.length - 1]
 }
 
-const INTERACT_OPTS = {
-  ask:     { label: '请教问题', desc: '请教了一道难题，老师讲解得很耐心，感觉豁然开朗。',                          eff: { learning: 4, mental: 2 },  aff: 5 },
-  greet:   { label: '礼貌问好', desc: '走廊里遇到，礼貌地打了招呼，老师微笑点头。',                                eff: { mental: 2 },               aff: 3 },
-  consult: { label: '寻求建议', desc: '和老师聊了聊对未来的规划，老师给了一些非常实用的建议，很受用。',            eff: { mental: 5, effort: 3 },    aff: 6 },
-  praise:  { label: '表达感谢', desc: '真诚地向老师表达了感谢，老师有些意外，但显得很高兴。',                      eff: { mental: 3 },               aff: 4 },
-  play:    { label: '一起玩耍', desc: '课间一起打乒乓球，赢了两局，笑得很开心。',                                   eff: { mental: 5, health: 2 },    aff: 6 },
-  study:   { label: '互相学习', desc: '放学后一起在图书馆刷题，互相讲解错题，效率挺高的。',                         eff: { learning: 3, effort: 3 },  aff: 4 },
-  chat:    { label: '闲聊吐槽', desc: '课间聊了聊各科的压力和最近的烦恼，互相吐槽，感觉轻松了很多。',              eff: { mental: 6 },               aff: 5 },
-  help:    { label: '主动帮忙', desc: '主动帮对方解答了一道卡了很久的题，对方感激地说了声谢谢，心情很好。',         eff: { learning: 2, mental: 4 },  aff: 7 },
-}
 
 const SUBJECTS         = ['数学','语文','英语','物理','化学','生物','历史','地理','政治']
 const CORE_SUBJECTS    = ['数学','语文','英语']
@@ -268,6 +240,8 @@ let currentPage = 'home'
 let currentQuiz     = null
 let currentExam     = null
 let currentGaokao   = null
+let currentOlympiad = null
+let currentEsportsExam = null
 let currentSocialTab = 'teachers'
 let _quizTimer      = null
 
@@ -284,7 +258,7 @@ function getTagObj(id) {
     const t = pool.find(x => x.id === id)
     if (t) return t
   }
-  return null
+  return EARNED_TAGS[id] || null
 }
 
 function getTagCategory(id) {
@@ -327,7 +301,27 @@ function handleTitleStart() {
   }
 }
 
+function initActiveTeachers() {
+  if (player.activeTeachers && player.activeTeachers.length > 0) return
+  const shuffled = [...TEACHER_POOL].sort(() => Math.random() - 0.5)
+  const picked = shuffled.slice(0, 4)
+  player.activeTeachers = picked.map(t => t.id)
+  relations.teachers = picked.map(t => ({ id: t.id, affinity: t.defaultAffinity, bonded: false }))
+  saveState()
+}
+
+function initActiveClassmates() {
+  if (player.activeClassmates && player.activeClassmates.length > 0) return
+  const shuffled = [...CLASSMATE_POOL].sort(() => Math.random() - 0.5)
+  const picked = shuffled.slice(0, 4)
+  player.activeClassmates = picked.map(c => c.id)
+  relations.classmates = picked.map(c => ({ id: c.id, affinity: c.defaultAffinity, bonded: false }))
+  saveState()
+}
+
 function enterGame() {
+  initActiveTeachers()
+  initActiveClassmates()
   document.getElementById('title-screen').classList.add('hidden')
   if (!player.monthStarted && player.month <= TOTAL_MONTHS) {
     autoStartMonth()
@@ -384,7 +378,11 @@ function showMonthlyEventPopups(callback) {
   showStudyEventPopup(() => {
     const ev = player.currentEvent
     const afterEvents = () => {
-      if (player.month === 16 && !player.profExamDone && player.selectedSubjects) {
+      if (player.month === 21 && hasTag('smart') && !player.olympiadDone) {
+        showOlympiadPrompt(callback)
+      } else if (player.month === 21 && hasTag('free') && !player.esportsDone) {
+        showEsportsPrompt(callback)
+      } else if (player.month === 16 && !player.profExamDone && player.selectedSubjects) {
         showProfExamIntroPopup()
       } else {
         callback()
@@ -591,7 +589,8 @@ function showIntroOverlay() {
   const overlay = document.getElementById('intro-overlay')
   const textEl  = document.getElementById('intro-text')
   const hintEl  = document.getElementById('intro-hint')
-  const fullText = '这年秋天，你如愿来到山河省的顶级学府水衡中学，然而迎接你的，首先是一场考试……'
+  const fullText = '这年秋天\n你如愿来到山河省的\n顶级学府水衡中学\n然而迎接你的\n首先是一场考试'
+  const toHtml = s => s.replace(/\n/g, '<br>')
 
   overlay.classList.add('active')
   textEl.innerHTML = ''
@@ -602,7 +601,7 @@ function showIntroOverlay() {
 
   function finishTyping() {
     if (_introTimer) { clearInterval(_introTimer); _introTimer = null }
-    textEl.textContent = fullText
+    textEl.innerHTML = toHtml(fullText)
     done = true
     hintEl.classList.add('visible')
     setTimeout(() => {
@@ -615,7 +614,7 @@ function showIntroOverlay() {
 
   _introTimer = setInterval(() => {
     idx++
-    textEl.innerHTML = fullText.slice(0, idx) + '<span class="intro-cursor"></span>'
+    textEl.innerHTML = toHtml(fullText.slice(0, idx)) + '<span class="intro-cursor"></span>'
     if (idx >= fullText.length) finishTyping()
   }, 72)
 
@@ -812,14 +811,16 @@ function loadState() {
     const sr = localStorage.getItem('hs_relations')
     if (sr) {
       const loaded = JSON.parse(sr)
-      // 用默认值作为基础，合并已存档的运行时数据（affinity、bonded等）
-      const merge = (defs, saved) => defs.map(def => {
-        const ex = saved.find(p => p.id === def.id)
-        return ex ? { ...def, ...ex } : { ...def }
-      })
+      const reconstructRel = (pool, activeIds, saved) => {
+        const defs = activeIds.map(id => pool.find(t => t.id === id)).filter(Boolean)
+        return defs.map(def => {
+          const sv = saved.find(t => t.id === def.id)
+          return { id: def.id, affinity: sv?.affinity ?? def.defaultAffinity, bonded: sv?.bonded ?? false }
+        })
+      }
       relations = {
-        teachers:   merge(DEFAULT_RELATIONS.teachers,   loaded.teachers   || []),
-        classmates: merge(DEFAULT_RELATIONS.classmates, loaded.classmates || []),
+        teachers:   reconstructRel(TEACHER_POOL,   player.activeTeachers   || [], loaded.teachers   || []),
+        classmates: reconstructRel(CLASSMATE_POOL, player.activeClassmates || [], loaded.classmates || []),
       }
     } else {
       relations = deepClone(DEFAULT_RELATIONS)
@@ -849,14 +850,6 @@ function getGradeLabel(month) {
   return `${info.grade} · ${info.semester}`
 }
 
-// 按月份轮换互动选项（老师/同学各4个，每月展示其中2个）
-function getCharInteractions(type) {
-  const teacherPool = ['ask', 'greet', 'consult', 'praise']
-  const classPool   = ['play', 'study', 'chat', 'help']
-  const pool  = type === 'teacher' ? teacherPool : classPool
-  const start = (player.month - 1) % pool.length
-  return [pool[start], pool[(start + 1) % pool.length]]
-}
 
 // 将事件的好感度涟漪效果应用到对应角色
 function applyAffinityEffect(ae) {
@@ -1040,6 +1033,7 @@ function applyChanges(changes) {
 // ─── 页面路由 ────────────────────────────────────────────────
 
 function switchPage(page) {
+  if ((currentExam && !currentExam.submitted) || (currentGaokao && !currentGaokao.submitted) || (currentOlympiad && !currentOlympiad.submitted) || (currentEsportsExam && !currentEsportsExam.submitted)) return
   if (page !== 'study') { currentQuiz = null; clearQuizTimer() }
   currentPage = page
   document.querySelectorAll('.nav-btn').forEach(b =>
@@ -1175,8 +1169,8 @@ function buildScoreChart(history) {
   const dotsSvg = pts.map((p, i) => {
     const isLast = i === n - 1
     return isLast
-      ? `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4.5" fill="#4d9fd4" stroke="white" stroke-width="2"/>`
-      : `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="2.8" fill="#7bbde0"/>`
+      ? `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4.5" fill="#c9952a" stroke="white" stroke-width="2"/>`
+      : `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="2.8" fill="#ddb870"/>`
   }).join('')
 
   const labelsSvg = pts.map((p, i) => {
@@ -1193,12 +1187,12 @@ function buildScoreChart(history) {
       <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;overflow:visible">
         <defs>
           <linearGradient id="cg" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stop-color="#4d9fd4" stop-opacity="0.25"/>
-            <stop offset="100%" stop-color="#4d9fd4" stop-opacity="0.02"/>
+            <stop offset="0%" stop-color="#c9952a" stop-opacity="0.22"/>
+            <stop offset="100%" stop-color="#c9952a" stop-opacity="0.02"/>
           </linearGradient>
         </defs>
         ${n > 1 ? `<polygon points="${fillPts}" fill="url(#cg)"/>` : ''}
-        ${n > 1 ? `<polyline points="${polyPts}" fill="none" stroke="#4d9fd4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>` : ''}
+        ${n > 1 ? `<polyline points="${polyPts}" fill="none" stroke="#c9952a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>` : ''}
         ${dotsSvg}
         ${labelsSvg}
       </svg>
@@ -1237,6 +1231,7 @@ function startProficiencyExam() {
     shuffle([...bank]).slice(0, 3).forEach(q => questions.push({ ...q, subject: subj }))
   })
   currentExam = { questions, answers: new Array(questions.length).fill(-1), submitted: false }
+  document.getElementById('bottom-nav').classList.add('hidden')
   renderHome()
 }
 
@@ -1318,7 +1313,7 @@ function submitProfExam() {
       <span>心理健康</span>
       <span class="${mentalEff > 0 ? 'chg-pos' : mentalEff < 0 ? 'chg-neg' : ''}">${mentalEff > 0 ? '+' + mentalEff : mentalEff === 0 ? '无变化' : mentalEff}</span>
     </div>
-  `, () => { currentExam = null; renderHome() })
+  `, () => { currentExam = null; document.getElementById('bottom-nav').classList.remove('hidden'); renderHome() })
 }
 
 function showGameOverModal(title, desc) {
@@ -1346,6 +1341,179 @@ function buildTagsCard() {
   `
 }
 
+// ─── 竞赛（隐藏结局） ──────────────────────────────────────────
+
+const OLYMPIAD_SUBJECTS = ['数学', '物理学', '化学', '生物学', '信息学']
+const OLYMPIAD_Q_COUNT  = 5   // 每场抽 5 道题
+
+function showOlympiadPrompt(callback) {
+  player.olympiadDone = true
+  saveState()
+  window._olympiadDecline = () => {
+    _modalCb = null
+    document.getElementById('modal-overlay').classList.add('hidden')
+    document.getElementById('modal-ok').style.display = ''
+    callback()
+  }
+  window._olympiadAccept = () => {
+    _modalCb = null
+    document.getElementById('modal-overlay').classList.add('hidden')
+    document.getElementById('modal-ok').style.display = ''
+    showOlympiadSubjectSelect(callback)
+  }
+  showModal(`
+    <div class="modal-title">🏅 竞赛邀请</div>
+    <div class="event-box" style="font-size:13px;margin-bottom:14px;">
+      班主任找到你，说省竞赛委员会来学校选拔参赛选手，凭借你优异的成绩，你获得了参加全国奥林匹克竞赛的资格。这是一次难得的机会，但难度极高……
+    </div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn full-width" onclick="_olympiadDecline()">婉拒参赛</button>
+      <button class="btn btn-primary full-width" onclick="_olympiadAccept()">接受挑战</button>
+    </div>
+  `, null, true)
+}
+
+function showOlympiadSubjectSelect(callback) {
+  window._olympiadSubject = (subj) => {
+    _modalCb = null
+    document.getElementById('modal-overlay').classList.add('hidden')
+    document.getElementById('modal-ok').style.display = ''
+    startOlympiadExam(subj)
+  }
+  const btns = OLYMPIAD_SUBJECTS.map(s =>
+    `<button class="btn full-width" style="margin-bottom:6px" onclick="_olympiadSubject('${s}')">${s}</button>`
+  ).join('')
+  showModal(`
+    <div class="modal-title">选择竞赛科目</div>
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px;text-align:center">
+      选择你最擅长的科目参加竞赛
+    </div>
+    ${btns}
+  `, null, true)
+}
+
+function startOlympiadExam(subject) {
+  const bank = shuffle([...(OLYMPIAD_BANK[subject] || [])])
+  const questions = bank.slice(0, OLYMPIAD_Q_COUNT).map(q => ({ ...q, subject }))
+  currentOlympiad = { subject, questions, answers: new Array(OLYMPIAD_Q_COUNT).fill(-1), submitted: false }
+  document.getElementById('bottom-nav').classList.add('hidden')
+  renderHome()
+}
+
+function renderOlympiadExam() {
+  const c  = document.getElementById('content')
+  const ex = currentOlympiad
+  const answered  = ex.answers.filter(a => a >= 0).length
+  const canSubmit = answered === ex.questions.length
+
+  const questionsHtml = ex.questions.map((q, idx) => `
+    <div class="exam-q-block">
+      <div class="exam-q-meta">
+        <span class="exam-q-num">${idx + 1}</span>
+        <span class="exam-q-subj">${q.subject}</span>
+      </div>
+      <div class="exam-q-text">${q.q}</div>
+      <div class="exam-q-opts">
+        ${q.opts.map((opt, i) => `
+          <label class="exam-opt ${ex.answers[idx] === i ? 'chosen' : ''}">
+            <input type="radio" name="oq${idx}" value="${i}" onchange="setOlympiadAnswer(${idx},${i})" ${ex.answers[idx] === i ? 'checked' : ''}>
+            ${opt}
+          </label>`).join('')}
+      </div>
+    </div>`).join('')
+
+  c.innerHTML = `
+    <div class="exam-paper">
+      <div class="exam-paper-head">
+        <div class="exam-paper-school">全国中学生</div>
+        <div class="exam-paper-title">全国${ex.subject}奥林匹克竞赛</div>
+        <div class="exam-paper-info">共 ${ex.questions.length} 题 · 单项选择 · 已答 <span id="ol-answered">${answered}</span> 题</div>
+      </div>
+      <div class="exam-progress">
+        <div class="exam-progress-fill" id="ol-progress" style="width:${(answered / ex.questions.length * 100).toFixed(0)}%"></div>
+      </div>
+      <div class="exam-paper-body">${questionsHtml}</div>
+      <div class="exam-submit-row">
+        <button class="btn btn-primary full-width" ${canSubmit ? '' : 'disabled'} id="ol-submit" onclick="submitOlympiadExam()">
+          ${canSubmit ? '交卷' : `还有 ${ex.questions.length - answered} 题未作答`}
+        </button>
+      </div>
+    </div>`
+}
+
+function setOlympiadAnswer(idx, choice) {
+  if (!currentOlympiad || currentOlympiad.submitted) return
+  currentOlympiad.answers[idx] = choice
+  const answered  = currentOlympiad.answers.filter(a => a >= 0).length
+  const total     = currentOlympiad.questions.length
+  const canSubmit = answered === total
+  const el = id => document.getElementById(id)
+  if (el('ol-answered')) el('ol-answered').textContent = answered
+  if (el('ol-progress'))  el('ol-progress').style.width = (answered / total * 100).toFixed(0) + '%'
+  const btn = el('ol-submit')
+  if (btn) { btn.disabled = !canSubmit; btn.textContent = canSubmit ? '交卷' : `还有 ${total - answered} 题未作答` }
+  document.querySelectorAll(`[name="oq${idx}"]`).forEach(r =>
+    r.closest('.exam-opt').classList.toggle('chosen', parseInt(r.value) === choice))
+}
+
+function submitOlympiadExam() {
+  if (!currentOlympiad || currentOlympiad.submitted) return
+  const ex      = currentOlympiad
+  const correct = ex.questions.reduce((n, q, i) => n + (ex.answers[i] === q.ans ? 1 : 0), 0)
+  const total   = ex.questions.length   // 5
+
+  currentOlympiad.submitted = true
+  document.getElementById('bottom-nav').classList.remove('hidden')
+
+  if (correct === total) {
+    // 满分 → 保送清北隐藏结局
+    player.baosong = true
+    player.month   = TOTAL_MONTHS + 1   // 游戏结束
+    saveState()
+    showModal(`
+      <div style="text-align:center;padding:8px 0 4px">
+        <div style="font-size:40px">🏆</div>
+        <div class="modal-title" style="color:#c9952a">全国一等奖！</div>
+      </div>
+      <div class="event-box" style="font-size:13px;margin-bottom:12px;">
+        你在竞赛中取得了满分，震惊了所有评委！清华大学和北京大学的招生老师当场联系了你，
+        恭喜你获得 <strong>保送清华/北大</strong> 的资格！
+      </div>
+    `, () => { currentOlympiad = null; renderHome() })
+
+  } else if (correct >= 3) {
+    // ≥3题 → 强基计划 + 高考+40
+    if (!hasTag('qiangjiben')) player.tags.push('qiangjiben')
+    saveState()
+    showModal(`
+      <div style="text-align:center;padding:8px 0 4px">
+        <div style="font-size:36px">🥈</div>
+        <div class="modal-title">获得强基计划资格</div>
+      </div>
+      <div class="event-box" style="font-size:13px;margin-bottom:12px;">
+        你在竞赛中答对了 ${correct}/${total} 道题，表现优异！获得了 <strong>强基计划</strong> 资格，
+        高考成绩将额外加 40 分。
+      </div>
+      <hr class="modal-divider">
+      <div class="modal-row"><span>🏆 强基计划</span><span class="chg-pos">解锁</span></div>
+      <div class="modal-row"><span>高考加分</span><span class="chg-pos">+40</span></div>
+    `, () => { currentOlympiad = null; renderHome() })
+
+  } else {
+    // <3题 → 没能获奖
+    showModal(`
+      <div style="text-align:center;padding:8px 0 4px">
+        <div style="font-size:36px">📄</div>
+        <div class="modal-title">遗憾未能获奖</div>
+      </div>
+      <div class="event-box" style="font-size:13px;margin-bottom:12px;">
+        你在竞赛中答对了 ${correct}/${total} 道题，可惜没能达到获奖线。
+        但这次经历让你学到了很多，继续加油吧！
+      </div>
+    `, () => { currentOlympiad = null; renderHome() })
+  }
+}
+
 // ─── 高考 ──────────────────────────────────────────────────────
 
 const GAOKAO_PERF = {
@@ -1363,6 +1531,7 @@ function startGaokao() {
     shuffle([...bank]).slice(0, 3).forEach(q => questions.push({ ...q, subject: subj }))
   })
   currentGaokao = { questions, answers: new Array(questions.length).fill(-1), submitted: false }
+  document.getElementById('bottom-nav').classList.add('hidden')
   renderGaokaoExam()
 }
 
@@ -1431,7 +1600,8 @@ function submitGaokao() {
                  + player.learning / 100 * 0.50
                  + player.mental   / 100 * 0.10
                  + player.health   / 100 * 0.10
-  const rawScore = Math.round(Math.max(200, Math.min(710, rawBase * 510 + 200)))
+  const qiangjiBonus = hasTag('qiangjiben') ? 40 : 0
+  const rawScore = Math.round(Math.max(200, Math.min(710, rawBase * 510 + 200 + qiangjiBonus)))
 
   // Draw performance event
   const r = Math.random()
@@ -1464,6 +1634,7 @@ function submitGaokao() {
 }
 
 function renderGaokaoResult() {
+  document.getElementById('bottom-nav').classList.remove('hidden')
   const c    = document.getElementById('content')
   const data = currentGaokao?.finalScore ? currentGaokao : player.gaokaoResult
   if (!data) { c.innerHTML = renderGraduation(); return }
@@ -1494,6 +1665,7 @@ function renderGaokaoResult() {
       <div class="info-row"><span class="muted">最终身体健康</span><span class="info-val">${player.health}</span></div>
       <div class="info-row"><span class="muted">月考平均分</span><span class="info-val">${avg}</span></div>
       <div class="info-row"><span class="muted">高考原始分</span><span class="info-val">${rawScore}</span></div>
+      ${hasTag('qiangjiben') ? `<div class="info-row"><span class="muted">🏆 强基计划加分</span><span class="info-val" style="color:#c9952a">+40</span></div>` : ''}
     </div>
     <div class="card">
       <button class="btn full-width" onclick="resetGame()">重新开始</button>
@@ -1604,6 +1776,432 @@ function saveResultCard() {
   }, 'image/png')
 }
 
+// ─── 保送清北隐藏结局 ─────────────────────────────────────────
+
+function renderBaosongEnding() {
+  document.getElementById('bottom-nav').classList.remove('hidden')
+  const c = document.getElementById('content')
+  const school = Math.random() < 0.5 ? '清华大学' : '北京大学'
+  player.baosongSchool = player.baosongSchool || school
+  saveState()
+
+  c.innerHTML = `
+    <div class="card baosong-result-card">
+      <div class="baosong-hidden-label">✨ 隐藏结局解锁</div>
+      <div class="baosong-title">保 送 清 北</div>
+      <div class="baosong-school-name">${player.baosongSchool}</div>
+      <div class="baosong-tier-badge">全国奥林匹克竞赛满分得主</div>
+      <hr class="modal-divider" style="border-color:#c9952a44;margin:18px 0">
+      <div class="baosong-desc">
+        你在全国奥林匹克竞赛中取得满分，以无可争辩的实力震惊全场。
+        招生老师当场递出录取通知，你的高中旅程以最耀眼的方式画上了句号。
+      </div>
+      <button class="btn baosong-save-btn full-width" style="margin-top:18px" onclick="saveBaosongCard()">📸 保存成绩单</button>
+    </div>
+    <div class="card">
+      <div class="card-label">高中旅程小结</div>
+      <div class="info-row"><span class="muted">触发时间</span><span class="info-val">高二 · 5月</span></div>
+      <div class="info-row"><span class="muted">最终学习进度</span><span class="info-val">${player.learning}</span></div>
+      <div class="info-row"><span class="muted">最终心理健康</span><span class="info-val">${player.mental}</span></div>
+      <div class="info-row"><span class="muted">最终身体健康</span><span class="info-val">${player.health}</span></div>
+    </div>
+    <div class="card">
+      <button class="btn full-width" onclick="resetGame()">重新开始</button>
+    </div>`
+}
+
+function saveBaosongCard() {
+  const school = player.baosongSchool || '清华大学'
+  const dpr = Math.min(window.devicePixelRatio || 1, 2)
+  const W = 540, H = 800
+  const cv = document.createElement('canvas')
+  cv.width  = W * dpr
+  cv.height = H * dpr
+  const ctx = cv.getContext('2d')
+  ctx.scale(dpr, dpr)
+
+  const font = (size, weight) => `${weight || '500'} ${size}px "PingFang SC","Microsoft YaHei",sans-serif`
+
+  // Gold gradient background
+  const bg = ctx.createLinearGradient(0, 0, 0, H)
+  bg.addColorStop(0, '#fef9e7')
+  bg.addColorStop(1, '#fef0c7')
+  ctx.fillStyle = bg
+  ctx.fillRect(0, 0, W, H)
+
+  // Gold top/bottom accents
+  ctx.fillStyle = '#c9952a'
+  ctx.fillRect(0, 0, W, 8)
+  ctx.fillRect(0, H - 8, W, 8)
+
+  // Decorative side lines
+  ctx.strokeStyle = '#c9952a44'
+  ctx.lineWidth = 1
+  ctx.beginPath(); ctx.moveTo(20, 20); ctx.lineTo(20, H - 20); ctx.stroke()
+  ctx.beginPath(); ctx.moveTo(W - 20, 20); ctx.lineTo(W - 20, H - 20); ctx.stroke()
+
+  ctx.textAlign = 'center'
+
+  // Hidden ending label
+  ctx.fillStyle = '#c9952a'
+  ctx.font = font(12)
+  ctx.fillText('✨  隐 藏 结 局 解 锁  ✨', W / 2, 52)
+
+  // Title
+  ctx.fillStyle = '#8b6000'
+  ctx.font = font(38, '900')
+  ctx.fillText('保 送 清 北', W / 2, 118)
+
+  // Divider
+  ctx.strokeStyle = '#c9952a66'
+  ctx.lineWidth = 1
+  ctx.beginPath(); ctx.moveTo(80, 140); ctx.lineTo(W - 80, 140); ctx.stroke()
+
+  // School name
+  ctx.fillStyle = '#5a3a00'
+  ctx.font = font(48, '900')
+  ctx.fillText(school, W / 2, 228)
+
+  // Badge
+  ctx.fillStyle = '#c9952a'
+  ctx.font = font(14)
+  ctx.fillText('全国奥林匹克竞赛满分得主', W / 2, 268)
+
+  // Divider
+  ctx.strokeStyle = '#c9952a44'
+  ctx.beginPath(); ctx.moveTo(60, 294); ctx.lineTo(W - 60, 294); ctx.stroke()
+
+  // Trophy emoji area
+  ctx.font = font(72)
+  ctx.fillText('🏆', W / 2, 390)
+
+  // Stats divider
+  ctx.strokeStyle = '#c9952a44'
+  ctx.beginPath(); ctx.moveTo(60, 420); ctx.lineTo(W - 60, 420); ctx.stroke()
+
+  // Stats
+  ctx.font = font(13)
+  ctx.textAlign = 'left'
+  const stats = [
+    ['触发时间', '高二 · 5月'],
+    ['学习进度', String(player.learning)],
+    ['心理健康', String(player.mental)],
+    ['身体健康', String(player.health)],
+  ]
+  let sy = 456
+  stats.forEach(([label, val]) => {
+    ctx.fillStyle = '#a07820'
+    ctx.fillText(label, 60, sy)
+    ctx.fillStyle = '#5a3a00'
+    ctx.textAlign = 'right'
+    ctx.fillText(val, W - 60, sy)
+    ctx.textAlign = 'left'
+    sy += 32
+  })
+
+  // Desc
+  ctx.fillStyle = '#a07820'
+  ctx.font = font(12)
+  ctx.textAlign = 'center'
+  const desc = '以无可争辩的实力震惊全场，高中旅程以最耀眼的方式画上句号'
+  ctx.fillText(desc, W / 2, sy + 20)
+
+  // Footer
+  ctx.fillStyle = '#c9b06a'
+  ctx.font = font(11)
+  ctx.fillText('水衡高中模拟器', W / 2, H - 22)
+
+  cv.toBlob(blob => {
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url; a.download = `保送清北_${school}.png`
+    document.body.appendChild(a); a.click()
+    document.body.removeChild(a)
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+  }, 'image/png')
+}
+
+// ─── 不务正业·电竞选手招募 ──────────────────────────────────
+
+function showEsportsPrompt(callback) {
+  player.esportsDone = true
+  saveState()
+  window._esportsDecline = () => {
+    document.getElementById('modal-overlay').classList.add('hidden')
+    document.getElementById('modal-ok').style.display = ''
+    window._esportsDecline = null
+    window._esportsAccept  = null
+    _modalCb = null
+    callback()
+  }
+  window._esportsAccept = () => {
+    document.getElementById('modal-overlay').classList.add('hidden')
+    document.getElementById('modal-ok').style.display = ''
+    window._esportsDecline = null
+    window._esportsAccept  = null
+    _modalCb = null
+    showEsportsProjectSelect(callback)
+  }
+  showModal(`
+    <div class="modal-title">🎮 不务正业</div>
+    <div class="event-box" style="margin-bottom:12px">
+      你在网上刷到了一则招募公告：<br>
+      <strong>「水衡市首届高中生电竞联赛·选手招募」</strong><br><br>
+      参赛者需通过理论知识考核与实战测试两关，表现优异者可代表学校出战，赛事奖金相当可观。<br><br>
+      你盯着屏幕沉默了很久——这是你一直以来的热爱。
+    </div>
+    <div style="display:flex;gap:10px;margin-top:4px">
+      <button class="btn full-width" onclick="window._esportsDecline()">算了，还是专心学习</button>
+      <button class="btn btn-primary full-width" onclick="window._esportsAccept()">🎮 我要参加！</button>
+    </div>
+  `, null, true, true)
+}
+
+function showEsportsProjectSelect(callback) {
+  const projects = ['王者荣耀', '英雄联盟', '无畏契约', '绝地求生', '第五人格', '三角洲行动']
+  const btns = projects.map(p =>
+    `<button class="btn full-width" style="margin-bottom:8px" onclick="window._esportsSubject('${p}')">${p}</button>`
+  ).join('')
+  window._esportsSubject = (proj) => {
+    document.getElementById('modal-overlay').classList.add('hidden')
+    document.getElementById('modal-ok').style.display = ''
+    window._esportsSubject = null
+    _modalCb = null
+    startEsportsTheoryExam(proj, callback)
+  }
+  showModal(`
+    <div class="modal-title">🎮 选择你的项目</div>
+    <div style="color:var(--text-muted);font-size:13px;margin-bottom:14px">选择你最擅长的电竞项目进行理论考核</div>
+    ${btns}
+  `, null, true, true)
+}
+
+function startEsportsTheoryExam(project, callback) {
+  const bank = ESPORTS_BANK[project] || []
+  const pool = [...bank].sort(() => Math.random() - 0.5).slice(0, 5)
+  currentEsportsExam = {
+    project,
+    questions: pool,
+    answers: Array(pool.length).fill(null),
+    submitted: false,
+    callback,
+  }
+  saveState()
+  renderHome()
+}
+
+function renderEsportsExam() {
+  const ex = currentEsportsExam
+  const c  = document.getElementById('content')
+
+  const questionsHtml = ex.questions.map((q, i) => {
+    const optsHtml = q.opts.map((opt, j) => {
+      const sel = ex.answers[i] === j
+      return `<button class="quiz-opt ${sel ? 'quiz-opt-selected' : ''}" onclick="setEsportsAnswer(${i},${j})">${opt}</button>`
+    }).join('')
+    return `
+      <div class="quiz-question">
+        <div class="quiz-q-text">${i + 1}. ${q.q}</div>
+        <div class="quiz-opts">${optsHtml}</div>
+      </div>`
+  }).join('')
+
+  const allAnswered = ex.answers.every(a => a !== null)
+
+  c.innerHTML = `
+    <div class="card">
+      <div class="card-label">🎮 ${ex.project} 理论知识考核</div>
+      <div style="color:var(--text-muted);font-size:13px;margin-bottom:14px">共 5 题，答对 4 题及以上进入实战测试</div>
+      ${questionsHtml}
+      <button class="btn btn-primary full-width" style="margin-top:14px"
+        ${allAnswered ? '' : 'disabled'}
+        onclick="submitEsportsTheoryExam()">提交答案</button>
+    </div>`
+}
+
+function setEsportsAnswer(idx, choice) {
+  if (!currentEsportsExam || currentEsportsExam.submitted) return
+  currentEsportsExam.answers[idx] = choice
+  renderEsportsExam()
+}
+
+function submitEsportsTheoryExam() {
+  const ex = currentEsportsExam
+  if (!ex || ex.submitted) return
+  const correct = ex.questions.reduce((n, q, i) => n + (ex.answers[i] === q.ans ? 1 : 0), 0)
+
+  if (correct < 4) {
+    ex.submitted = true
+    currentEsportsExam = null
+    saveState()
+    showModal(`
+      <div class="modal-title">🎮 理论考核结束</div>
+      <div class="event-box">
+        答对 ${correct} / 5 题，未达到晋级标准（4题）。<br><br>
+        考官遗憾地摇了摇头："你的知识储备还不够，继续加油吧。"<br><br>
+        招募落选，继续你的高中生活。
+      </div>
+    `, ex.callback)
+  } else {
+    ex.submitted = true
+    saveState()
+    startEsportsPracticeTest(ex.project, ex.callback)
+  }
+}
+
+function startEsportsPracticeTest(project, callback) {
+  const infoEl = document.getElementById('game-info')
+  window._esportsTestCallback = (score) => {
+    if (score >= 3000) {
+      player.weireai = true
+      player.esportsProject = project
+      saveState()
+      showModal(`
+        <div class="modal-title" style="color:#c9952a">🏆 实战测试通过！</div>
+        <div class="event-box">
+          得分：<strong>${score}</strong><br><br>
+          考官沉默了片刻，随后露出难以置信的笑容：<br>
+          "我从没见过高中生能打出这种水准……你录取了。"<br><br>
+          你握紧了手机，感觉胸口某个东西裂开又重新愈合。<br>
+          <strong>热爱，从来不是错。</strong>
+        </div>
+      `, () => { renderHome() })
+    } else {
+      currentEsportsExam = null
+      saveState()
+      showModal(`
+        <div class="modal-title">🎮 实战测试结束</div>
+        <div class="event-box">
+          得分：<strong>${score}</strong>（需要 3000 分）<br><br>
+          考官叹了口气："实力不错，但距离我们的标准还有差距。"<br><br>
+          招募落选，继续你的高中生活。
+        </div>
+      `, callback)
+    }
+  }
+  if (infoEl) infoEl.textContent = `🎮 ${project} 实战测试  击落敌机   目标分数 3000`
+  openSkyFight()
+}
+
+function renderWeireaiEnding() {
+  const project = player.esportsProject || '电竞'
+  const c = document.getElementById('content')
+  c.innerHTML = `
+    <div class="card baosong-result-card">
+      <div class="baosong-hidden-label">✨ 隐藏结局解锁</div>
+      <div class="baosong-title" style="letter-spacing:4px">为热爱正名</div>
+      <div class="baosong-school-name" style="font-size:26px">${project}</div>
+      <div class="baosong-tier-badge">水衡市高中生电竞联赛 · 招募通过</div>
+      <hr style="border-color:#c9952a44;margin:16px 0">
+      <div class="baosong-desc">
+        没有人天生擅长，只是比别人更热爱。<br>
+        你用实力证明了：热爱，可以是一条正确的路。
+      </div>
+      <div style="font-size:48px;text-align:center;margin:18px 0">🏆</div>
+      <hr style="border-color:#c9952a44;margin:16px 0">
+      <div class="info-row"><span class="muted">心理健康</span><span class="info-val">${player.mental}</span></div>
+      <div class="info-row"><span class="muted">身体健康</span><span class="info-val">${player.health}</span></div>
+      <div class="info-row"><span class="muted">学习进度</span><span class="info-val">${player.learning}</span></div>
+      <button class="btn baosong-save-btn full-width" style="margin-top:18px" onclick="saveWeireaiCard()">📸 保存成绩单</button>
+    </div>`
+}
+
+function saveWeireaiCard() {
+  const project = player.esportsProject || '电竞'
+  const dpr = Math.min(window.devicePixelRatio || 1, 2)
+  const W = 540, H = 800
+  const cv = document.createElement('canvas')
+  cv.width  = W * dpr
+  cv.height = H * dpr
+  const ctx = cv.getContext('2d')
+  ctx.scale(dpr, dpr)
+
+  const font = (size, weight) => `${weight || '500'} ${size}px "PingFang SC","Microsoft YaHei",sans-serif`
+
+  const bg = ctx.createLinearGradient(0, 0, 0, H)
+  bg.addColorStop(0, '#fef9e7')
+  bg.addColorStop(1, '#fef0c7')
+  ctx.fillStyle = bg
+  ctx.fillRect(0, 0, W, H)
+
+  ctx.fillStyle = '#c9952a'
+  ctx.fillRect(0, 0, W, 8)
+  ctx.fillRect(0, H - 8, W, 8)
+
+  ctx.strokeStyle = '#c9952a44'
+  ctx.lineWidth = 1
+  ctx.beginPath(); ctx.moveTo(20, 20); ctx.lineTo(20, H - 20); ctx.stroke()
+  ctx.beginPath(); ctx.moveTo(W - 20, 20); ctx.lineTo(W - 20, H - 20); ctx.stroke()
+
+  ctx.textAlign = 'center'
+
+  ctx.fillStyle = '#c9952a'
+  ctx.font = font(12)
+  ctx.fillText('✨  隐 藏 结 局 解 锁  ✨', W / 2, 52)
+
+  ctx.fillStyle = '#8b6000'
+  ctx.font = font(36, '900')
+  ctx.fillText('为 热 爱 正 名', W / 2, 116)
+
+  ctx.strokeStyle = '#c9952a66'
+  ctx.lineWidth = 1
+  ctx.beginPath(); ctx.moveTo(80, 138); ctx.lineTo(W - 80, 138); ctx.stroke()
+
+  ctx.fillStyle = '#5a3a00'
+  ctx.font = font(42, '900')
+  ctx.fillText(project, W / 2, 220)
+
+  ctx.fillStyle = '#c9952a'
+  ctx.font = font(13)
+  ctx.fillText('水衡市高中生电竞联赛 · 招募通过', W / 2, 258)
+
+  ctx.strokeStyle = '#c9952a44'
+  ctx.beginPath(); ctx.moveTo(60, 284); ctx.lineTo(W - 60, 284); ctx.stroke()
+
+  ctx.font = font(68)
+  ctx.fillText('🏆', W / 2, 378)
+
+  ctx.strokeStyle = '#c9952a44'
+  ctx.beginPath(); ctx.moveTo(60, 408); ctx.lineTo(W - 60, 408); ctx.stroke()
+
+  ctx.font = font(13)
+  ctx.textAlign = 'left'
+  const stats = [
+    ['触发时间', '高二 · 5月'],
+    ['电竞项目', project],
+    ['心理健康', String(player.mental)],
+    ['身体健康', String(player.health)],
+  ]
+  let sy = 444
+  stats.forEach(([label, val]) => {
+    ctx.fillStyle = '#a07820'
+    ctx.fillText(label, 60, sy)
+    ctx.fillStyle = '#5a3a00'
+    ctx.textAlign = 'right'
+    ctx.fillText(val, W - 60, sy)
+    ctx.textAlign = 'left'
+    sy += 32
+  })
+
+  ctx.fillStyle = '#a07820'
+  ctx.font = font(12)
+  ctx.textAlign = 'center'
+  ctx.fillText('没有人天生擅长，只是比别人更热爱', W / 2, sy + 18)
+
+  ctx.fillStyle = '#c9b06a'
+  ctx.font = font(11)
+  ctx.fillText('水衡高中模拟器', W / 2, H - 22)
+
+  cv.toBlob(blob => {
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url; a.download = `为热爱正名_${project}.png`
+    document.body.appendChild(a); a.click()
+    document.body.removeChild(a)
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+  }, 'image/png')
+}
+
 // ─── 主控页面 ────────────────────────────────────────────────
 
 function renderHome() {
@@ -1611,6 +2209,8 @@ function renderHome() {
   const done = player.month > TOTAL_MONTHS
 
   if (done) {
+    if (player.baosong) { renderBaosongEnding(); return }
+    if (player.weireai) { renderWeireaiEnding(); return }
     if (currentGaokao) {
       if (!currentGaokao.submitted) { renderGaokaoExam(); return }
       else { renderGaokaoResult(); return }
@@ -1627,6 +2227,18 @@ function renderHome() {
   }
   if (player.mental <= 0) {
     showGameOverModal('😔 抑郁休学', '心理健康跌至零点，你陷入严重的抑郁状态，不得不暂停学业。')
+    return
+  }
+
+  // 竞赛答题中
+  if (currentOlympiad && !currentOlympiad.submitted) {
+    renderOlympiadExam()
+    return
+  }
+
+  // 电竞理论考核中
+  if (currentEsportsExam && !currentEsportsExam.submitted) {
+    renderEsportsExam()
     return
   }
 
@@ -1827,10 +2439,18 @@ function switchSocialTab(tab) {
 function renderSocial() {
   const c = document.getElementById('content')
   const isTeacher = currentSocialTab === 'teachers'
-  const group = isTeacher ? relations.teachers : relations.classmates
-  const type  = isTeacher ? 'teacher' : 'classmate'
 
   const bondedCount = (arr) => arr.filter(p => p.bonded).length
+
+  const cardsHtml = isTeacher
+    ? relations.teachers.map(rel => {
+        const def = TEACHER_POOL.find(t => t.id === rel.id)
+        return def ? teacherCard(def, rel) : ''
+      }).join('')
+    : relations.classmates.map(rel => {
+        const def = CLASSMATE_POOL.find(c => c.id === rel.id)
+        return def ? classmateCard(def, rel) : ''
+      }).join('')
 
   c.innerHTML = `
     <div class="social-tabs">
@@ -1844,86 +2464,160 @@ function renderSocial() {
       </button>
     </div>
     <div class="card">
-      ${group.map(p => personCard(p, type)).join('')}
+      ${cardsHtml}
     </div>
   `
 }
 
-function personCard(p, type) {
-  const actions = getCharInteractions(type)
-
-  const affinityColor = p.bonded || p.affinity >= 100 ? '#c9952a'
-                      : p.affinity >= 80 ? '#4caf72'
-                      : p.affinity >= 60 ? '#4d9fd4'
-                      : p.affinity >= 40 ? '#e09040'
+function classmateCard(def, rel) {
+  const affinityColor = rel.bonded || rel.affinity >= 100 ? '#c9952a'
+                      : rel.affinity >= 80 ? '#4caf72'
+                      : rel.affinity >= 60 ? '#4d9fd4'
+                      : rel.affinity >= 40 ? '#e09040'
                       : '#b8b3aa'
 
-  const affinityLabel = p.bonded           ? '知己之交 ✨'
-                      : p.affinity >= 80   ? '关系很好'
-                      : p.affinity >= 60   ? '关系不错'
-                      : p.affinity >= 40   ? '普通朋友'
+  const affinityLabel = rel.bonded           ? '知己之交 ✨'
+                      : rel.affinity >= 80   ? '关系很好'
+                      : rel.affinity >= 60   ? '关系不错'
+                      : rel.affinity >= 40   ? '普通朋友'
                       : '不太熟悉'
 
-  const sub = p.subject ? ` · ${p.subject}` : ''
-  const bondedBadge = p.bonded ? `<span class="bonded-badge">✨ 知己</span>` : ''
+  const bondedBadge = rel.bonded ? `<span class="bonded-badge">✨ 知己</span>` : ''
+  const mealCost = -(def.interactions.meal.effect.money || 0)
+  const canAffordMeal = player.money >= mealCost
 
   return `
     <div class="person-card-v2">
       <div class="pcard-top">
-        <div class="person-avatar">${p.emoji}</div>
+        <div class="person-avatar">${def.emoji}</div>
         <div class="person-info">
           <div class="person-name">
-            ${p.name}
-            <span class="person-tag">${p.trait}${sub}</span>
+            ${def.name}
+            <span class="person-tag">${def.trait}</span>
             ${bondedBadge}
           </div>
-          ${p.desc ? `<div class="person-desc">${p.desc}</div>` : ''}
+          ${def.desc ? `<div class="person-desc">${def.desc}</div>` : ''}
         </div>
       </div>
       <div class="pcard-affinity">
         <div class="affinity-label-row">
           <span class="affinity-status" style="color:${affinityColor}">${affinityLabel}</span>
-          <span class="affinity-num">${p.affinity} / 100</span>
+          <span class="affinity-num">${rel.affinity} / 100</span>
         </div>
         <div class="affinity-track-v2">
-          <div class="affinity-fill-v2" style="width:${p.affinity}%;background:${affinityColor}"></div>
+          <div class="affinity-fill-v2" style="width:${rel.affinity}%;background:${affinityColor}"></div>
         </div>
-        ${!p.bonded ? `<div class="affinity-milestones">
-          <span class="mile ${p.affinity >= 40 ? 'reached' : ''}">40</span>
-          <span class="mile ${p.affinity >= 60 ? 'reached' : ''}">60</span>
-          <span class="mile ${p.affinity >= 80 ? 'reached' : ''}">80</span>
-          <span class="mile ${p.affinity >= 100 ? 'reached' : ''}">✨</span>
+        ${!rel.bonded ? `<div class="affinity-milestones">
+          <span class="mile ${rel.affinity >= 40 ? 'reached' : ''}">40</span>
+          <span class="mile ${rel.affinity >= 60 ? 'reached' : ''}">60</span>
+          <span class="mile ${rel.affinity >= 80 ? 'reached' : ''}">80</span>
+          <span class="mile ${rel.affinity >= 100 ? 'reached' : ''}">✨</span>
         </div>` : ''}
       </div>
       <div class="pcard-actions">
-        ${actions.map(a =>
-          `<button class="btn btn-sm interact-btn" onclick="interact('${p.id}','${a}')">${INTERACT_OPTS[a].label}</button>`
-        ).join('')}
+        <button class="btn btn-sm interact-btn" onclick="interactClassmate('${def.id}','meal')"${!canAffordMeal ? ' style="opacity:.5"' : ''}>
+          🍜 请客 <span style="font-size:.75em;opacity:.7">-${mealCost}💰</span>
+        </button>
+        <button class="btn btn-sm interact-btn" onclick="interactClassmate('${def.id}','play')">
+          🎮 玩耍
+        </button>
       </div>
     </div>
   `
 }
 
-function interact(personId, action) {
+function teacherCard(def, rel) {
+  const affinityColor = rel.bonded || rel.affinity >= 100 ? '#c9952a'
+                      : rel.affinity >= 80 ? '#4caf72'
+                      : rel.affinity >= 60 ? '#4d9fd4'
+                      : rel.affinity >= 40 ? '#e09040'
+                      : '#b8b3aa'
+
+  const affinityLabel = rel.bonded           ? '知己之交 ✨'
+                      : rel.affinity >= 80   ? '关系很好'
+                      : rel.affinity >= 60   ? '关系不错'
+                      : rel.affinity >= 40   ? '普通朋友'
+                      : '不太熟悉'
+
+  const bondedBadge = rel.bonded ? `<span class="bonded-badge">✨ 知己</span>` : ''
+  const giftCost = -(def.interactions.gift.effect.money || 0)
+  const canAffordGift = player.money >= giftCost
+
+  return `
+    <div class="person-card-v2">
+      <div class="pcard-top">
+        <div class="person-avatar">${def.emoji}</div>
+        <div class="person-info">
+          <div class="person-name">
+            ${def.name}
+            <span class="person-tag">${def.trait} · ${def.subject}</span>
+            ${bondedBadge}
+          </div>
+          ${def.desc ? `<div class="person-desc">${def.desc}</div>` : ''}
+        </div>
+      </div>
+      <div class="pcard-affinity">
+        <div class="affinity-label-row">
+          <span class="affinity-status" style="color:${affinityColor}">${affinityLabel}</span>
+          <span class="affinity-num">${rel.affinity} / 100</span>
+        </div>
+        <div class="affinity-track-v2">
+          <div class="affinity-fill-v2" style="width:${rel.affinity}%;background:${affinityColor}"></div>
+        </div>
+        ${!rel.bonded ? `<div class="affinity-milestones">
+          <span class="mile ${rel.affinity >= 40 ? 'reached' : ''}">40</span>
+          <span class="mile ${rel.affinity >= 60 ? 'reached' : ''}">60</span>
+          <span class="mile ${rel.affinity >= 80 ? 'reached' : ''}">80</span>
+          <span class="mile ${rel.affinity >= 100 ? 'reached' : ''}">✨</span>
+        </div>` : ''}
+      </div>
+      <div class="pcard-actions">
+        <button class="btn btn-sm interact-btn" onclick="interactTeacher('${def.id}','gift')"${!canAffordGift ? ' style="opacity:.5"' : ''}>
+          🎁 赠礼 <span style="font-size:.75em;opacity:.7">-${giftCost}💰</span>
+        </button>
+        <button class="btn btn-sm interact-btn" onclick="interactTeacher('${def.id}','chat')">
+          💬 请教
+        </button>
+      </div>
+    </div>
+  `
+}
+
+function interactTeacher(id, type) {
   if (!player.monthStarted) {
     showModal('<div class="modal-title">提示</div><p class="muted">请先在主控面板开始本月。</p>')
     return
   }
+
+  const def = TEACHER_POOL.find(t => t.id === id)
+  const rel = relations.teachers.find(t => t.id === id)
+  if (!def || !rel) return
+
+  const interaction = def.interactions[type]
+  if (!interaction) return
+
+  const story = interaction.stories[rndInt(interaction.stories.length)]
+
+  if (type === 'gift') {
+    const giftCost = -(story.effect.money || 0)
+    if (giftCost > 0 && player.money < giftCost) {
+      showModal(`<div class="modal-title">零花钱不足</div><p class="muted">赠送礼物需要 ${giftCost} 元，当前余额不足。</p>`)
+      return
+    }
+  }
+
   if (!useEnergy()) return
 
-  const opt  = INTERACT_OPTS[action]
-  const all  = [...relations.teachers, ...relations.classmates]
-  const person = all.find(p => p.id === personId)
-  if (!person) return
+  const { affinity: aff = 0, ...statChanges } = story.effect
+  applyChanges(statChanges)
 
   const affBonus = hasTag('charming') ? 2 : 0
-  person.affinity = clamp(person.affinity + opt.aff + affBonus)
-  const justBonded = !person.bonded && person.affinity >= 100
-  if (justBonded) { person.bonded = true; person.affinity = 100 }
-  applyChanges(opt.eff)
+  rel.affinity = clamp(rel.affinity + aff + affBonus)
+  const justBonded = !rel.bonded && rel.affinity >= 100
+  if (justBonded) { rel.bonded = true; rel.affinity = 100 }
   saveState()
 
-  const rows = Object.entries(opt.eff).map(([k, v]) =>
+  const rows = Object.entries(statChanges).map(([k, v]) =>
     `<div class="modal-row">
       <span>${STAT_LABELS[k]}</span>
       <span class="${v > 0 ? 'chg-pos' : 'chg-neg'}">${v > 0 ? '+' : ''}${v}</span>
@@ -1931,36 +2625,116 @@ function interact(personId, action) {
   ).join('')
 
   const afterInteract = () => {
-    if (justBonded && person.specialEvent) {
-      const rewardRows = Object.entries(person.specialReward || {}).map(([k, v]) =>
-        `<div class="modal-row">
-          <span>${STAT_LABELS[k]}</span>
-          <span class="chg-pos">+${v}</span>
-        </div>`
-      ).join('')
-      showModal(`
-        <div class="bond-event-icon">${person.emoji}</div>
-        <div class="modal-title">关系升华 ✨</div>
-        <div class="event-box" style="font-size:13px;margin-bottom:12px;">${person.specialEvent}</div>
-        <hr class="modal-divider">
-        ${rewardRows}
-      `, () => {
-        if (person.specialReward) applyChanges(person.specialReward)
+    if (justBonded && def.bondEvent) {
+      window._bondChoice = (idx) => {
+        _modalCb = null
+        document.getElementById('modal-overlay').classList.add('hidden')
+        document.getElementById('modal-ok').style.display = ''
+        const choice = def.bondEvent.choices[idx]
+        if (choice?.effect) applyChanges(choice.effect)
+        saveState()
         renderSocial()
-      })
+      }
+      showModal(`
+        <div class="bond-event-icon">${def.emoji}</div>
+        <div class="modal-title">关系升华 ✨</div>
+        <div class="event-box" style="font-size:13px;margin-bottom:14px;">${def.bondEvent.story}</div>
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <button class="btn full-width" onclick="_bondChoice(0)">${def.bondEvent.choices[0].label}</button>
+          <button class="btn btn-primary full-width" onclick="_bondChoice(1)">${def.bondEvent.choices[1].label}</button>
+        </div>
+      `, () => renderSocial(), true)
     } else {
       renderSocial()
     }
   }
 
   showModal(`
-    <div class="modal-title">互动结果</div>
-    <div class="event-box" style="font-size:13px;margin-bottom:12px;">${opt.desc}</div>
+    <div class="modal-title">${interaction.label}</div>
+    <div class="event-box" style="font-size:13px;margin-bottom:12px;">${story.text}</div>
     <hr class="modal-divider">
     ${rows}
     <div class="modal-row">
-      <span>与 ${person.name} 好感度</span>
-      <span class="chg-pos">+${opt.aff + affBonus}${affBonus > 0 ? ' 😏' : ''}</span>
+      <span>与 ${def.name} 好感度</span>
+      <span class="chg-pos">+${aff + affBonus}${affBonus > 0 ? ' 😏' : ''}</span>
+    </div>
+  `, afterInteract)
+}
+
+function interactClassmate(id, type) {
+  if (!player.monthStarted) {
+    showModal('<div class="modal-title">提示</div><p class="muted">请先在主控面板开始本月。</p>')
+    return
+  }
+
+  const def = CLASSMATE_POOL.find(c => c.id === id)
+  const rel = relations.classmates.find(c => c.id === id)
+  if (!def || !rel) return
+
+  const interaction = def.interactions[type]
+  if (!interaction) return
+
+  const story = interaction.stories[rndInt(interaction.stories.length)]
+
+  if (type === 'meal') {
+    const mealCost = -(story.effect.money || 0)
+    if (mealCost > 0 && player.money < mealCost) {
+      showModal(`<div class="modal-title">零花钱不足</div><p class="muted">请客吃饭需要 ${mealCost} 元，当前余额不足。</p>`)
+      return
+    }
+  }
+
+  if (!useEnergy()) return
+
+  const { affinity: aff = 0, ...statChanges } = story.effect
+  applyChanges(statChanges)
+
+  const affBonus = hasTag('charming') ? 2 : 0
+  rel.affinity = clamp(rel.affinity + aff + affBonus)
+  const justBonded = !rel.bonded && rel.affinity >= 100
+  if (justBonded) { rel.bonded = true; rel.affinity = 100 }
+  saveState()
+
+  const rows = Object.entries(statChanges).map(([k, v]) =>
+    `<div class="modal-row">
+      <span>${STAT_LABELS[k]}</span>
+      <span class="${v > 0 ? 'chg-pos' : 'chg-neg'}">${v > 0 ? '+' : ''}${v}</span>
+    </div>`
+  ).join('')
+
+  const afterInteract = () => {
+    if (justBonded && def.bondEvent) {
+      window._bondChoice = (idx) => {
+        _modalCb = null
+        document.getElementById('modal-overlay').classList.add('hidden')
+        document.getElementById('modal-ok').style.display = ''
+        const choice = def.bondEvent.choices[idx]
+        if (choice?.effect) applyChanges(choice.effect)
+        saveState()
+        renderSocial()
+      }
+      showModal(`
+        <div class="bond-event-icon">${def.emoji}</div>
+        <div class="modal-title">关系升华 ✨</div>
+        <div class="event-box" style="font-size:13px;margin-bottom:14px;">${def.bondEvent.story}</div>
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <button class="btn full-width" onclick="_bondChoice(0)">${def.bondEvent.choices[0].label}</button>
+          <button class="btn btn-primary full-width" onclick="_bondChoice(1)">${def.bondEvent.choices[1].label}</button>
+        </div>
+      `, () => renderSocial(), true)
+    } else {
+      renderSocial()
+    }
+  }
+
+  showModal(`
+    <div class="modal-title">${interaction.label}</div>
+    <div class="event-box" style="font-size:13px;margin-bottom:12px;">${story.text}</div>
+    <hr class="modal-divider">
+    ${rows}
+    <div class="modal-row">
+      <span>与 ${def.name} 好感度</span>
+      <span class="chg-pos">+${aff + affBonus}${affBonus > 0 ? ' 😏' : ''}</span>
     </div>
   `, afterInteract)
 }
@@ -2222,15 +2996,33 @@ function finishQuiz() {
 // ─── 娱乐页面 ────────────────────────────────────────────────
 
 const GAMES = [
-  { icon: '🏃', name: '跑步',   eff: '心理 + 身体', fn: 'startRunning()' },
-  { icon: '🏀', name: '篮球',   eff: '身体 + 心理', fn: 'startBasketball()' },
-  { icon: '🏊', name: '游泳',   eff: '身体 + 心理', fn: 'startSwimming()' },
-  { icon: '🏓', name: '打砖块', eff: '心理 + 反应', fn: 'startBreakout()' },
-  { icon: '✈️', name: '空战',   eff: '心理健康',   fn: 'startSkyFight()' },
+  { icon: '🏃', name: '跑步',     cost: '1精力', eff: '身体健康',     fn: 'startRunning()' },
+  { icon: '🏀', name: '篮球',     cost: '1精力', eff: '身体 + 心理', fn: 'startBasketball()' },
+  { icon: '🏊', name: '游泳',     cost: '1精力', eff: '身体 + 心理', fn: 'startSwimming()' },
+  { icon: '🏓', name: '乒乓球',   cost: '1精力', eff: '身体 + 心理', fn: 'startBreakout()' },
+  { icon: '🎮', name: '电子游戏', cost: '1精力', eff: '心理健康',     fn: 'startSkyFight()' },
+  { icon: '🍿', name: '买零食',   cost: '200元', eff: '心理健康',     fn: 'buySnacks()' },
+  { icon: '💆', name: '理疗',     cost: '500元', eff: '身体健康',     fn: 'getMassage()' },
 ]
 
 function renderFun() {
   const c = document.getElementById('content')
+  const calMonth = getMonthInfo(player.month).month
+  const isVacation = [2, 7, 8].includes(calMonth)
+  const partTimeCard = isVacation ? `
+    <div class="card" style="margin-top:10px">
+      <div class="card-label">假期打工</div>
+      <div class="card-sub-label">假期兼职，通过连连看完成任务，进度越高获得零花钱越多</div>
+      <div class="game-grid">
+        <div class="game-card" onclick="startLinkGame()">
+          <div class="game-icon">💼</div>
+          <div class="game-name">打工</div>
+          <div class="game-cost">消耗 2精力</div>
+          <div class="game-eff">最多 +500元</div>
+        </div>
+      </div>
+    </div>
+  ` : ''
   c.innerHTML = `
     <div class="card">
       <div class="card-label">选择活动</div>
@@ -2240,11 +3032,13 @@ function renderFun() {
           <div class="game-card" onclick="${g.fn}">
             <div class="game-icon">${g.icon}</div>
             <div class="game-name">${g.name}</div>
-            <div class="game-eff">${g.eff}</div>
+            <div class="game-cost">消耗 ${g.cost}</div>
+            <div class="game-eff">获得 ${g.eff}</div>
           </div>
         `).join('')}
       </div>
     </div>
+    ${partTimeCard}
   `
 }
 
@@ -2252,53 +3046,170 @@ function showComingSoon(name) {
   showModal(`<div class="modal-title">${name}</div><p class="muted tc">正在开发中，敬请期待……</p>`)
 }
 
+function buySnacks() {
+  if (player.money < 200) {
+    showModal(`<div class="modal-title">零花钱不足</div><p class="muted tc">买零食需要 200 元，当前余额不足。</p>`)
+    return
+  }
+  tryShopInvite('🍿 买零食', 200,
+    () => {
+      applyChanges({ money: -200, mental: 10 })
+      saveState()
+      showModal(`
+        <div class="modal-title">🍿 买零食</div>
+        <p style="font-size:13px;text-align:center;color:var(--text-muted);margin:8px 0 14px">买了一大袋零食，边吃边放松，心情好多了！</p>
+        <hr class="modal-divider">
+        <div class="modal-row"><span>零花钱</span><span class="chg-neg">-200</span></div>
+        <div class="modal-row"><span>心理健康</span><span class="chg-pos">+10</span></div>
+      `)
+    },
+    (rel, def) => {
+      if (player.money < 300) {
+        showModal(`<div class="modal-title">零花钱不足</div><p class="muted tc">和同学一起需要 300 元，当前余额不足。</p>`)
+        return
+      }
+      applyChanges({ money: -300, mental: 10 })
+      rel.affinity = clamp(rel.affinity + 20)
+      saveState()
+      showModal(`
+        <div class="modal-title">🍿 一起买零食 🎉</div>
+        <div class="event-box" style="font-size:13px;margin-bottom:12px;">和 ${def.name} 一起逛小卖部，挑了好多好吃的，边吃边聊，笑声不断，心情超好！</div>
+        <hr class="modal-divider">
+        <div class="modal-row"><span>零花钱</span><span class="chg-neg">-300</span></div>
+        <div class="modal-row"><span>心理健康</span><span class="chg-pos">+10</span></div>
+        <div class="modal-row"><span>与 ${def.name} 好感度</span><span class="chg-pos">+20</span></div>
+      `)
+    }
+  )
+}
+
+function getMassage() {
+  if (player.money < 500) {
+    showModal(`<div class="modal-title">零花钱不足</div><p class="muted tc">理疗需要 500 元，当前余额不足。</p>`)
+    return
+  }
+  tryShopInvite('💆 理疗', 500,
+    () => {
+      applyChanges({ money: -500, health: 20 })
+      saveState()
+      showModal(`
+        <div class="modal-title">💆 理疗</div>
+        <p style="font-size:13px;text-align:center;color:var(--text-muted);margin:8px 0 14px">在专业理疗师的帮助下做了一次全身放松，浑身舒畅！</p>
+        <hr class="modal-divider">
+        <div class="modal-row"><span>零花钱</span><span class="chg-neg">-500</span></div>
+        <div class="modal-row"><span>身体健康</span><span class="chg-pos">+20</span></div>
+      `)
+    },
+    (rel, def) => {
+      if (player.money < 750) {
+        showModal(`<div class="modal-title">零花钱不足</div><p class="muted tc">和同学一起理疗需要 750 元，当前余额不足。</p>`)
+        return
+      }
+      applyChanges({ money: -750, health: 20 })
+      rel.affinity = clamp(rel.affinity + 20)
+      saveState()
+      showModal(`
+        <div class="modal-title">💆 一起理疗 🎉</div>
+        <div class="event-box" style="font-size:13px;margin-bottom:12px;">和 ${def.name} 一起预约了理疗，两人躺着聊天，放松身心，关系也更近了一步！</div>
+        <hr class="modal-divider">
+        <div class="modal-row"><span>零花钱</span><span class="chg-neg">-750</span></div>
+        <div class="modal-row"><span>身体健康</span><span class="chg-pos">+20</span></div>
+        <div class="modal-row"><span>与 ${def.name} 好感度</span><span class="chg-pos">+20</span></div>
+      `)
+    }
+  )
+}
+
+// 买零食/理疗专用邀约：20% 触发，1.5x 费用，仅正面结果，好感+20
+function tryShopInvite(title, baseCost, soloFn, togetherFn) {
+  if (!player.monthStarted || Math.random() >= 0.2 || relations.classmates.length === 0) {
+    soloFn(); return
+  }
+  const rel = relations.classmates[rndInt(relations.classmates.length)]
+  const def = CLASSMATE_POOL.find(c => c.id === rel.id)
+  if (!def) { soloFn(); return }
+
+  const totalCost = Math.round(baseCost * 1.5)
+
+  window._acceptShopInvite = (personId) => {
+    _modalCb = null
+    document.getElementById('modal-overlay').classList.add('hidden')
+    document.getElementById('modal-ok').style.display = ''
+    const r = relations.classmates.find(c => c.id === personId)
+    const d = CLASSMATE_POOL.find(c => c.id === personId)
+    if (r && d) togetherFn(r, d)
+    else soloFn()
+  }
+  window._declineShopInvite = () => {
+    _modalCb = null
+    document.getElementById('modal-overlay').classList.add('hidden')
+    document.getElementById('modal-ok').style.display = ''
+    soloFn()
+  }
+
+  showModal(`
+    <div class="modal-title">📣 同学邀约</div>
+    <div class="event-box" style="font-size:13px;margin-bottom:14px;">
+      ${def.emoji} <strong>${def.name}</strong> 也想一起${title.replace(/[🍿💆\s]/g, '').trim()}，要同行吗？<br>
+      <span style="font-size:11px;color:var(--text-muted)">一起花费 ${totalCost} 元，但好感大增，结果一定是好的！</span>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn full-width" onclick="_declineShopInvite()">独自前往</button>
+      <button class="btn btn-primary full-width" onclick="_acceptShopInvite('${rel.id}')">一起去！</button>
+    </div>
+  `, () => soloFn(), true)
+}
+
 function tryInvite(activityName, onDone) {
   if (!player.monthStarted || Math.random() >= 0.6 || relations.classmates.length === 0) {
     onDone(false); return
   }
-  const person = relations.classmates[rndInt(relations.classmates.length)]
+  const rel = relations.classmates[rndInt(relations.classmates.length)]
+  const def = CLASSMATE_POOL.find(c => c.id === rel.id)
+  if (!def) { onDone(false); return }
 
   window._acceptInvite = (personId) => {
     _modalCb = null
     document.getElementById('modal-overlay').classList.add('hidden')
     document.getElementById('modal-ok').style.display = ''
-    const p = relations.classmates.find(c => c.id === personId)
-    if (p) applyInviteOutcome(p, activityName, () => onDone(true))
+    const r = relations.classmates.find(c => c.id === personId)
+    const d = CLASSMATE_POOL.find(c => c.id === personId)
+    if (r && d) applyInviteOutcome(r, d, activityName, () => onDone(true))
     else onDone(false)
   }
 
   showModal(`
     <div class="modal-title">📣 同学邀约</div>
     <div class="event-box" style="font-size:13px;margin-bottom:14px;">
-      ${person.emoji} <strong>${person.name}</strong> 刚好也想去${activityName}，要一起吗？<br>
+      ${def.emoji} <strong>${def.name}</strong> 刚好也想去${activityName}，要一起吗？<br>
       <span style="font-size:11px;color:var(--text-muted)">结果可能是好事，也可能起小摩擦……</span>
     </div>
     <div style="display:flex;gap:8px;margin-top:4px">
       <button class="btn full-width" onclick="closeModal()">独自进行</button>
-      <button class="btn btn-primary full-width" onclick="_acceptInvite('${person.id}')">一起去！</button>
+      <button class="btn btn-primary full-width" onclick="_acceptInvite('${rel.id}')">一起去！</button>
     </div>
   `, () => onDone(false), true)
 }
 
-function applyInviteOutcome(person, activityName, onDone) {
+function applyInviteOutcome(rel, def, activityName, onDone) {
   const good   = Math.random() < 0.6
   const aff    = good ? (rndInt(6) + 4)  : -(rndInt(5) + 3)
   const mental = good ? (rndInt(4) + 4)  : -(rndInt(4) + 3)
   const health = good ? (rndInt(3) + 2)  : rndInt(2)
 
   const goodDescs = [
-    `和 ${person.name} 一起去${activityName}超级开心，越运动越有默契，聊了好多心里话。`,
-    `${person.name} 一路给你加油，你发挥得比平时好多了，心情大好！`,
+    `和 ${def.name} 一起去${activityName}超级开心，越运动越有默契，聊了好多心里话。`,
+    `${def.name} 一路给你加油，你发挥得比平时好多了，心情大好！`,
     `一起${activityName}途中笑声不断，压力一扫而空，感觉整个人都轻松了。`,
   ]
   const badDescs = [
-    `和 ${person.name} 去${activityName}途中意见不合，带着情绪回来，心情很差。`,
-    `${person.name} 状态不好，负面情绪影响了你，这次${activityName}体验很差。`,
-    `${person.name} 突然改变计划，让你觉得很扫兴，两人都有些别扭。`,
+    `和 ${def.name} 去${activityName}途中意见不合，带着情绪回来，心情很差。`,
+    `${def.name} 状态不好，负面情绪影响了你，这次${activityName}体验很差。`,
+    `${def.name} 突然改变计划，让你觉得很扫兴，两人都有些别扭。`,
   ]
   const desc = good ? goodDescs[rndInt(goodDescs.length)] : badDescs[rndInt(badDescs.length)]
 
-  person.affinity = clamp(person.affinity + aff)
+  rel.affinity = clamp(rel.affinity + aff)
   applyChanges({ mental, health })
   saveState()
 
@@ -2308,7 +3219,7 @@ function applyInviteOutcome(person, activityName, onDone) {
     <hr class="modal-divider">
     <div class="modal-row"><span>心理健康</span><span class="${mental >= 0 ? 'chg-pos' : 'chg-neg'}">${mental >= 0 ? '+' : ''}${mental}</span></div>
     <div class="modal-row"><span>身体健康</span><span class="${health > 0 ? 'chg-pos' : 'chg-neg'}">${health > 0 ? '+' : ''}${health}</span></div>
-    <div class="modal-row"><span>与 ${person.name} 好感度</span><span class="${aff >= 0 ? 'chg-pos' : 'chg-neg'}">${aff >= 0 ? '+' : ''}${aff}</span></div>
+    <div class="modal-row"><span>与 ${def.name} 好感度</span><span class="${aff >= 0 ? 'chg-pos' : 'chg-neg'}">${aff >= 0 ? '+' : ''}${aff}</span></div>
   `, onDone)
 }
 
@@ -2416,14 +3327,14 @@ function openRunningGame() {
     if (head.x === food.x && head.y === food.y) {
       score++
       food = placeFood()
-      if (score % 5 === 0 && speed > 80) { speed -= 15; restartTimer() }
+      if (score % 5 === 0 && speed > 107) { speed -= 11; restartTimer() }
     } else {
       snake.pop()
     }
     draw()
   }
 
-  let speed = 180
+  let speed = 240
   let timer = null
 
   function restartTimer() {
@@ -2434,10 +3345,9 @@ function openRunningGame() {
   function endRunning() {
     clearInterval(timer)
     const dist  = score * 50
-    const mgain = Math.min(10, Math.floor(score / 2) + 2)
-    const hgain = Math.min(6,  Math.floor(score / 3) + 2)
+    const hgain = Math.round(Math.min(dist, 1000) / 1000 * 15)
     info.textContent = `跑步结束！距离 ${dist}m`
-    if (player.monthStarted) applyChanges({ mental: mgain, health: hgain })
+    if (player.monthStarted) applyChanges({ health: hgain })
     setTimeout(() => {
       closeGame()
       if (player.monthStarted) {
@@ -2445,7 +3355,6 @@ function openRunningGame() {
           <div class="modal-title">🏃 跑步结束</div>
           <div style="font-size:36px;font-weight:800;text-align:center;margin:10px 0;">${dist}<span style="font-size:15px;font-weight:500;color:var(--text-muted)"> m</span></div>
           <hr class="modal-divider">
-          <div class="modal-row"><span>心理健康</span><span class="chg-pos">+${mgain}</span></div>
           <div class="modal-row"><span>身体健康</span><span class="chg-pos">+${hgain}</span></div>
         `)
       }

@@ -16,7 +16,7 @@ function openSkyFight() {
   const controls = document.getElementById('snake-controls')
   const ctx      = canvas.getContext('2d')
 
-  document.getElementById('game-title').textContent = '空战 ✈️'
+  document.getElementById('game-title').textContent = '电子游戏 🎮'
   controls.style.display = ''   // 全部方向键可用
   overlay.classList.remove('hidden')
   infoEl.textContent = '拖动画面 / 方向键移动   自动射击'
@@ -79,8 +79,8 @@ function openSkyFight() {
     const x = 18 + Math.random() * (W - 36)
     enemies.push({
       x, y: -22, type: 1, hp: 1, maxHp: 1,
-      vx: (Math.random() - 0.5) * 1.4,
-      vy: 0.7 + level * 0.14,
+      vx: (Math.random() - 0.5) * 1.05,
+      vy: 0.525 + level * 0.105,
       shootCD: 20 + Math.floor(Math.random() * 40),
       shootInterval: Math.max(28, 72 - level * 6),
       alive: true, age: 0,
@@ -91,8 +91,8 @@ function openSkyFight() {
     const x = 30 + Math.random() * (W - 60)
     enemies.push({
       x, y: -28, type: 2, hp: 3, maxHp: 3,
-      vx: (Math.random() - 0.5) * 1.0,
-      vy: 0.5 + level * 0.1,
+      vx: (Math.random() - 0.5) * 0.75,
+      vy: 0.375 + level * 0.075,
       shootCD: 30,
       shootInterval: Math.max(35, 80 - level * 5),
       alive: true, age: 0,
@@ -104,7 +104,7 @@ function openSkyFight() {
   function enemyFire(e) {
     const dx = px - e.x, dy = py - e.y
     const len = Math.hypot(dx, dy) || 1
-    const bs  = 1.8 + level * 0.2 + (e.type === 2 ? 0.4 : 0)
+    const bs  = 1.35 + level * 0.15 + (e.type === 2 ? 0.3 : 0)
 
     if (e.type === 1) {
       // 单发瞄准
@@ -459,12 +459,19 @@ function openSkyFight() {
 
   function endSkyFight() {
     cancelAnimationFrame(raf); raf = null
-    const mg = Math.min(20, Math.floor(score / 80) + 3)  // 纯心理加成
+    // 电竞实战测试模式：交由外部回调处理
+    if (window._esportsTestCallback) {
+      const cb = window._esportsTestCallback
+      window._esportsTestCallback = null
+      setTimeout(() => { closeGame(); cb(score) }, 600)
+      return
+    }
+    const mg = Math.round(Math.min(score, 4000) / 4000 * 15)
     if (player.monthStarted) applyChanges({ mental: mg })
     setTimeout(() => {
       closeGame()
       if (player.monthStarted) showModal(`
-        <div class="modal-title">✈️ 空战结束</div>
+        <div class="modal-title">🎮 电子游戏结束</div>
         <div style="font-size:36px;font-weight:800;text-align:center;margin:10px 0">${score}<span style="font-size:14px;font-weight:500;color:var(--text-muted)"> 分</span></div>
         <div style="text-align:center;margin-bottom:10px;color:var(--text-muted);font-size:13px">最高等级 Lv.${level}</div>
         <hr class="modal-divider">
@@ -526,6 +533,12 @@ function openSkyFight() {
       canvas.removeEventListener('touchend',    onTouchEnd)
       window.setSnakeDir = origSetSnakeDir
       controls.style.display = ''
+      // Early exit during esports test — treat as failure (score 0)
+      if (window._esportsTestCallback) {
+        const cb = window._esportsTestCallback
+        window._esportsTestCallback = null
+        setTimeout(() => cb(0), 100)
+      }
     }
   }
 

@@ -702,6 +702,7 @@ body {
 
 .game-icon { font-size: 32px; margin-bottom: 7px; }
 .game-name { font-size: 13px; font-weight: 700; margin-bottom: 3px; }
+.game-cost { font-size: 11px; color: var(--text-sub); font-weight: 500; margin-bottom: 2px; }
 .game-eff  { font-size: 11px; color: var(--text-muted); font-weight: 500; }
 
 .companion-row {
@@ -1322,6 +1323,17 @@ body {
 }
 #title-screen.hidden { display: none; }
 
+.title-credits {
+  position: absolute;
+  bottom: 20px;
+  left: 0; right: 0;
+  text-align: center;
+  font-size: 10px;
+  color: var(--text-muted);
+  line-height: 1.9;
+  opacity: 0.6;
+}
+
 #title-inner {
   display: flex;
   flex-direction: column;
@@ -1810,4 +1822,70 @@ body {
   background: var(--bg);
   border-radius: 10px;
   border: 1px solid var(--border-soft);
+}
+
+/* ─── 保送清北隐藏结局 ──────────────────────────────────────── */
+
+.baosong-result-card {
+  background: linear-gradient(160deg, #fef9e7 0%, #fef3c7 60%, #fde68a44 100%);
+  border: 2px solid #c9952a66;
+  box-shadow: 0 4px 24px rgba(201,149,42,0.18);
+}
+
+.baosong-hidden-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #c9952a;
+  letter-spacing: 2px;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.baosong-title {
+  font-size: 32px;
+  font-weight: 900;
+  color: #8b6000;
+  text-align: center;
+  letter-spacing: 6px;
+  margin-bottom: 6px;
+}
+
+.baosong-school-name {
+  font-size: 26px;
+  font-weight: 800;
+  color: #5a3a00;
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.baosong-tier-badge {
+  font-size: 12px;
+  font-weight: 600;
+  color: #c9952a;
+  text-align: center;
+  margin-bottom: 10px;
+  letter-spacing: 0.5px;
+}
+
+.baosong-desc {
+  font-size: 13px;
+  color: #7a5a00;
+  line-height: 1.85;
+  text-align: left;
+  padding: 14px 16px;
+  background: rgba(201,149,42,0.07);
+  border-radius: 10px;
+  border: 1px solid #c9952a33;
+}
+
+.baosong-save-btn {
+  background: linear-gradient(135deg, #c9952a, #e0b040);
+  color: #fff;
+  border: none;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.baosong-save-btn:hover {
+  background: linear-gradient(135deg, #b8860b, #c9952a);
 }
