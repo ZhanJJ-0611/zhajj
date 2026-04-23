@@ -2249,6 +2249,7 @@ function saveWeireaiCard() {
 // ─── 主控页面 ────────────────────────────────────────────────
 
 function renderHome() {
+  window.scrollTo(0, 0)
   const c = document.getElementById('content')
   const done = player.month > TOTAL_MONTHS
 
