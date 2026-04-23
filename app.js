@@ -671,8 +671,10 @@ const PLACEMENT_QUESTIONS = [
 ]
 
 let _placementAnswers = []
+let _placementActive  = false
 
 function showPlacementExam() {
+  _placementActive = true
   document.getElementById('title-screen').classList.add('hidden')
   document.getElementById('status-bar').classList.add('hidden')
   document.getElementById('energy-bar').classList.add('hidden')
@@ -735,6 +737,7 @@ function submitPlacementExam() {
 
   player.classRoom = classRoom
   player.placementDone = true
+  _placementActive = false
   saveState()
 
   document.getElementById('status-bar').classList.remove('hidden')
@@ -1033,7 +1036,7 @@ function applyChanges(changes) {
 // ─── 页面路由 ────────────────────────────────────────────────
 
 function switchPage(page) {
-  if ((currentExam && !currentExam.submitted) || (currentGaokao && !currentGaokao.submitted) || (currentOlympiad && !currentOlympiad.submitted) || (currentEsportsExam && !currentEsportsExam.submitted)) return
+  if (_placementActive || (currentExam && !currentExam.submitted) || (currentGaokao && !currentGaokao.submitted) || (currentOlympiad && !currentOlympiad.submitted) || (currentEsportsExam && !currentEsportsExam.submitted)) return
   if (page !== 'study') { currentQuiz = null; clearQuizTimer() }
   currentPage = page
   document.querySelectorAll('.nav-btn').forEach(b =>
@@ -1396,8 +1399,11 @@ function startOlympiadExam(subject) {
   const bank = shuffle([...(OLYMPIAD_BANK[subject] || [])])
   const questions = bank.slice(0, OLYMPIAD_Q_COUNT).map(q => ({ ...q, subject }))
   currentOlympiad = { subject, questions, answers: new Array(OLYMPIAD_Q_COUNT).fill(-1), submitted: false }
+  currentPage = 'home'
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.page === 'home'))
   document.getElementById('bottom-nav').classList.add('hidden')
-  renderHome()
+  document.getElementById('content').innerHTML = ''
+  renderOlympiadExam()
 }
 
 function renderOlympiadExam() {
@@ -1987,7 +1993,10 @@ function startEsportsTheoryExam(project, callback) {
     callback,
   }
   saveState()
-  renderHome()
+  currentPage = 'home'
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.page === 'home'))
+  document.getElementById('content').innerHTML = ''
+  renderEsportsExam()
 }
 
 function renderEsportsExam() {
