@@ -182,8 +182,8 @@ const TUTORIAL_STEPS = [
   {
     title: '月考与本月事件',
     desc: '主页显示本月的随机事件和月考成绩看板。每个月都会发生一件随机事情，有好有坏。月考成绩反映你这段时间的学习积累。',
-    target: '.month-card',
-    boxPos: 'bottom',
+    target: '[data-page="home"]',
+    boxPos: 'top',
   },
   {
     title: '人际界面',
