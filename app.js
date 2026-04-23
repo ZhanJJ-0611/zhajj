@@ -41,6 +41,10 @@ const DEFAULT_PLAYER = {
   classRoom: null,
   activeTeachers: [],
   activeClassmates: [],
+  usedInteractions: [],
+  usedActivities: [],
+  usedSubjects: [],
+  tutorialDone: false,
 }
 
 // ─── 标签池 ──────────────────────────────────────────────────
@@ -93,114 +97,6 @@ const DEFAULT_RELATIONS = {
   classmates: [],
 }
 
-
-const CHOICE_EVENTS = [
-  {
-    text: '班里正在组织学习小组，老师推荐你参加，但每周两次会占用自习时间。',
-    choices: [
-      { label: '🤝 加入小组', desc: '和同学互帮互助，互相讲解难题，进步不少，但少了独自钻研的时间。', effect: { learning: 8, mental: 5, effort: -3 } },
-      { label: '📖 独自学习', desc: '按自己的节奏刷题，效率不错，但错过了合作的乐趣。', effect: { learning: 4, effort: 7, mental: -2 } },
-    ]
-  },
-  {
-    text: '周末同学邀请你一起出去爬山，但你还有一堆题没做完。',
-    choices: [
-      { label: '🏔️ 去爬山', desc: '爬山回来神清气爽，压力小了很多，不过作业还是得抽空补回来。', effect: { health: 8, mental: 7, effort: -4 } },
-      { label: '📚 留家自习', desc: '把堆积的题目清掉大半，虽然有点闷，但心里踏实多了。', effect: { learning: 6, effort: 5, mental: -3 } },
-    ]
-  },
-  {
-    text: '文艺委员找你参加校合唱团，每周排练三次，会发一件帅气的演出服。',
-    choices: [
-      { label: '🎵 加入合唱团', desc: '排练很累，但站在舞台上的感觉超级棒，还认识了很多新朋友。', effect: { mental: 9, health: 3, effort: -5 } },
-      { label: '🙅 婉拒邀请', desc: '婉拒了邀请，把省下来的时间用在了刷题上，效率不错。', effect: { effort: 5, learning: 3 } },
-    ]
-  },
-  {
-    text: '图书馆偶然发现一本跟高考毫无关系的有趣小说，你心动了。',
-    choices: [
-      { label: '📖 借回去读', desc: '废寝忘食地看完了，意境深远，感觉人生观都开阔了不少。', effect: { mental: 8, learning: -2, health: -3 } },
-      { label: '😤 放回书架', desc: '忍住了诱惑，把时间用在课本上，学习进度明显加快。', effect: { effort: 6, learning: 4 } },
-    ]
-  },
-  {
-    text: '期末前一周，同学找你一起通宵刷题，说"一起卷才有动力"。',
-    choices: [
-      { label: '🌙 一起通宵', desc: '熬了两个通宵，题做了不少，但精神状态很差，上课有些恍惚。', effect: { learning: 9, effort: 5, health: -8, mental: -5 } },
-      { label: '🛌 早睡保状态', desc: '拒绝通宵，好好睡觉，考场上头脑清醒，发挥更加稳定。', effect: { health: 6, mental: 4, learning: 3 } },
-    ]
-  },
-  {
-    text: '体育老师说下月有全校运动会，问你要不要代表班级参加800米。',
-    choices: [
-      { label: '🏃 参加比赛', desc: '拼命练习，最终跑出好成绩，全班给你加油，超级开心！', effect: { health: 10, mental: 8, effort: -3, learning: -2 } },
-      { label: '📐 专注学习', desc: '婉拒了，把时间留给物理压轴题，虽然有点遗憾，但考试还行。', effect: { learning: 6, effort: 4 } },
-    ]
-  },
-  {
-    text: '语文老师问你愿不愿意上台展示作文，这是一次公开课。',
-    choices: [
-      { label: '🎤 上台展示', desc: '有点紧张，但获得了很多掌声，老师课后专门分享了写作技巧。', effect: { mental: 7, learning: 5, effort: 3 } },
-      { label: '😳 婉拒上台', desc: '默默坐在台下听别人的，感觉有点可惜，但没有额外压力。', effect: { mental: -2 } },
-    ]
-  },
-  {
-    text: '发现同桌每次考试都比你高20分，你在考虑要不要主动请教学习方法。',
-    choices: [
-      { label: '💬 主动交流', desc: '鼓起勇气去交流，对方分享了不少好方法，受益匪浅。', effect: { learning: 7, mental: 5, effort: 4 } },
-      { label: '💪 自己摸索', desc: '觉得方法靠自己，埋头苦干，虽然慢一些，但更有成就感。', effect: { effort: 8, learning: 3 } },
-    ]
-  },
-  {
-    text: '学生会在招募新成员，说可以锻炼能力和拓展人脉，但工作量不小。',
-    choices: [
-      { label: '🌟 加入学生会', desc: '忙得不可开交，但认识了很多有意思的人，人际关系大幅提升。', effect: { mental: 6, effort: -4, health: -3 } },
-      { label: '📝 专注课业', desc: '婉拒了，把时间留给学习，期中成绩明显提高了不少。', effect: { learning: 7, effort: 5 } },
-    ]
-  },
-  {
-    text: '班主任希望你帮成绩落后的同学补课，说这对你们俩都有好处。',
-    choices: [
-      { label: '🙋 答应帮忙', desc: '帮他讲题时自己也梳理了一遍知识点，意外地收获很大。', effect: { learning: 6, mental: 5, effort: -2 } },
-      { label: '🤷 婉言推辞', desc: '以自己也很忙为由拒绝了，专注刷了一套真题。', effect: { learning: 5, effort: 4 } },
-    ]
-  },
-  {
-    text: '数学老师出了一道超纲的竞赛加分题，你要不要挑战一下？',
-    choices: [
-      { label: '🧮 挑战加分题', desc: '死磕了三小时，最终做出来了！得到老师表扬，超有成就感。', effect: { learning: 10, effort: 5, health: -4, mental: 5 } },
-      { label: '✅ 做好基础题', desc: '把稳定分数的基础题做扎实，发挥稳定，拿到该得的分数。', effect: { learning: 5, effort: 4 } },
-    ]
-  },
-  {
-    text: '班里流行起了一款新手游，课间很多人在玩，你要不要也试试？',
-    choices: [
-      { label: '🎮 下载来玩', desc: '沉迷了一段时间，成绩有点下滑，但和同学的共同话题多了不少。', effect: { mental: 7, effort: -5, learning: -3, health: -2 } },
-      { label: '🚫 保持自制', desc: '坚持没下载，把课间时间用来背单词，词汇量明显提升。', effect: { effort: 7, learning: 5 } },
-    ]
-  },
-  {
-    text: '家长建议报一个线上补习班，每周三晚上上课，你觉得自习效果也还不错。',
-    choices: [
-      { label: '📺 报名补习', desc: '老师讲得很系统，物理解题思路尤其清晰，进步不少。', effect: { learning: 9, effort: 3, mental: -2, health: -3 } },
-      { label: '🔇 自主复习', desc: '按自己的计划来，把整理的错题本全部过了一遍，效果还行。', effect: { learning: 6, effort: 6 } },
-    ]
-  },
-  {
-    text: '好朋友遇到了感情烦恼，拉着你倾诉了整整一个下午，耽误了不少时间。',
-    choices: [
-      { label: '❤️ 好好陪伴', desc: '认真倾听和开导，好友感激不已，你们的感情更深了。', effect: { mental: 6, effort: -4 } },
-      { label: '📋 委婉提前离', desc: '安慰了一会儿后，以有作业为由先走，内心有点愧疚。', effect: { learning: 4, mental: -3 } },
-    ]
-  },
-  {
-    text: '班里传阅一份高考志愿参考表，你注意到一所顶尖大学，开始认真规划目标。',
-    choices: [
-      { label: '🎯 定高目标', desc: '给自己定了一个很有挑战性的目标，干劲十足，但也有点焦虑。', effect: { effort: 8, learning: 5, mental: -4 } },
-      { label: '📊 稳步前进', desc: '定了一个踏实可达的目标，心态平稳，每天按计划推进。', effect: { effort: 5, learning: 4, mental: 3 } },
-    ]
-  },
-]
 
 const UNIVERSITY_TIERS = [
   { min: 700, school: '清北大学',     badge: '清华 / 北大',
@@ -268,6 +164,127 @@ function getTagCategory(id) {
   return ''
 }
 
+// ─── 引导程序 ────────────────────────────────────────────────
+
+const TUTORIAL_STEPS = [
+  {
+    title: '四项核心数值',
+    desc: '屏幕顶部展示你的四项核心数值：身体、心理、努力和学习。它们会随着每个月的活动和事件而变化，直接影响你的月考表现和游戏走向。',
+    target: '#status-bar',
+    boxPos: 'bottom',
+  },
+  {
+    title: '精力与零花钱',
+    desc: '精力决定你这个月能做多少事——每次互动、学习、活动都需要消耗精力。零花钱可以用来购物、送礼，也会随某些事件增减。',
+    target: '#energy-bar',
+    boxPos: 'bottom',
+  },
+  {
+    title: '月考与本月事件',
+    desc: '主页显示本月的随机事件和月考成绩看板。每个月都会发生一件随机事情，有好有坏。月考成绩反映你这段时间的学习积累。',
+    target: '.month-card',
+    boxPos: 'bottom',
+  },
+  {
+    title: '人际界面',
+    desc: '在人际界面，你可以与老师和同学互动，增进好感度。好感度积累到一定程度，会触发专属的羁绊事件。每回合每人只能互动一次。',
+    target: '[data-page="social"]',
+    boxPos: 'top',
+  },
+  {
+    title: '学习界面',
+    desc: '在学习界面，你可以按科目刷题来提升学习相关数值。每回合每科只能刷一次，合理分配精力。',
+    target: '[data-page="study"]',
+    boxPos: 'top',
+  },
+  {
+    title: '活动界面',
+    desc: '在活动界面，你可以参加各种课余活动，影响身体和心理状况，也可以在假期打工赚零花钱。每回合每项活动只能参加一次。',
+    target: '[data-page="fun"]',
+    boxPos: 'top',
+  },
+  {
+    title: '结束本月',
+    desc: '准备好后，点击「结束本月」推进时间。每推进一个月，精力自动恢复，新的事件和机遇随之而来。',
+    target: '.btn-end-month',
+    boxPos: 'top',
+  },
+  {
+    title: '你的高中三年',
+    desc: '游戏共三十四个月，最终迎来高考。好好规划每一个月，争取在高考中取得理想成绩。\n\n据说，游戏中隐藏着一些特殊结局，等待有心人去发现……',
+    target: null,
+    boxPos: 'center',
+  },
+]
+
+let _tutorialStep = 0
+
+function startTutorial() {
+  if (player.tutorialDone) return
+  _tutorialStep = 0
+  document.getElementById('tutorial-overlay').classList.remove('hidden')
+  showTutorialStep(_tutorialStep)
+}
+
+function showTutorialStep(idx) {
+  const step = TUTORIAL_STEPS[idx]
+  const overlay = document.getElementById('tutorial-overlay')
+  const highlight = document.getElementById('tutorial-highlight')
+  const box = document.getElementById('tutorial-box')
+  const stepLabel = document.getElementById('tutorial-step-label')
+  const titleEl = document.getElementById('tutorial-title')
+  const descEl = document.getElementById('tutorial-desc')
+  const nextBtn = document.getElementById('tutorial-next')
+
+  stepLabel.textContent = `引导 ${idx + 1} / ${TUTORIAL_STEPS.length}`
+  titleEl.textContent = step.title
+  descEl.innerHTML = step.desc.replace(/\n/g, '<br>')
+  nextBtn.textContent = idx === TUTORIAL_STEPS.length - 1 ? '开始游戏 ✓' : '下一步 →'
+
+  if (step.target) {
+    const el = document.querySelector(step.target)
+    if (el) {
+      const rect = el.getBoundingClientRect()
+      const pad = 6
+      highlight.style.display = ''
+      highlight.style.top    = (rect.top    - pad) + 'px'
+      highlight.style.left   = (rect.left   - pad) + 'px'
+      highlight.style.width  = (rect.width  + pad * 2) + 'px'
+      highlight.style.height = (rect.height + pad * 2) + 'px'
+
+      // Position box above or below the highlighted element
+      if (step.boxPos === 'bottom') {
+        box.style.bottom = ''
+        box.style.top = (rect.bottom + 16) + 'px'
+      } else if (step.boxPos === 'top') {
+        box.style.top = ''
+        box.style.bottom = (window.innerHeight - rect.top + 16) + 'px'
+      }
+    }
+  } else {
+    // No target — center the box, hide highlight
+    highlight.style.display = 'none'
+    box.style.top = '50%'
+    box.style.bottom = ''
+    box.style.transform = 'translateX(-50%) translateY(-50%)'
+  }
+
+  if (step.target) {
+    box.style.transform = 'translateX(-50%)'
+  }
+}
+
+function tutorialNext() {
+  _tutorialStep++
+  if (_tutorialStep >= TUTORIAL_STEPS.length) {
+    document.getElementById('tutorial-overlay').classList.add('hidden')
+    player.tutorialDone = true
+    saveState()
+    return
+  }
+  showTutorialStep(_tutorialStep)
+}
+
 // ─── 初始化 ─────────────────────────────────────────────────
 
 function init() {
@@ -305,10 +322,10 @@ function showDisclaimer(callback) {
   showModal(`
     <div class="modal-title">📋 游戏说明</div>
     <div style="font-size:13px;line-height:1.85;color:var(--text-secondary)">
-      <p style="margin:0 0 10px">本游戏所有内容（包括人物、事件、学校及对话等）均属虚构创作，与现实无关，如有雷同，纯属巧合。</p>
-      <p style="margin:0 0 10px">本游戏借助 AI 工具辅助开发，部分内容经由人工智能生成并经人工审校。</p>
-      <p style="margin:0 0 10px">本游戏以高中生活为背景，旨在帮助玩家重温青春岁月，不宣扬任何违法、不当或有害的价值观念，不含歧视性、暴力性或低俗内容，无不良价值导向。</p>
-      <p style="margin:0 0 10px">游戏内数值与现实存在差异，仅供娱乐，请理性看待。</p>
+      <p style="margin:0 0 2em">本游戏所有内容（包括人物、事件、学校及对话等）均属虚构创作，与现实无关，如有雷同，纯属巧合。</p>
+      <p style="margin:0 0 2em">本游戏借助 AI 工具辅助开发，部分内容经由人工智能生成并经人工审校。</p>
+      <p style="margin:0 0 2em">本游戏以高中生活为背景，旨在帮助玩家重温青春岁月，不宣扬任何违法、不当或有害的价值观念，不含歧视性、暴力性或低俗内容，无不良价值导向。</p>
+      <p style="margin:0 0 2em">游戏内数值与现实存在差异，仅供娱乐，请理性看待。</p>
       <p style="margin:0;color:var(--text-muted);font-size:12px">点击「确定」即表示您已阅读上述说明并同意继续。</p>
     </div>
   `, callback)
@@ -320,6 +337,38 @@ function initActiveTeachers() {
   const picked = shuffled.slice(0, 4)
   player.activeTeachers = picked.map(t => t.id)
   relations.teachers = picked.map(t => ({ id: t.id, affinity: t.defaultAffinity, bonded: false }))
+  saveState()
+}
+
+function filterTeachersForSubjects() {
+  if (!player.selectedSubjects || player.selectedSubjects.length === 0) return
+
+  // Remove teachers whose subject is NOT in the player's chosen subjects
+  const toRemoveIds = new Set(
+    relations.teachers
+      .filter(rel => {
+        const def = TEACHER_POOL.find(t => t.id === rel.id)
+        return def && !player.selectedSubjects.includes(def.subject)
+      })
+      .map(rel => rel.id)
+  )
+
+  if (toRemoveIds.size === 0) return
+
+  player.activeTeachers = player.activeTeachers.filter(id => !toRemoveIds.has(id))
+  relations.teachers    = relations.teachers.filter(rel => !toRemoveIds.has(rel.id))
+
+  // Pick replacements from teachers whose subject IS selected and who aren't active yet
+  const candidates = [...TEACHER_POOL]
+    .filter(t => player.selectedSubjects.includes(t.subject) && !player.activeTeachers.includes(t.id))
+    .sort(() => Math.random() - 0.5)
+
+  const needed = 4 - relations.teachers.length
+  candidates.slice(0, needed).forEach(t => {
+    player.activeTeachers.push(t.id)
+    relations.teachers.push({ id: t.id, affinity: t.defaultAffinity, bonded: false })
+  })
+
   saveState()
 }
 
@@ -399,6 +448,9 @@ function showMonthlyEventPopups(callback) {
         showProfExamIntroPopup()
       } else {
         callback()
+        if (player.month === 1 && !player.tutorialDone) {
+          setTimeout(startTutorial, 200)
+        }
       }
     }
     if (!ev) { afterEvents(); return }
@@ -533,7 +585,7 @@ function toggleSubjectSel(subject) {
 function confirmSubjectSel() {
   if (_subjectSelPending.length !== 3) return
   player.selectedSubjects = [...CORE_SUBJECTS, ..._subjectSelPending]
-  saveState()
+  filterTeachersForSubjects()
   document.getElementById('modal-overlay').classList.add('hidden')
   _modalNoDismiss = false; _modalCb = null
   const cb = _subjectSelCb; _subjectSelCb = null
@@ -800,16 +852,21 @@ function chooseMilitaryOption(idx) {
   applyChanges(opt.effect)
   saveState()
 
-  const effKeys = { health: '身体', mental: '心理', effort: '努力' }
-  const effDesc = Object.entries(opt.effect).map(([k, v]) => `${effKeys[k] || k} ${v > 0 ? '+' : ''}${v}`).join('　')
+  const statRows = Object.entries(opt.effect).map(([k, v]) =>
+    `<div class="modal-row">
+      <span>${STAT_LABELS[k] || k}</span>
+      <span class="${v > 0 ? 'chg-pos' : 'chg-neg'}">${v > 0 ? '+' : ''}${v}</span>
+    </div>`
+  ).join('')
 
   showModal(`
-    <div style="text-align:center">
-      <div style="font-size:2rem;margin-bottom:.4rem">${opt.icon}</div>
-      <div class="event-name-tag" style="margin-bottom:.8rem">【${opt.label}】</div>
-      <div style="color:var(--text-secondary);font-size:.9rem;line-height:1.6;margin-bottom:1rem">${opt.desc}</div>
-      <div style="font-size:.85rem;color:var(--accent);font-weight:600">${effDesc}</div>
+    <div style="text-align:center;margin-bottom:4px">
+      <div style="font-size:2rem;margin-bottom:.3rem">${opt.icon}</div>
+      <div class="modal-title" style="margin-bottom:0">【${opt.label}】</div>
     </div>
+    <div class="event-box" style="font-size:13px;margin-bottom:12px;">${opt.desc}</div>
+    <hr class="modal-divider">
+    ${statRows}
   `, () => {
     enterGame()
   })
@@ -911,6 +968,9 @@ function autoStartMonth() {
   player.monthStarted = true
   player.studyCount = 0
   player.energy = player.maxEnergy ?? 5   // 先重置精力，再应用事件效果（事件可能扣精力）
+  player.usedInteractions = []
+  player.usedActivities = []
+  player.usedSubjects = []
 
   if (player.currentEvent?.effect) applyChanges(player.currentEvent.effect)
   if (player.currentEvent?.affinityEffect) applyAffinityEffect(player.currentEvent.affinityEffect)
@@ -933,6 +993,14 @@ function autoStartMonth() {
   saveState()
   renderStatusBar()
   renderEnergyBar()
+}
+
+function markActivityUsed(key) {
+  if (!player.usedActivities) player.usedActivities = []
+  if (!player.usedActivities.includes(key)) {
+    player.usedActivities.push(key)
+    saveState()
+  }
 }
 
 // ─── 状态栏 ─────────────────────────────────────────────────
@@ -1050,8 +1118,7 @@ function applyChanges(changes) {
 
 function switchPage(page) {
   if (!document.getElementById('modal-overlay').classList.contains('hidden')) return
-  if (_placementActive || (currentExam && !currentExam.submitted) || (currentGaokao && !currentGaokao.submitted) || (currentOlympiad && !currentOlympiad.submitted) || (currentEsportsExam && !currentEsportsExam.submitted)) return
-  if (page !== 'study') { currentQuiz = null; clearQuizTimer() }
+  if (_placementActive || currentQuiz || (currentExam && !currentExam.submitted) || (currentGaokao && !currentGaokao.submitted) || (currentOlympiad && !currentOlympiad.submitted) || (currentEsportsExam && !currentEsportsExam.submitted)) return
   currentPage = page
   document.querySelectorAll('.nav-btn').forEach(b =>
     b.classList.toggle('active', b.dataset.page === page)
@@ -1979,7 +2046,7 @@ function showEsportsPrompt(callback) {
 }
 
 function showEsportsProjectSelect(callback) {
-  const projects = ['王者荣耀', '英雄联盟', '无畏契约', '绝地求生', '第五人格', '三角洲行动']
+  const projects = ['亡者荣耀', '狗熊联盟', '有畏契约', '绝地求死', '第六人格', '五角洲行动']
   const btns = projects.map(p =>
     `<button class="btn full-width" style="margin-bottom:8px" onclick="window._esportsSubject('${p}')">${p}</button>`
   ).join('')
@@ -2123,8 +2190,20 @@ function startEsportsPracticeTest(project, callback) {
       `, callback)
     }
   }
-  if (infoEl) infoEl.textContent = `🎮 ${project} 实战测试  击落敌机   目标分数 3000`
-  openSkyFight()
+  showModal(`
+    <div class="modal-title">🎮 实操测试</div>
+    <div class="event-box" style="font-size:13px;margin-bottom:12px;">
+      理论考核通过！接下来是最关键的<strong>实操测试</strong>。<br><br>
+      你将进入 ${project} 模拟对战，考官将在旁观察你的操作水平。<br><br>
+      <strong>目标分数：3000 分</strong><br>
+      击落敌机、躲避弹幕，展示你真正的实力！
+    </div>
+    <hr class="modal-divider">
+    <div class="modal-row" style="justify-content:center;color:var(--text-muted);font-size:12px">准备好了吗？点击确认后立即开始</div>
+  `, () => {
+    if (infoEl) infoEl.textContent = `🎮 ${project} 实战测试  击落敌机   目标分数 3000`
+    openSkyFight()
+  })
 }
 
 function renderWeireaiEnding() {
@@ -2530,6 +2609,7 @@ function classmateCard(def, rel) {
   const bondedBadge = rel.bonded ? `<span class="bonded-badge">✨ 知己</span>` : ''
   const mealCost = -(def.interactions.meal.stories[0]?.effect?.money || 0)
   const canAffordMeal = player.money >= mealCost
+  const interacted = (player.usedInteractions || []).includes(def.id)
 
   return `
     <div class="person-card-v2">
@@ -2560,12 +2640,15 @@ function classmateCard(def, rel) {
         </div>` : ''}
       </div>
       <div class="pcard-actions">
-        <button class="btn btn-sm interact-btn" onclick="interactClassmate('${def.id}','meal')"${!canAffordMeal ? ' style="opacity:.5"' : ''}>
-          🍜 请客 <span style="font-size:.75em;opacity:.7">-${mealCost}💰</span>
-        </button>
-        <button class="btn btn-sm interact-btn" onclick="interactClassmate('${def.id}','play')">
-          🎮 玩耍
-        </button>
+        ${interacted
+          ? `<div class="interact-used-hint">本月已互动</div>`
+          : `<button class="btn btn-sm interact-btn" onclick="interactClassmate('${def.id}','meal')"${!canAffordMeal ? ' style="opacity:.5"' : ''}>
+               🍜 请客 <span style="font-size:.75em;opacity:.7">-${mealCost}💰</span>
+             </button>
+             <button class="btn btn-sm interact-btn" onclick="interactClassmate('${def.id}','play')">
+               🎮 玩耍
+             </button>`
+        }
       </div>
     </div>
   `
@@ -2587,6 +2670,7 @@ function teacherCard(def, rel) {
   const bondedBadge = rel.bonded ? `<span class="bonded-badge">✨ 知己</span>` : ''
   const giftCost = -(def.interactions.gift.stories[0]?.effect?.money || 0)
   const canAffordGift = player.money >= giftCost
+  const interacted = (player.usedInteractions || []).includes(def.id)
 
   return `
     <div class="person-card-v2">
@@ -2617,12 +2701,15 @@ function teacherCard(def, rel) {
         </div>` : ''}
       </div>
       <div class="pcard-actions">
-        <button class="btn btn-sm interact-btn" onclick="interactTeacher('${def.id}','gift')"${!canAffordGift ? ' style="opacity:.5"' : ''}>
-          🎁 赠礼 <span style="font-size:.75em;opacity:.7">-${giftCost}💰</span>
-        </button>
-        <button class="btn btn-sm interact-btn" onclick="interactTeacher('${def.id}','chat')">
-          💬 请教
-        </button>
+        ${interacted
+          ? `<div class="interact-used-hint">本月已互动</div>`
+          : `<button class="btn btn-sm interact-btn" onclick="interactTeacher('${def.id}','gift')"${!canAffordGift ? ' style="opacity:.5"' : ''}>
+               🎁 赠礼 <span style="font-size:.75em;opacity:.7">-${giftCost}💰</span>
+             </button>
+             <button class="btn btn-sm interact-btn" onclick="interactTeacher('${def.id}','chat')">
+               💬 请教
+             </button>`
+        }
       </div>
     </div>
   `
@@ -2653,6 +2740,9 @@ function interactTeacher(id, type) {
 
   if (!useEnergy()) return
 
+  if (!player.usedInteractions) player.usedInteractions = []
+  if (!player.usedInteractions.includes(id)) player.usedInteractions.push(id)
+
   const { affinity: aff = 0, ...statChanges } = story.effect
   applyChanges(statChanges)
 
@@ -2676,9 +2766,20 @@ function interactTeacher(id, type) {
         document.getElementById('modal-overlay').classList.add('hidden')
         document.getElementById('modal-ok').style.display = ''
         const choice = def.bondEvent.choices[idx]
-        if (choice?.effect) applyChanges(choice.effect)
+        const { affinity: aff = 0, ...statChanges } = choice.effect || {}
+        applyChanges(statChanges)
+        if (aff) rel.affinity = clamp(rel.affinity + aff)
         saveState()
-        renderSocial()
+        const statRows = Object.entries(statChanges).map(([k, v]) =>
+          `<div class="modal-row"><span>${STAT_LABELS[k]}</span><span class="${v > 0 ? 'chg-pos' : 'chg-neg'}">${v > 0 ? '+' : ''}${v}</span></div>`
+        ).join('')
+        const affRow = aff ? `<div class="modal-row"><span>与 ${def.name} 好感度</span><span class="${aff > 0 ? 'chg-pos' : 'chg-neg'}">${aff > 0 ? '+' : ''}${aff}</span></div>` : ''
+        showModal(`
+          <div class="bond-event-icon">${def.emoji}</div>
+          <div class="modal-title">✨ ${choice.label}</div>
+          ${choice.result ? `<div class="event-box" style="font-size:13px;margin-bottom:12px;">${choice.result}</div>` : ''}
+          ${statRows || affRow ? `<hr class="modal-divider">${statRows}${affRow}` : ''}
+        `, () => renderSocial())
       }
       showModal(`
         <div class="bond-event-icon">${def.emoji}</div>
@@ -2731,6 +2832,9 @@ function interactClassmate(id, type) {
 
   if (!useEnergy()) return
 
+  if (!player.usedInteractions) player.usedInteractions = []
+  if (!player.usedInteractions.includes(id)) player.usedInteractions.push(id)
+
   const { affinity: aff = 0, ...statChanges } = story.effect
   applyChanges(statChanges)
 
@@ -2754,9 +2858,20 @@ function interactClassmate(id, type) {
         document.getElementById('modal-overlay').classList.add('hidden')
         document.getElementById('modal-ok').style.display = ''
         const choice = def.bondEvent.choices[idx]
-        if (choice?.effect) applyChanges(choice.effect)
+        const { affinity: aff = 0, ...statChanges } = choice.effect || {}
+        applyChanges(statChanges)
+        if (aff) rel.affinity = clamp(rel.affinity + aff)
         saveState()
-        renderSocial()
+        const statRows = Object.entries(statChanges).map(([k, v]) =>
+          `<div class="modal-row"><span>${STAT_LABELS[k]}</span><span class="${v > 0 ? 'chg-pos' : 'chg-neg'}">${v > 0 ? '+' : ''}${v}</span></div>`
+        ).join('')
+        const affRow = aff ? `<div class="modal-row"><span>与 ${def.name} 好感度</span><span class="${aff > 0 ? 'chg-pos' : 'chg-neg'}">${aff > 0 ? '+' : ''}${aff}</span></div>` : ''
+        showModal(`
+          <div class="bond-event-icon">${def.emoji}</div>
+          <div class="modal-title">✨ ${choice.label}</div>
+          ${choice.result ? `<div class="event-box" style="font-size:13px;margin-bottom:12px;">${choice.result}</div>` : ''}
+          ${statRows || affRow ? `<hr class="modal-divider">${statRows}${affRow}` : ''}
+        `, () => renderSocial())
       }
       showModal(`
         <div class="bond-event-icon">${def.emoji}</div>
@@ -2870,10 +2985,11 @@ function renderStudy() {
       <div class="card-label">选择科目刷题</div>
       ${player.selectedSubjects ? `<div class="card-sub-label" style="margin-bottom:8px">已选科：${player.selectedSubjects.join(' · ')}</div>` : ''}
       <div class="subject-row">
-        ${(player.selectedSubjects || SUBJECTS).map(s =>
-          `<button class="subject-btn" onclick="startQuiz('${s}')"
-            ${noEnergy ? 'disabled' : ''}>${s}</button>`
-        ).join('')}
+        ${(player.selectedSubjects || SUBJECTS).map(s => {
+          const subjectUsed = (player.usedSubjects || []).includes(s)
+          return `<button class="subject-btn${subjectUsed ? ' subject-btn--used' : ''}" onclick="startQuiz('${s}')"
+            ${noEnergy || subjectUsed ? 'disabled' : ''}>${s}</button>`
+        }).join('')}
       </div>
     </div>
 
@@ -2898,6 +3014,7 @@ function renderStudy() {
 }
 
 function startQuiz(subject) {
+  if ((player.usedSubjects || []).includes(subject)) return
   if (!useEnergy()) return
 
   if (player.pendingBias) {
@@ -3029,6 +3146,8 @@ function renderQuizResult() {
   `
 
   player.studyCount = (player.studyCount || 0) + 1
+  if (!player.usedSubjects) player.usedSubjects = []
+  if (!player.usedSubjects.includes(qz.subject)) player.usedSubjects.push(qz.subject)
   updateSubjectHistory(qz.subject)
   applyChanges({ learning: lgain, effort: egain })
   currentQuiz = null
@@ -3041,21 +3160,22 @@ function finishQuiz() {
 // ─── 娱乐页面 ────────────────────────────────────────────────
 
 const GAMES = [
-  { icon: '🏃', name: '跑步',     cost: '1精力', eff: '身体健康',     fn: 'startRunning()' },
-  { icon: '🏀', name: '篮球',     cost: '1精力', eff: '身体 + 心理', fn: 'startBasketball()' },
-  { icon: '🏊', name: '游泳',     cost: '1精力', eff: '身体 + 心理', fn: 'startSwimming()' },
-  { icon: '🏓', name: '乒乓球',   cost: '1精力', eff: '身体 + 心理', fn: 'startBreakout()' },
-  { icon: '🎮', name: '电子游戏', cost: '1精力', eff: '心理健康',     fn: 'startSkyFight()' },
-  { icon: '🍿', name: '买零食',   cost: '200元', eff: '心理健康',     fn: 'buySnacks()' },
-  { icon: '💆', name: '理疗',     cost: '500元', eff: '身体健康',     fn: 'getMassage()' },
+  { icon: '🏃', name: '跑步',     key: 'running',    cost: '1精力', eff: '身体健康',     fn: 'startRunning()' },
+  { icon: '🏀', name: '篮球',     key: 'basketball', cost: '1精力', eff: '身体 + 心理', fn: 'startBasketball()' },
+  { icon: '🏊', name: '游泳',     key: 'swimming',   cost: '1精力', eff: '身体 + 心理', fn: 'startSwimming()' },
+  { icon: '🏓', name: '乒乓球',   key: 'breakout',   cost: '1精力', eff: '身体 + 心理', fn: 'startBreakout()' },
+  { icon: '🎮', name: '电子游戏', key: 'skyfight',   cost: '1精力', eff: '心理健康',     fn: 'startSkyFight()' },
+  { icon: '🍿', name: '买零食',   key: 'snacks',     cost: '200元', eff: '心理健康',     fn: 'buySnacks()' },
+  { icon: '💆', name: '理疗',     key: 'massage',    cost: '500元', eff: '身体健康',     fn: 'getMassage()' },
 ]
 
 function renderFun() {
   const c = document.getElementById('content')
   const calMonth = getMonthInfo(player.month).month
   const isVacation = [2, 7, 8].includes(calMonth)
+  const used = key => (player.usedActivities || []).includes(key)
   const partTimeGame = isVacation ? `
-        <div class="game-card" onclick="startLinkGame()">
+        <div class="game-card${used('parttime') ? ' game-card--used' : ''}" onclick="${used('parttime') ? '' : 'startLinkGame()'}">
           <div class="game-icon">💼</div>
           <div class="game-name">打工</div>
           <div class="game-cost">消耗 2精力</div>
@@ -3066,7 +3186,7 @@ function renderFun() {
       <div class="card-label">选择活动</div>
       <div class="game-grid">
         ${GAMES.map(g => `
-          <div class="game-card" onclick="${g.fn}">
+          <div class="game-card${used(g.key) ? ' game-card--used' : ''}" onclick="${used(g.key) ? '' : g.fn}">
             <div class="game-icon">${g.icon}</div>
             <div class="game-name">${g.name}</div>
             <div class="game-cost">消耗 ${g.cost}</div>
@@ -3088,6 +3208,7 @@ function buySnacks() {
     showModal(`<div class="modal-title">零花钱不足</div><p class="muted tc">买零食需要 200 元，当前余额不足。</p>`)
     return
   }
+  markActivityUsed('snacks')
   tryShopInvite('🍿 买零食', 200,
     () => {
       applyChanges({ money: -200, mental: 10 })
@@ -3125,6 +3246,7 @@ function getMassage() {
     showModal(`<div class="modal-title">零花钱不足</div><p class="muted tc">理疗需要 500 元，当前余额不足。</p>`)
     return
   }
+  markActivityUsed('massage')
   tryShopInvite('💆 理疗', 500,
     () => {
       applyChanges({ money: -500, health: 20 })
@@ -3273,6 +3395,7 @@ function setSnakeDir(dx, dy) {
 
 function startRunning() {
   if (player.monthStarted && !useEnergy()) return
+  markActivityUsed('running')
   tryInvite('跑步', () => openRunningGame())
 }
 

@@ -6,6 +6,7 @@
 
 function startSkyFight() {
   if (player.monthStarted && !useEnergy()) return
+  markActivityUsed('skyfight')
   openSkyFight()
 }
 

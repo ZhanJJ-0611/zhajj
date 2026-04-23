@@ -5,6 +5,7 @@
 
 function startSwimming() {
   if (player.monthStarted && !useEnergy()) return
+  markActivityUsed('swimming')
   tryInvite('游泳', () => openSwimming())
 }
 

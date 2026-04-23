@@ -7,6 +7,7 @@
 function startLinkGame() {
   if (player.monthStarted && !useEnergy()) return
   if (player.monthStarted && !useEnergy()) return
+  markActivityUsed('parttime')
   openLinkGame()
 }
 

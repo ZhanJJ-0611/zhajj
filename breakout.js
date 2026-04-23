@@ -5,6 +5,7 @@
 
 function startBreakout() {
   if (player.monthStarted && !useEnergy()) return
+  markActivityUsed('breakout')
   tryInvite('乒乓球', () => openBreakout())
 }
 

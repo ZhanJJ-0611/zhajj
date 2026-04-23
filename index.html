@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>高中模拟器</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -126,6 +126,17 @@
       <span class="nav-dot"></span>
     </button>
   </nav>
+
+  <!-- 引导程序 -->
+  <div id="tutorial-overlay" class="hidden">
+    <div id="tutorial-highlight"></div>
+    <div id="tutorial-box">
+      <div id="tutorial-step-label"></div>
+      <div id="tutorial-title"></div>
+      <p id="tutorial-desc"></p>
+      <button class="btn btn-primary" id="tutorial-next" onclick="tutorialNext()">下一步 →</button>
+    </div>
+  </div>
 
   <!-- 通用弹窗 -->
   <div id="modal-overlay" class="hidden" onclick="handleOverlayClick(event)">

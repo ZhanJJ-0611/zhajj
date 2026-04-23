@@ -3,7 +3,7 @@
    ============================================================ */
 
 const CLASSMATE_POOL = [
-    {
+  {
     id: 'wang',
     name: '小王',
     emoji: '😄',
@@ -11,36 +11,35 @@ const CLASSMATE_POOL = [
     defaultAffinity: 55,
     desc: '班里的开心果，总能在最难熬的备考期带来欢笑，和他在一起永远不会无聊，但有时会带偏你的学习计划。',
     bondEvent: {
-      story: '高三某天晚自习，你状态很差，一整张卷子几乎写不下去。\n\n小王没像平时那样闹，只是看了你一眼，把你笔抽走：“走。”\n\n你皱眉：“干嘛？”\n\n“透气。”他说。\n\n你被他半拉半拽带到操场，夜风有点凉，他靠在栏杆上没说话。\n\n过了一会儿，他突然说：“我不是不知道你压力大。”\n\n你愣住。\n\n“但你要是一直憋着，会崩的。”他看着远处灯光，“我负责把你拉回来。”\n\n他没再开玩笑。\n\n那一刻你才意识到，他不是只会让你笑。',
+      story: '高三晚自习，你状态极差，卷子上的字全在飘。小王没闹，直接抽走你的笔：“走。”你被拉到操场，夜风很凉。他靠在栏杆上好一会儿才说：“我不是不知道你压力大。但一直憋着会崩的——我负责把你拉回来。”',
       choices: [
-        { label: '陪他走', effect: { affinity: 18, mental: 15 } },
-        { label: '回去学', effect: { affinity: 6, effort: 6 } },
-      ],
+        { label: '陪他走', effect: { affinity: 18, mental: 15 }, result: '你没说话，跟他在操场慢慢走了两圈。他偶尔踢一下石子，偶尔哼两句跑调的歌。回到教室时，你心里那团堵着的东西好像松了一点。你坐下重新拿起笔，发现能写下去了。' },
+        { label: '回去学', effect: { affinity: 6, effort: 6 }, result: '你摇了摇头说“我先回去了”，转身走进教学楼。身后没有声音。坐到座位上，你发现卷子还是不会写，但脑子里一直转着他那句话。你有点后悔——也许透透气真的会好一些。' }
+      ]
     },
     interactions: {
       meal: {
         label: '请客吃饭',
         stories: [
-          { text: '你们在食堂角落坐下，他一边吃一边模仿老师讲课，周围人都忍不住看过来，你差点把饭笑喷。吃完他说：“你今天笑得比做题认真多了。”', effect: { affinity: 12, money: -50, mental: 12, effort: -3 } },
-          { text: '他抢着点菜，说“我最懂吃”，结果全是重口味。你被辣得不行，他却笑到停不下来，最后默默把水递给你。', effect: { affinity: 12, money: -50, mental: 11, effort: -3 } },
-          { text: '你请他吃饭，他突然认真说：“其实有人一起吃饭挺重要的。”说完又马上转回嬉皮笑脸，让你有点没反应过来。', effect: { affinity: 13, money: -50, mental: 12, effort: -3 } },
-          { text: '你们边吃边聊考试，他把一切说得像段子，你本来紧绷的情绪慢慢松下来。', effect: { affinity: 12, money: -50, mental: 11, effort: -3 } },
-          { text: '吃完他拍拍你：“行了，补完能量，回去狠狠干。”你莫名觉得被带动了。', effect: { affinity: 13, money: -50, mental: 11, effort: -2 } },
-        ],
+          { text: '你们在食堂角落坐下，他一边扒饭一边模仿班主任训话的腔调，连推眼镜的动作都学得像极了。周围同学忍不住看过来，你差点把汤喷出来。吃完他擦擦嘴：“你今天笑得比做题认真多了，这顿值了。”', effect: { affinity: 12, money: -50, mental: 12, effort: -3 } },
+          { text: '他抢着点菜，拍胸脯说“我最懂吃”，结果点了毛血旺、麻辣香锅和双椒鱼头。你被辣得眼泪直流，疯狂灌水，他却故意在你面前吃得津津有味。最后他默默把冰可乐推到你手边，小声说了句“下次点鸳鸯锅”。', effect: { affinity: 12, money: -50, mental: 11, effort: -3 } },
+          { text: '你请他吃饭，他难得没闹，安静地吃了半碗饭。你有点不习惯，问他怎么了。他抬起头认真说：“其实有人一起吃饭挺重要的。”说完自己愣了一下，马上又嬉皮笑脸抢你碗里的肉，好像刚才那句话只是你的幻觉。', effect: { affinity: 13, money: -50, mental: 12, effort: -3 } },
+          { text: '你们边吃边聊刚结束的模考，他把数学压轴题讲得像单口相声，连“导数大魔王”这种外号都编出来了。你本来绷紧的神经慢慢松开，跟着他一起吐槽出题老师。离开食堂时，你觉得胃和心都不那么堵了。', effect: { affinity: 12, money: -50, mental: 11, effort: -3 } },
+          { text: '他吃得飞快，然后拍拍肚子说：“行了，补完能量，回去狠狠干。”你被他一本正经的语气逗笑，也跟着多扒了两口饭。走回教室的路上，他故意走得很慢，说“饭要消化，心情也要消化”。', effect: { affinity: 13, money: -50, mental: 11, effort: -2 } }
+        ]
       },
       play: {
         label: '一起玩耍',
         stories: [
-          { text: '晚自习前他拉你去操场打球，你本来不想动，但打着打着出了一身汗，整个人轻松了不少。回教室时他说：“这比刷题有用。”', effect: { affinity: 10, mental: 12, health: 6, effort: -5 } },
-          { text: '宿舍熄灯后他还在讲故事，全寝笑到被宿管敲门。你躺在床上忍笑，突然觉得这种日子很难忘。', effect: { affinity: 11, mental: 13, health: 4, effort: -4 } },
-          { text: '社团活动他拉你一起上台整活，你一开始很抗拒，结果全场笑翻，你下台时心跳很快，他冲你竖大拇指。', effect: { affinity: 11, mental: 14, health: 5, effort: -4 } },
-          { text: '你们在走廊打闹被老师看到，他一个人顶下来，说“我带的节奏”，你心里有点复杂。', effect: { affinity: 12, mental: 12, health: 5, effort: -4 } },
-          { text: '放学路上他突然安静，说：“以后可能没这种日子了。”然后又马上笑着转移话题。', effect: { affinity: 13, mental: 13, health: 5, effort: -4 } },
-        ],
-      },
-    },
+          { text: '晚自习前他硬拉你去操场打球，你说没带球鞋，他说“光脚也能投”。你本来不想动，结果投进第一个三分后来了劲，打得满头大汗。回教室时他勾着你肩膀：“你看，这比刷题有用吧？”', effect: { affinity: 10, mental: 12, health: 6, effort: -5 } },
+          { text: '宿舍熄灯后他还在讲恐怖故事，讲到关键处突然捏着嗓子尖叫，全寝笑到被宿管砸门。你躲在被子里忍笑忍到肚子疼，月光从窗帘缝漏进来，你突然觉得这样的日子一辈子不会再有第二次。', effect: { affinity: 11, mental: 13, health: 4, effort: -4 } },
+          { text: '（不愉快）他拉你去校外买烤冷面，非要抄近路翻围墙。你犹豫时他已经跳下去了，结果脚踝扭了，疼得龇牙咧嘴。你扶着他一瘸一拐回学校，他还在嘴硬：“不疼不疼。”但你看到他眼角有泪花。', effect: { affinity: 8, mental: 5, health: -8, effort: -2, money: -15 } },
+          { text: '你们在走廊打闹被老师看到，他一个人顶下来，说“我带的节奏”，你站在旁边心里有点复杂。事后你请他喝水，他摆摆手：“小事，反正老班早看我不顺眼了。”', effect: { affinity: 12, mental: 12, health: 5, effort: -4 } },
+          { text: '（不愉快）放学路上他突然安静，说“以后可能没这种日子了”。你还没接话，他就笑着推你一把：“伤感个屁，走，去买烤肠。”但走到半路他才发现没带钱，你只好掏钱请客，他难得红了脸。', effect: { affinity: 9, mental: 8, health: 3, effort: -2, money: -10 } }
+        ]
+      }
+    }
   },
-
   {
     id: 'li_s',
     name: '小李',
@@ -49,36 +48,35 @@ const CLASSMATE_POOL = [
     defaultAffinity: 40,
     desc: '成绩稳居全班前三，平时话不多，但愿意和你分享学习心得，和他相处起来有种莫名的踏实感。',
     bondEvent: {
-      story: '月考前一天晚上，你对着一张压轴题完全卡住。\n\n小李坐在你旁边，看了几分钟，说：“你不是不会，是卡在第一步。”\n\n他没有直接讲，而是让你从头说思路。\n\n你说到一半停住，他轻轻点了点纸：“这里。”\n\n你突然通了。\n\n你抬头，他已经把笔收好：“你能自己走出来，比我讲更重要。”\n\n他站起来要走，又补了一句：“以后这种题，先别慌。”',
+      story: '月考前一天，你对一张压轴题卡了四十分钟。小李安静看了几分钟：“你不是不会，是卡在第一步。”他让你从头说思路，你讲到一半卡住，他点了点你的草稿纸：“这里符号错了。”你突然全通了。他合上笔帽：“你能自己走出来，比我讲更重要。”',
       choices: [
-        { label: '继续问', effect: { affinity: 16, learning: 16 } },
-        { label: '自己想', effect: { affinity: 6, effort: 7 } },
-      ],
+        { label: '继续问', effect: { affinity: 16, learning: 16 }, result: '你趁热打铁又掏出一道类似的变式题。他看了片刻，没有直接写过程，而是问：“刚才那道题你学会了什么？”你愣了一下，开始总结。他点点头：“对，那就用同样的方法。”你试了几步，真的做出来了。' },
+        { label: '自己想', effect: { affinity: 6, effort: 7 }, result: '你点了点头，自己把题重做了一遍。做完后你发现，他点出的那个符号错误如果不改，后面全白费。你拿着完整的过程想找他感谢，他已经收拾书包走了。你把步骤收好，觉得他教会了你一样东西。' }
+      ]
     },
     interactions: {
       meal: {
         label: '请客吃饭',
         stories: [
-          { text: '你们吃饭时他把草稿纸摊开，一边吃一边给你讲错题，语气平静，你却听得很专注。', effect: { affinity: 11, money: -40, learning: 7, mental: 5 } },
-          { text: '他吃得很快，吃完才慢慢跟你聊学习安排，你忽然觉得时间被利用得很满。', effect: { affinity: 11, money: -40, learning: 6, mental: 5 } },
-          { text: '他说“其实你基础不差”，你有点意外，但也开始相信一点。', effect: { affinity: 12, money: -40, learning: 7, mental: 6 } },
-          { text: '你们聊未来，他语气很理性，但不是冷漠，而是认真在规划。', effect: { affinity: 11, money: -40, learning: 6, mental: 5 } },
-          { text: '临走前他说：“明天那套卷子记得先做选择题。”你点了点头。', effect: { affinity: 11, money: -40, learning: 7, mental: 5 } },
-        ],
+          { text: '你们坐在食堂最角落，他把草稿纸摊在餐盘旁边，一边嚼着青菜一边给你讲圆锥曲线的小技巧。他的语气像在念课文，但你听得异常专注，因为每句话都能帮你省下五分钟。旁边的同学投来异样的目光，你俩都习惯了。', effect: { affinity: 11, money: -40, learning: 7, mental: 5 } },
+          { text: '他吃得很快，三分钟扒完一碗面，然后擦了擦嘴，慢慢跟你分析接下来的复习节奏：“英语每天早读背两篇范文，数学主攻中档题……”你一边听一边觉得，时间在他手里好像特别听话。', effect: { affinity: 11, money: -40, learning: 6, mental: 5 } },
+          { text: '他难得抬头看你一眼，说：“其实你基础不差，就是容易在细节上慌。”你有点意外，因为平时他从不夸人。他低头继续吃饭，耳朵却悄悄红了，你突然觉得这个书呆子也有可爱的一面。', effect: { affinity: 12, money: -40, learning: 7, mental: 6 } },
+          { text: '你们聊到想去哪所大学，他想了想说：“一个能让我继续安静做题的地方就行。”语气很理性，但你知道他不是冷漠，而是真的认真规划过。你忍不住问他会不会想家，他沉默了两秒：“会，但不是现在。”', effect: { affinity: 11, money: -40, learning: 6, mental: 5 } },
+          { text: '临走前他帮你收了餐盘，淡淡地说：“明天那套理综卷子，记得先做选择题，别在难题上耗太久。”你点了点头，感觉像是拿到了内部攻略。他走回座位的背影很瘦，但莫名让人安心。', effect: { affinity: 11, money: -40, learning: 7, mental: 5 } }
+        ]
       },
       play: {
         label: '一起玩耍',
         stories: [
-          { text: '你说放松一下，他却带你去图书馆自习室：“换个环境也算休息。”结果效率意外很高。', effect: { affinity: 9, learning: 11, effort: 8, mental: 3 } },
-          { text: '你们在教室最后一排“边聊边学”，他会偶尔停下来问你理解没有。', effect: { affinity: 9, learning: 11, effort: 8, mental: 3 } },
-          { text: '晚自习间隙他带你快速复盘当天内容，你第一次觉得学习有节奏。', effect: { affinity: 9, learning: 12, effort: 8, mental: 3 } },
-          { text: '你们一起做一套题，比谁更快更准，气氛有点紧张但很有成就感。', effect: { affinity: 10, learning: 12, effort: 9, mental: 3 } },
-          { text: '他偶尔也会放松，跟你聊点别的，但很快又把话题拉回正轨。', effect: { affinity: 9, learning: 10, effort: 8, mental: 4 } },
-        ],
-      },
-    },
+          { text: '你说想放松一下，他却带你去了图书馆自习室：“换个环境也算休息，至少没有宿舍的床和手机的诱惑。”你半信半疑坐下，结果效率意外地高，两小时刷完了往常半天的量。', effect: { affinity: 9, learning: 11, effort: 8, mental: 3 } },
+          { text: '你们坐在教室最后一排，美其名曰“边聊边学”。他会偶尔停一下，侧头问你：“刚才那个点，理解了吗？”你点头，他就继续；你摇头，他就换种方式再讲一遍。那种被认真对待的感觉，让你不敢偷懒。', effect: { affinity: 9, learning: 11, effort: 8, mental: 3 } },
+          { text: '（不愉快）你提议去操场走走，他犹豫了一下同意了。但刚走了半圈，他就开始说：“其实这个时间可以背十个单词。”你有点扫兴，忍不住顶了一句：“你能不能别什么都想着学习？”他沉默了几秒，说：“好，那就不说了。”剩下的路你们谁都没开口，气氛很僵。', effect: { affinity: 4, mental: 2, effort: -1 } },
+          { text: '你们约定做同一套英语真题，计时比赛谁的正确率高。气氛有点紧张，连翻卷子的声音都很脆。最后你输了两分，他也没得意，只说“下次你赢”。这种较劲让你觉得，学习也可以不那么孤独。', effect: { affinity: 10, learning: 12, effort: 9, mental: 3 } },
+          { text: '（不愉快）他难得同意和你去便利店买雪糕，路上遇到几个隔壁班的男生开玩笑说他“书呆子”。他没回嘴，只是加快脚步。你有点生气想理论，他拉住你：“算了，浪费时间。”你看到他攥着雪糕的手指发白，心里很不舒服。', effect: { affinity: 5, mental: 2, health: -1 } }
+        ]
+      }
+    }
   },
-
   {
     id: 'zhao',
     name: '小赵',
@@ -87,36 +85,35 @@ const CLASSMATE_POOL = [
     defaultAffinity: 48,
     desc: '对学校周边每家餐馆如数家珍，号称"水衡美食地图"，热爱生活，心情永远不错。',
     bondEvent: {
-      story: '他带你绕了很远去一家小店。\n\n你有点怀疑：“值得吗？”\n\n他只说：“信我。”\n\n第一口下去，你愣住了。\n\n他得意地笑：“我不会带错地方。”\n\n然后他忽然认真了一下：“也不会随便带人来。”',
+      story: '他神秘兮兮地拉着你拐了五六条巷子，最后停在一家连招牌都快看不清的小店门口。你有点怀疑：“值得吗？”他只说：“信我。”第一口牛肉面入口，你愣住了——汤头浓郁，面条劲道。他得意地笑：“我不会带错地方。也不会随便带人来。”',
       choices: [
-        { label: '继续吃', effect: { affinity: 16, mental: 13 } },
-        { label: '调侃他', effect: { affinity: 10, mental: 8 } },
-      ],
+        { label: '继续吃', effect: { affinity: 16, mental: 13 }, result: '你埋头把一大碗面吃得干干净净，连汤都喝了。他靠在椅背上拍着肚子笑：“看你吃比我自己吃还开心。”付钱时他死活要请客，说“这次我带你来的，算我的”。你拗不过他，心里暖了一下。' },
+        { label: '调侃他', effect: { affinity: 10, mental: 8 }, result: '你笑着说“就这？我还以为多厉害呢”。他瞪大眼睛：“你再说一遍？”你赶紧改口。他哼了一声，最后还是笑了。回去的路上他一直在嘀咕“下次带你吃更好的”，你心里觉得这家伙还挺可爱的。' }
+      ]
     },
     interactions: {
       meal: {
         label: '请客吃饭',
         stories: [
-          { text: '他带你点了一整桌，说“今天带你见世面”，你们吃到撑才停。', effect: { affinity: 14, money: -70, mental: 12, health: -3 } },
-          { text: '他一边吃一边讲每道菜的故事，你听得像在旅行。', effect: { affinity: 14, money: -70, mental: 12, health: -3 } },
-          { text: '你说随便吃点，他却认真选店，让你有点感动。', effect: { affinity: 15, money: -70, mental: 13, health: -3 } },
-          { text: '你们边吃边聊生活，他的世界好像总是很轻松。', effect: { affinity: 14, money: -70, mental: 12, health: -3 } },
-          { text: '他说“以后带你吃遍这条街”，语气很自然。', effect: { affinity: 15, money: -70, mental: 13, health: -3 } },
-        ],
+          { text: '他兴奋地点了一整桌：锅包肉、地三鲜、溜肉段、大拉皮，说“今天带你见世面”。你们吃到撑才停下来，他靠在椅背上拍肚子：“这才叫生活，学习算个啥？”你嘴上说他败家，心里却觉得偶尔这样真好。', effect: { affinity: 14, money: -70, mental: 12, health: -3 } },
+          { text: '他一边吃一边给你讲每道菜的来历，锅包肉为什么叫锅包肉，拉皮怎么拌才正宗。你听得像在旅行，连食堂的塑料餐盘都感觉镀了金。他说：“美食是高三最好的止痛药。”你深以为然。', effect: { affinity: 14, money: -70, mental: 12, health: -3 } },
+          { text: '你说“随便吃点”，他瞪大眼睛：“怎么能随便？人生苦短，每一顿都要认真对待。”然后认真选了一家藏在巷子里的馄饨店。你咬开那口虾仁馄饨时，突然有点感动，原来有人连“随便”都会替你上心。', effect: { affinity: 15, money: -70, mental: 13, health: -3 } },
+          { text: '你们边吃边聊，他把考试压力比作“没加盐的汤”，把周末放松比作“红烧肉”。你发现他的世界好像永远热气腾腾，哪怕模考考砸了，他也能说“正好，少背点脂肪”。你被他这种乐观慢慢感染。', effect: { affinity: 14, money: -70, mental: 12, health: -3 } },
+          { text: '他夹起一块糖醋排骨，很自然地说：“以后带你吃遍这条街，从东头到西头，一家不落。”语气不像客套，像在讲一个一定会实现的计划。你咽下排骨，点了点头，觉得高三好像也没那么难熬了。', effect: { affinity: 15, money: -70, mental: 13, health: -3 } }
+        ]
       },
       play: {
         label: '一起玩耍',
         stories: [
-          { text: '你们放学后一起“探店”，从街头吃到巷尾，最后坐在路边休息。', effect: { affinity: 11, mental: 11, health: -5, effort: -4 } },
-          { text: '他带你去夜市，你第一次觉得学习之外的世界这么热闹。', effect: { affinity: 12, mental: 12, health: -5, effort: -4 } },
-          { text: '你们边走边聊未来，他说“人总要去看看别的地方”。', effect: { affinity: 11, mental: 11, health: -5, effort: -4 } },
-          { text: '他突然停下来买小吃递给你，说“这个必须吃”。', effect: { affinity: 11, mental: 10, health: -5, effort: -4 } },
-          { text: '回去路上你有点累，但心情很好。', effect: { affinity: 12, mental: 11, health: -5, effort: -4 } },
-        ],
-      },
-    },
+          { text: '放学后他拉你“探店”，从校门口烤冷面吃到巷尾的炸串，最后两人坐在马路牙子上喝酸奶。晚风吹过来，他说：“以后回忆高三，不能只有卷子，还得有孜然味。”你笑出声，觉得他说得对。', effect: { affinity: 11, mental: 11, health: -5, effort: -4 } },
+          { text: '他带你去夜市，你第一次发现学校外面的世界这么热闹——套圈、烤鱿鱼、棉花糖。他给你买了个发光气球，说“拿着，这是你的能量环”。你举着气球走在人群里，暂时忘了还有三张卷子没写。', effect: { affinity: 12, mental: 12, health: -5, effort: -4 } },
+          { text: '（不愉快）他拉你去尝试一家新开的网红餐厅，排了半小时队，结果上来的菜又贵又难吃。你勉强吃了几口就不想动筷子，他也皱着眉头。最后他叹气：“翻车了，我的错。”回去路上两个人都有点沉默，胃里还不太舒服。', effect: { affinity: 6, mental: 3, health: -4, money: -30 } },
+          { text: '路过一个卖糖葫芦的小摊，他突然停下来买了两串，塞给你一串说：“这个必须吃，小时候的味道。”你咬了一口，山楂酸得眯眼，他却吃得津津有味。那一刻你觉得，他像个永远长不大的孩子，但很治愈。', effect: { affinity: 11, mental: 10, health: -5, effort: -4 } },
+          { text: '（不愉快）你说想减肥不想吃夜宵，他非拉着你去吃烧烤，还点了好多肉。你推辞不掉吃了不少，结果晚上胃胀得睡不着，第二天上课都没精神。他看到你打哈欠还笑你“活该”，你气得不想理他。', effect: { affinity: 5, health: -4, mental: 2, effort: -3 } }
+        ]
+      }
+    }
   },
-
   {
     id: 'chen_s',
     name: '小陈',
@@ -125,34 +122,34 @@ const CLASSMATE_POOL = [
     defaultAffinity: 50,
     desc: '班级气氛组组长，从不让课间安静，能把最无聊的课讲成段子，但认真起来居然也能考出好成绩，让人意外。',
     bondEvent: {
-      story: '你那天情绪很差，他却没有开玩笑。\n\n只是坐在你旁边，什么都没说。\n\n过了一会儿，他低声说：“我今天不逗你。”\n\n你有点愣。\n\n他看着你：“你要是想说，我听。”\n\n“要是不想说，我就陪你坐着。”',
+      story: '那天你情绪很差，趴在桌上不想动。小陈破天荒地没有开玩笑，只是搬了把椅子坐在你旁边。过了一会儿他低声说：“我今天不逗你。你要是想说，我听；要是不想说，我就陪你坐着。”他就那么安静地坐了一整个课间。',
       choices: [
-        { label: '聊聊', effect: { affinity: 17, mental: 14 } },
-        { label: '沉默', effect: { affinity: 10, mental: 9 } },
-      ],
+        { label: '聊聊', effect: { affinity: 17, mental: 14 }, result: '你忍不住跟他说了最近的压力和迷茫，他没插嘴，只是偶尔点头。说完你长出一口气，他才轻声说：“你看，说出来就好多了。”然后拍了拍你的肩膀，“以后难受就找我，我保证不笑你。”' },
+        { label: '沉默', effect: { affinity: 10, mental: 9 }, result: '你一直没说话，他也没催。上课铃响时他站起来，在你桌上放了一颗草莓糖——那是你无意间说过喜欢的味道。他没提，你也默契地没问。但之后每次看到那颗糖，你都会觉得没那么孤单了。' }
+      ]
     },
     interactions: {
       meal: {
         label: '请客吃饭',
         stories: [
-          { text: '他一边吃一边演老师讲课，整桌人都笑疯了。', effect: { affinity: 13, money: -45, mental: 15, effort: -3 } },
-          { text: '你笑到停不下来，他说“这顿值了”。', effect: { affinity: 13, money: -45, mental: 15, effort: -3 } },
-          { text: '他把日常讲成段子，你连压力都忘了。', effect: { affinity: 13, money: -45, mental: 15, effort: -3 } },
-          { text: '你问他怎么这么会说，他说“习惯了”。', effect: { affinity: 13, money: -45, mental: 15, effort: -3 } },
-          { text: '吃完他说“你笑就够了”。', effect: { affinity: 14, money: -45, mental: 16, effort: -3 } },
-        ],
+          { text: '他一边啃鸡腿一边模仿政治老师讲课，把“矛盾的特殊性”演成了小品，连隔壁桌都笑趴在餐盘上。你笑得眼泪直流，他说：“你看，这顿的疗效比心理咨询室强多了吧？”你点头，觉得他真是个人才。', effect: { affinity: 13, money: -45, mental: 15, effort: -3 } },
+          { text: '你笑到停不下来，差点把饭喷在他脸上。他灵巧地躲开，得意地说：“这顿值了，以后我出书就叫《用段子治愈高三》。”你骂他不要脸，但心里那层压着的乌云确实散了不少。', effect: { affinity: 13, money: -45, mental: 15, effort: -3 } },
+          { text: '他把刚才的物理考试讲成连续剧，连“滑块和小车”都变成了主角。你本来还在为最后一道大题懊恼，听完他的版本，居然觉得那道题也没那么可恨了。他说：“你看，换个角度，万物皆可搞笑。”', effect: { affinity: 13, money: -45, mental: 15, effort: -3 } },
+          { text: '你忍不住问他：“你怎么这么会说？”他挠挠头，难得有点不好意思：“习惯了。小时候家里没人陪，我就自己跟自己说话，后来发现能把别人逗笑，也挺好。”你突然觉得，他的搞笑背后藏着很多没说出口的东西。', effect: { affinity: 13, money: -45, mental: 15, effort: -3 } },
+          { text: '吃完最后一口，他放下筷子，认真看着你：“行了，你笑就够了。回去要是再难受，随时找我，我还有一百多个段子库存。”你笑着点头，觉得有这样一个朋友，好像真的能撑过最难的日子。', effect: { affinity: 14, money: -45, mental: 16, effort: -3 } }
+        ]
       },
       play: {
         label: '一起玩耍',
         stories: [
-          { text: '他在班里带节奏整活，你被拉进去，一开始尴尬后来笑到停不下来。', effect: { affinity: 10, mental: 12, health: 8, effort: -5 } },
-          { text: '社团活动他直接上台，你被他拉着一起演。', effect: { affinity: 11, mental: 13, health: 8, effort: -5 } },
-          { text: '你们在操场聊天，他突然模仿全班同学。', effect: { affinity: 10, mental: 12, health: 8, effort: -5 } },
-          { text: '他把普通一天过得像段子。', effect: { affinity: 10, mental: 12, health: 8, effort: -5 } },
-          { text: '最后他认真说：“你别总那么紧。”', effect: { affinity: 11, mental: 13, health: 8, effort: -4 } },
-        ],
-      },
-    },
+          { text: '他在班里带节奏整活，模仿教务处主任走路的姿势，全班笑成一锅粥。你被他拉上去配合，一开始尬得脚趾扣地，后来豁出去了，演完居然获得满堂彩。他拍你肩膀：“你看，你不是不行，是没试过。”', effect: { affinity: 10, mental: 12, health: 8, effort: -5 } },
+          { text: '社团文化节，他直接拽你上台即兴演“监考老师与学生”，你连台词都没有，全靠他现编。结果全场笑翻，下台时你手心全是汗，他冲你挤眼：“紧张啥？反正毕业了谁还记得。”你瞪他一眼，嘴角却忍不住上扬。', effect: { affinity: 11, mental: 13, health: 8, effort: -5 } },
+          { text: '（不愉快）他开玩笑开过了头，当着全班的面模仿你上次考试失利后沮丧的样子，大家笑得很开心，你却觉得被冒犯了。你甩开他搭过来的手，冷着脸走开。他追上来道歉，你没理。后来他在你桌上放了张小纸条：“对不起，我真的知道错了。”', effect: { affinity: 2, mental: 2, effort: -2 } },
+          { text: '他把普通的一天过成了段子：早读迟到被罚站，他对着走廊窗户即兴演讲；午休偷吃辣条被呛到，他假装中毒倒地。你本来心情很丧，跟着他混了半天，居然不知不觉笑了好几次。', effect: { affinity: 10, mental: 12, health: 8, effort: -5 } },
+          { text: '（不愉快）他在走廊里大声讲你的糗事，恰好被经过的暗恋对象听到了。你当场脸红到脖子根，只想找个地缝钻进去。晚上他发消息道歉，说你“太敏感”，你更生气了，两天没跟他说话。', effect: { affinity: 3, mental: 1, health: -2 } }
+        ]
+      }
+    }
   },
   {
     id: 'lin_s',
@@ -162,36 +159,35 @@ const CLASSMATE_POOL = [
     defaultAffinity: 45,
     desc: '不主动找人说话，但一旦熟悉起来就是最靠谱的朋友，喜欢画画，课本边角都是她的速写，从不焦虑。',
     bondEvent: {
-      story: '你偶然看到她在画你。\n\n她愣了一下，想合上本子。\n\n你说：“可以看吗？”\n\n她犹豫了一秒，递给你。\n\n画里的你很安静，比现实更认真一点。\n\n她轻声说：“你那天低头写题的时候……挺好看的。”',
+      story: '你偶然看到她在画你。她愣了一下想合上本子，你说“可以看吗”。她犹豫一秒递给你。画里的你很安静，比现实更认真一点。她轻声说：“你那天低头写题的时候……挺好看的。”',
       choices: [
-        { label: '认真看', effect: { affinity: 16, mental: 12 } },
-        { label: '调侃她', effect: { affinity: 9, mental: 6 } },
-      ],
+        { label: '认真看', effect: { affinity: 16, mental: 12 }, result: '你把画看了很久，然后抬头说“能送给我吗”。她脸一下子红了，飞速撕下那张纸塞给你，小声说“别让别人看到”。你小心翼翼折好放进钱包，之后每次翻到都会想起那个傍晚的光线。' },
+        { label: '调侃她', effect: { affinity: 9, mental: 6 }, result: '你笑着说“原来你偷偷看我啊”。她耳朵红透了，把本子抢回去抱在胸前，半天才憋出一句“才没有”。你怕她真的生气，赶紧转移话题。后来她送了你一张别的画，但再也不肯画你了。' }
+      ]
     },
     interactions: {
       meal: {
         label: '请客吃饭',
         stories: [
-          { text: '你们坐在窗边吃饭，她一边听你说话一边在纸巾上画小图，你发现是刚才的场景。', effect: { affinity: 12, money: -55, mental: 9, learning: 4 } },
-          { text: '她吃得很慢，偶尔抬头看你一眼，然后轻轻笑一下。', effect: { affinity: 12, money: -55, mental: 8, learning: 4 } },
-          { text: '你说最近很累，她没说大道理，只是轻声说：“慢一点也没关系。”', effect: { affinity: 13, money: -55, mental: 10, learning: 4 } },
-          { text: '你们几乎没怎么说话，但气氛却很舒服。', effect: { affinity: 12, money: -55, mental: 9, learning: 4 } },
-          { text: '她最后把一张小画塞给你：“给你留着。”', effect: { affinity: 14, money: -55, mental: 10, learning: 4 } },
-        ],
+          { text: '你们坐在窗边吃饭，她一边听你说话一边在纸巾上画小图，你发现是刚才的场景——你端着餐盘找位子的样子。她把纸巾叠好递给你：“给你留着。”你收进口袋，觉得这张纸巾比什么礼物都特别。', effect: { affinity: 12, money: -55, mental: 9, learning: 4 } },
+          { text: '她吃得很慢，偶尔抬头看你一眼，然后轻轻笑一下。你问她笑什么，她摇头说“没什么”。但你知道她大概又在心里画你了。那顿饭吃了很久，但没人觉得着急。', effect: { affinity: 12, money: -55, mental: 8, learning: 4 } },
+          { text: '你说最近很累，她没说大道理，只是轻声说：“慢一点也没关系。”然后在你手背上画了一个小小的太阳。你看着那个圆，突然觉得心里暖了一下。', effect: { affinity: 13, money: -55, mental: 10, learning: 4 } },
+          { text: '你们几乎没怎么说话，但气氛却很舒服。她偶尔剥一颗花生递给你，你接过来吃掉。食堂嘈杂的声音好像离你们很远，那一刻你觉得安静才是最好的相处。', effect: { affinity: 12, money: -55, mental: 9, learning: 4 } },
+          { text: '她最后把一张小画塞给你，画的是你们俩对坐吃饭的样子，线条简单但很温暖。你把它夹在课本里，每次翻到那一页都会停下来看一看。', effect: { affinity: 14, money: -55, mental: 10, learning: 4 } }
+        ]
       },
       play: {
         label: '一起玩耍',
         stories: [
-          { text: '你们一起在教室画黑板报，她负责画，你负责递粉笔，时间过得很慢但很安静。', effect: { affinity: 10, mental: 11, health: 5, effort: 2 } },
-          { text: '晚自习后她带你去看天台的夜景，风很轻，她只是站着看。', effect: { affinity: 11, mental: 12, health: 5, effort: 2 } },
-          { text: '你陪她画画，她偶尔会让你试着画，你发现自己居然也能画一点。', effect: { affinity: 10, mental: 10, health: 5, effort: 2 } },
-          { text: '她在你书本上画了个小人，你之后每次翻到都会看一眼。', effect: { affinity: 11, mental: 11, health: 5, effort: 2 } },
-          { text: '你们一起整理教室布置，她默默把最累的部分做完。', effect: { affinity: 12, mental: 10, health: 5, effort: 2 } },
-        ],
-      },
-    },
+          { text: '你们一起在教室画黑板报，她负责画，你负责递粉笔，时间过得很慢但很安静。她偶尔退后几步眯着眼睛看整体，然后转头问你“这里颜色会不会太暗”，你认真帮她选色。', effect: { affinity: 10, mental: 11, health: 5, effort: 2 } },
+          { text: '晚自习后她带你去看天台的夜景，风很轻，她只是站着看远方。你问她看什么，她说“看灯，每一盏灯后面都有一个故事”。你没有接话，但觉得她的话比作文书上的句子还要美。', effect: { affinity: 11, mental: 12, health: 5, effort: 2 } },
+          { text: '（不愉快）你陪她画画，但你总是画不好，她耐心教了几次你还是歪歪扭扭。她叹了口气说“算了，你可能真的没天赋”。你知道她没有恶意，但还是有点难过，之后好几天没再碰画笔。', effect: { affinity: 6, mental: 3, health: 1 } },
+          { text: '她在你书本上画了个小人，你之后每次翻到都会看一眼。有一次你故意说“这个小人好像你”，她红了脸，在本子上又加了一笔，把小人的头发画得更长了。', effect: { affinity: 11, mental: 11, health: 5, effort: 2 } },
+          { text: '（不愉快）你们一起整理教室布置，她默默把最累的部分做完，却忘了吃晚饭。你发现她脸色有点白，问她是不是不舒服，她摇头说没事。结果晚自习时她差点晕倒，你扶着去医务室，路上她还在说“对不起，给你添麻烦了”。', effect: { affinity: 7, mental: 4, health: -3 } }
+        ]
+      }
+    }
   },
-
   {
     id: 'zhang_s',
     name: '小张',
@@ -200,36 +196,35 @@ const CLASSMATE_POOL = [
     defaultAffinity: 45,
     desc: '喜欢音乐和文字，常常一个人戴着耳机发呆，写过很多没人看过的歌词。',
     bondEvent: {
-      story: '你偶然听到她在教室弹吉他。\n\n她看到你，有点慌：“我弹得一般……”\n\n你摇头。\n\n她犹豫了一下，把一段旋律重新弹了一遍。\n\n“这首还没写完。”她说，“但我一直想让人听一次。”',
+      story: '你偶然听到她在教室弹吉他。她看到你有点慌：“我弹得一般……”你摇头。她犹豫了一下，把一段旋律重新弹了一遍。“这首还没写完，”她说，“但我一直想让人听一次。”',
       choices: [
-        { label: '认真听', effect: { affinity: 16, mental: 13 } },
-        { label: '轻轻夸', effect: { affinity: 10, mental: 8 } },
-      ],
+        { label: '认真听', effect: { affinity: 16, mental: 13 }, result: '你搬了把椅子坐下，闭着眼睛听完了整首。最后一个音落下时你睁开眼，她正紧张地看着你。“很好听。”你说。她愣了一下，然后笑了，那是你第一次看到她笑得那么放松。' },
+        { label: '轻轻夸', effect: { affinity: 10, mental: 8 }, result: '你说了句“还挺不错的”，她点点头收起了吉他。后来你再也没听到过那首曲子。你有点后悔没有多听一会儿，但每次路过音乐教室都会下意识放慢脚步。' }
+      ]
     },
     interactions: {
       meal: {
         label: '请客吃饭',
         stories: [
-          { text: '她边吃边跟你分享最近听的歌，眼睛有点亮。', effect: { affinity: 12, money: -50, mental: 10 } },
-          { text: '你们聊音乐，她突然说：“有些歌会陪你很久。”', effect: { affinity: 13, money: -50, mental: 11 } },
-          { text: '她给你推荐歌单，你默默记下来。', effect: { affinity: 12, money: -50, mental: 10 } },
-          { text: '你们安静吃饭，各自戴着耳机听同一首歌。', effect: { affinity: 13, money: -50, mental: 11 } },
-          { text: '她轻声说：“以后再一起听。”', effect: { affinity: 14, money: -50, mental: 12 } },
-        ],
+          { text: '她边吃边跟你分享最近听的歌，眼睛有点亮，说到喜欢的歌词时还会停下来哼两句。你安静地听着，觉得她说话的样子比歌还好听。', effect: { affinity: 12, money: -50, mental: 10 } },
+          { text: '你们聊音乐，她突然说：“有些歌会陪你很久，就像有些人一样。”她说完可能觉得太矫情，低头扒饭。你点点头，记住了那句话。', effect: { affinity: 13, money: -50, mental: 11 } },
+          { text: '她给你推荐歌单，你默默记下来。晚上回宿舍你戴上耳机一首一首听，发现每首都像在讲你们的故事。第二天你告诉她，她笑得很开心。', effect: { affinity: 12, money: -50, mental: 10 } },
+          { text: '你们安静吃饭，各自戴着耳机听同一首歌。吃到一半她突然问你现在到哪一段了，你比了个时间，她点点头，然后你们又沉默地听下去。那种默契不需要说话。', effect: { affinity: 13, money: -50, mental: 11 } },
+          { text: '她轻声说：“以后再一起听。”你说好。那个“以后”没有具体的时间，但你们都相信会有。', effect: { affinity: 14, money: -50, mental: 12 } }
+        ]
       },
       play: {
         label: '一起玩耍',
         stories: [
-          { text: '她拉你去音乐教室，你第一次认真听她弹完一首歌。', effect: { affinity: 11, mental: 12 } },
-          { text: '你们一起写歌词，她让你填一句。', effect: { affinity: 11, mental: 11 } },
-          { text: '放学路上她给你分享耳机。', effect: { affinity: 12, mental: 12 } },
-          { text: '你们在走廊小声哼歌。', effect: { affinity: 10, mental: 11 } },
-          { text: '她说：“有些瞬间要记住。”', effect: { affinity: 12, mental: 12 } },
-        ],
-      },
-    },
+          { text: '她拉你去音乐教室，你第一次认真听她弹完一首完整的曲子。琴声在空旷的教室里回荡，她偶尔闭眼，偶尔低头看弦。结束时她问你怎么样，你说“还想再听一遍”。', effect: { affinity: 11, mental: 12 } },
+          { text: '你们一起写歌词，她让你填一句。你想了半天憋出一句，她看了笑着说“虽然很直白，但是可以”。然后她把它唱了出来，你才发现自己写的句子配上旋律居然还挺好听。', effect: { affinity: 11, mental: 11 } },
+          { text: '（不愉快）放学路上她给你分享耳机，但你们听歌的品味完全不同。她喜欢民谣，你喜欢摇滚，争了几句后她摘下一只耳机说“算了，不听了”。剩下的路你们各自听各自的，气氛有点冷。', effect: { affinity: 5, mental: 3 } },
+          { text: '你们在走廊小声哼歌，被教导主任撞见，说你们“不务正业”。她低下头没说话，你拉着她赶紧走开。后来她说“其实他说的也没错”，你有点心疼她。', effect: { affinity: 7, mental: 6 } },
+          { text: '（不愉快）她写了一首新歌，兴冲冲弹给你听。你觉得一般，诚实地说“旋律有点平”。她愣了一下，把吉他收进包里，说“可能我确实不适合写歌”。之后好几天她都没再碰吉他，你后悔说了那句话。', effect: { affinity: 4, mental: 2 } }
+        ]
+      }
+    }
   },
-
   {
     id: 'wu_s',
     name: '小吴',
@@ -238,36 +233,35 @@ const CLASSMATE_POOL = [
     defaultAffinity: 50,
     desc: '精力旺盛，几乎每天都在操场上，性格直接，带着你一起动起来。',
     bondEvent: {
-      story: '他拉你跑步，你一开始跟不上。\n\n你气喘吁吁想停，他回头看你：“再坚持一下。”\n\n你咬牙跟上。\n\n最后停下时你整个人都轻了。\n\n他笑着拍你：“你比你自己想的强。”',
+      story: '他拉你跑步，你一开始跟不上。你气喘吁吁想停，他回头看你：“再坚持一下。”你咬牙跟上。最后停下时你整个人都轻了。他笑着拍你：“你比你自己想的强。”',
       choices: [
-        { label: '继续练', effect: { affinity: 15, health: 12 } },
-        { label: '休息', effect: { affinity: 7, health: 6 } },
-      ],
+        { label: '继续练', effect: { affinity: 15, health: 12 }, result: '之后每天下午他都准时在你教室门口等你。从一公里到三公里，你慢慢能跟上他的节奏了。有一天你超过了他，他在后面喊“不错啊”，你咧嘴笑了。' },
+        { label: '休息', effect: { affinity: 7, health: 6 }, result: '你摆摆手说实在跑不动了，在跑道边弯着腰喘气。他一个人跑完了剩下的圈。回来时他递给你一瓶水：“没事，下次再来。”你看着他的背影，觉得有点对不起他的信任。' }
+      ]
     },
     interactions: {
       meal: {
         label: '请客吃饭',
         stories: [
-          { text: '他吃得很快，说“补能量最重要”。', effect: { affinity: 12, money: -50, health: 10, mental: 6 } },
-          { text: '你们边吃边聊训练，他很认真。', effect: { affinity: 12, money: -50, health: 10, mental: 6 } },
-          { text: '他说你体能进步了。', effect: { affinity: 13, money: -50, health: 11, mental: 6 } },
-          { text: '你们吃完直接去操场。', effect: { affinity: 12, money: -50, health: 10, mental: 6 } },
-          { text: '他说“下次我请”。', effect: { affinity: 13, money: -50, health: 10, mental: 7 } },
-        ],
+          { text: '他吃得很快，三口就干掉一碗饭，说“补能量最重要”。你看着他狼吞虎咽的样子，也忍不住加快速度。吃完他拍桌子：“走，消化一下，再去跑两圈？”', effect: { affinity: 12, money: -50, health: 10, mental: 6 } },
+          { text: '你们边吃边聊训练计划，他很认真地给你分析配速和呼吸节奏，完全不像平时大大咧咧的样子。你说他“认真起来还挺帅”，他挠挠头笑了。', effect: { affinity: 12, money: -50, health: 10, mental: 6 } },
+          { text: '他说你体能进步了，你有点不相信。他掏出手机给你看跑步记录：“你自己看，上个月一公里七分钟，现在五分钟。”你盯着那个数字，突然觉得自己也没那么差。', effect: { affinity: 13, money: -50, health: 11, mental: 6 } },
+          { text: '你们吃完直接去操场，他让你先热身，自己跑去买水。等你跑完一圈回来，他已经拿着两瓶水站在跑道边冲你喊“最后一圈冲刺”。', effect: { affinity: 12, money: -50, health: 10, mental: 6 } },
+          { text: '他说“下次我请”，你笑着说“等你考进年级前一百再说”。他瞪大眼睛：“你也太小看我了！”结果下一次考试他真的进步了，然后拉着你去吃了一顿好的。', effect: { affinity: 13, money: -50, health: 10, mental: 7 } }
+        ]
       },
       play: {
         label: '一起玩耍',
         stories: [
-          { text: '他带你打球，你从跟不上到能参与。', effect: { affinity: 10, health: 15, mental: 10 } },
-          { text: '你们一起跑步，节奏慢慢一致。', effect: { affinity: 10, health: 15, mental: 10 } },
-          { text: '他教你动作，很耐心。', effect: { affinity: 11, health: 15, mental: 10 } },
-          { text: '你们一起出汗，整个人轻松。', effect: { affinity: 10, health: 15, mental: 10 } },
-          { text: '他说“以后一起练”。', effect: { affinity: 11, health: 15, mental: 10 } },
-        ],
-      },
-    },
+          { text: '他带你打球，你从完全跟不上到能偶尔接住他的传球。他每次都会喊“好球”，哪怕你投了一个三不沾。渐渐地你开始享受出汗的感觉。', effect: { affinity: 10, health: 15, mental: 10 } },
+          { text: '你们一起跑步，节奏慢慢一致，呼吸声重叠在一起。跑到最后几百米他都会喊“冲刺”，然后你们像疯子一样狂奔，停下来后撑着膝盖大笑。', effect: { affinity: 10, health: 15, mental: 10 } },
+          { text: '（不愉快）他教你跳远，你姿势不对扭伤了脚踝。他吓了一跳，赶紧扶你去医务室，一路上不停说“我的错”。你疼得冒汗，但看他自责的样子又不忍心怪他。后来他每天帮你打饭直到你康复。', effect: { affinity: 8, health: -5, mental: 4 } },
+          { text: '你们一起做俯卧撑比赛，你做到第十五个就趴下了，他做了三十个还脸不红气不喘。他趴下来看着你：“就这？”你又气又笑，撑着又做了两个。', effect: { affinity: 10, health: 15, mental: 10 } },
+          { text: '（不愉快）他在体育课上故意让球砸到你，说是“帮你练反应”。你捂着被砸疼的手臂，真的生气了，吼了他一句。他愣住了，之后几天都没敢跟你说话。', effect: { affinity: 3, health: -3, mental: 2 } }
+        ]
+      }
+    }
   },
-
   {
     id: 'liu_s',
     name: '小刘',
@@ -276,36 +270,35 @@ const CLASSMATE_POOL = [
     defaultAffinity: 42,
     desc: '成绩顶尖但不张扬，逻辑清晰，说话简短，但关键时候很可靠。',
     bondEvent: {
-      story: '你问他一道压轴题。\n\n他看了一眼，说：“这题不难。”\n\n你有点不服。\n\n他把过程写出来，每一步都很干净。\n\n你看懂了。\n\n他淡淡说：“你只是想复杂了。”',
+      story: '你问他一道压轴题。他看了一眼说：“这题不难。”你有点不服。他把过程写出来，每一步都很干净。你看懂了。他淡淡说：“你只是想复杂了。”',
       choices: [
-        { label: '继续问', effect: { affinity: 14, learning: 16 } },
-        { label: '自己做', effect: { affinity: 6, effort: 8 } },
-      ],
+        { label: '继续问', effect: { affinity: 14, learning: 16 }, result: '你拉着他问了一整节自习课，他从函数问到数列，没有不耐烦，只是每次讲完都会说“你自己再推一遍”。你发现听他讲题比自己看书效率高十倍。' },
+        { label: '自己做', effect: { affinity: 6, effort: 8 }, result: '你拿着他的过程回座位自己推，花了半小时才完全弄懂。你去找他道谢，他已经戴上耳机做题了。你默默把草稿纸收好，决定下次一定要自己先想出来。' }
+      ]
     },
     interactions: {
       meal: {
         label: '请客吃饭',
         stories: [
-          { text: '他吃饭时也在想题，你忍不住笑。', effect: { affinity: 11, money: -40, learning: 7 } },
-          { text: '你们讨论题目，他逻辑很清晰。', effect: { affinity: 11, money: -40, learning: 7 } },
-          { text: '他说你有潜力。', effect: { affinity: 12, money: -40, learning: 8 } },
-          { text: '你们交流方法。', effect: { affinity: 11, money: -40, learning: 7 } },
-          { text: '他说“别急”。', effect: { affinity: 12, money: -40, learning: 7 } },
-        ],
+          { text: '他吃饭时也在想题，筷子夹着菜悬在半空中一动不动。你忍不住笑出声，他才回过神来，面无表情地继续吃，好像什么都没发生。', effect: { affinity: 11, money: -40, learning: 7 } },
+          { text: '你们讨论一道几何题，他在餐巾纸上画辅助线，逻辑清晰得像教科书。你看完忍不住说“你以后是不是要去搞数学研究”，他想了想说“可能吧”。', effect: { affinity: 11, money: -40, learning: 7 } },
+          { text: '他说你有潜力，你问为什么。他放下筷子认真地看着你：“因为你问的问题比别人深。”你被夸得有点不好意思，他继续低头吃饭，好像刚才只是陈述事实。', effect: { affinity: 12, money: -40, learning: 8 } },
+          { text: '你们交流各自的学习方法，他听完你的说“效率可以再高一点”，然后列了三条建议。你记下来试了几天，发现真的有用。', effect: { affinity: 11, money: -40, learning: 7 } },
+          { text: '他说“别急”，然后给你讲了他高一时候物理只考了60分的经历。你瞪大眼睛：“你也考过60？”他点点头：“所以我现在知道问题出在哪。”', effect: { affinity: 12, money: -40, learning: 7 } }
+        ]
       },
       play: {
         label: '一起玩耍',
         stories: [
-          { text: '你们一起刷题，比效率。', effect: { affinity: 10, learning: 12, effort: 8 } },
-          { text: '他教你思路，你进步明显。', effect: { affinity: 10, learning: 13, effort: 8 } },
-          { text: '你们沉默但专注。', effect: { affinity: 9, learning: 12, effort: 8 } },
-          { text: '他偶尔讲解关键点。', effect: { affinity: 10, learning: 13, effort: 8 } },
-          { text: '你开始跟上他的节奏。', effect: { affinity: 11, learning: 13, effort: 8 } },
-        ],
-      },
-    },
+          { text: '你们一起刷题，比谁做得快。他每次都比你快，但从不炫耀，只是在你做出来时说“不错”。你渐渐习惯了这种安静的竞争。', effect: { affinity: 10, learning: 12, effort: 8 } },
+          { text: '他教你解题思路，不是直接给答案，而是问“你觉得第一步应该做什么”。你被逼着自己思考，慢慢发现很多题没那么可怕。', effect: { affinity: 10, learning: 13, effort: 8 } },
+          { text: '（不愉快）你考砸了，他帮你分析试卷时说“你这道题不该错，这种题型我讲过三遍了”。你觉得他在责备你，顶了一句“我又不是你”。他沉默了几秒，然后说“对不起，我语气不好”。你们之间有点尴尬。', effect: { affinity: 4, mental: 3, learning: 2 } },
+          { text: '他偶尔在放学后和你下棋，不再谈学习。他下棋很认真，你输了也不气馁，因为他说“下棋和做题一样，输赢都是过程”。', effect: { affinity: 10, learning: 13, effort: 8 } },
+          { text: '（不愉快）你主动拉他去看电影，他犹豫很久答应了。但整个观影过程他都在心里默算数学题，不时在本子上写写画画。你坐在旁边觉得很没意思，提前离场了。他追出来问“怎么了”，你说“没事”。', effect: { affinity: 3, mental: 2, effort: 1 } }
+        ]
+      }
+    }
   },
-
   {
     id: 'sun_s',
     name: '小孙',
@@ -314,36 +307,35 @@ const CLASSMATE_POOL = [
     defaultAffinity: 48,
     desc: '目标明确，行动力强，总在努力往前走，会不自觉带动身边的人。',
     bondEvent: {
-      story: '你看到他在教室最晚离开。\n\n你问他累不累。\n\n他说：“累，但不想停。”\n\n他看你一眼：“你也可以更强。”',
+      story: '你看到他在教室最晚离开。你问他累不累。他说：“累，但不想停。”他看你一眼：“你也可以更强。”',
       choices: [
-        { label: '一起学', effect: { affinity: 15, effort: 12 } },
-        { label: '点头', effect: { affinity: 7, effort: 6 } },
-      ],
+        { label: '一起学', effect: { affinity: 15, effort: 12 }, result: '之后你们约好每天互相监督打卡。他从不迟到，你也不好意思偷懒。一个月后你发现自己真的进步了，你对他说谢谢，他难得笑了：“是你自己做到的。”' },
+        { label: '点头', effect: { affinity: 7, effort: 6 }, result: '你点点头走了。回到宿舍你躺在床上想他的话，翻来覆去睡不着。第二天你早早到了教室，发现他已经在了。你在他旁边坐下，他抬头看你一眼，什么都没说。' }
+      ]
     },
     interactions: {
       meal: {
         label: '请客吃饭',
         stories: [
-          { text: '你们聊目标，他很坚定。', effect: { affinity: 12, money: -50, learning: 6 } },
-          { text: '他说未来规划。', effect: { affinity: 12, money: -50, learning: 6 } },
-          { text: '你被带动了。', effect: { affinity: 13, money: -50, learning: 7 } },
-          { text: '他鼓励你。', effect: { affinity: 12, money: -50, learning: 6 } },
-          { text: '他说“一起努力”。', effect: { affinity: 13, money: -50, learning: 7 } },
-        ],
+          { text: '你们聊目标，他从抽屉里拿出一张写满计划的纸，每一条后面都打了勾。你看得目瞪口呆，他说“你也可以试试”。那天你回去也列了一张。', effect: { affinity: 12, money: -50, learning: 6 } },
+          { text: '他说未来想考一所很好的大学，然后去国外深造。你问他想家怎么办，他说“先走出去，才有资格想家”。你觉得他身上有一种你缺少的勇气。', effect: { affinity: 12, money: -50, learning: 6 } },
+          { text: '你被带动了，开始每天早起背单词。他知道了，有一天在食堂递给你一盒牛奶：“奖励你的。”你接过来，觉得比任何奖状都实在。', effect: { affinity: 13, money: -50, learning: 7 } },
+          { text: '他鼓励你参加竞赛，你犹豫不决。他说“试试又不会少块肉”，然后帮你找资料。你最终报了名，虽然没有拿奖，但过程让你学到了很多。', effect: { affinity: 12, money: -50, learning: 6 } },
+          { text: '他说“一起努力”，然后伸出手。你愣了一下，也伸出手和他击了一下掌。那一刻你觉得不是一个人在战斗。', effect: { affinity: 13, money: -50, learning: 7 } }
+        ]
       },
       play: {
         label: '一起玩耍',
         stories: [
-          { text: '他说放松也要有计划。', effect: { affinity: 10, learning: 11, effort: 9 } },
-          { text: '你们一起制定计划。', effect: { affinity: 10, learning: 11, effort: 9 } },
-          { text: '他带你复盘。', effect: { affinity: 10, learning: 12, effort: 9 } },
-          { text: '你逐渐跟上节奏。', effect: { affinity: 11, learning: 12, effort: 9 } },
-          { text: '他说“别停”。', effect: { affinity: 11, learning: 11, effort: 9 } },
-        ],
-      },
-    },
+          { text: '他说放松也要有计划，然后拿出一个周末时间表，每半小时一项活动，连“发呆15分钟”都写进去了。你看着那张表，觉得他连休息都这么认真。', effect: { affinity: 10, learning: 11, effort: 9 } },
+          { text: '你们一起制定接下来的复习计划，他拿出一张A3纸画甘特图。你说“太卷了吧”，他认真地说“不卷，只是不想后悔”。', effect: { affinity: 10, learning: 11, effort: 9 } },
+          { text: '（不愉快）你因为生病落了一周课，他帮你补习时一直说你“进度太慢”。你本来就焦虑，被他说的更烦了，摔了笔说“你别管我了”。他愣住了，之后好几天没再找你。你冷静后主动道歉，他说“没关系，但我怕你真的放弃”。', effect: { affinity: 5, mental: 2, effort: -1 } },
+          { text: '他带你复盘月考，把你的错题按类型分类，然后说“这部分是你的弱点，接下来两周专攻这里”。你照着做了，下一次考试真的提了十几分。', effect: { affinity: 11, learning: 12, effort: 9 } },
+          { text: '（不愉快）你问他为什么总能坚持，他说“因为我没有退路”。你不知道怎么接话，那个下午你们都没再说话。你忽然觉得，他的上进背后也许有很多没说的压力。', effect: { affinity: 6, mental: 4 } }
+        ]
+      }
+    }
   },
-
   {
     id: 'zhou_s',
     name: '小周',
@@ -352,36 +344,35 @@ const CLASSMATE_POOL = [
     defaultAffinity: 46,
     desc: '安静内向，喜欢游戏和电子产品，熟了之后其实很有话聊。',
     bondEvent: {
-      story: '他难得主动叫你：“来一局？”\n\n你有点意外。\n\n你们打完一局，他笑了：“原来你还挺强。”\n\n“以后可以一起。”',
+      story: '他难得主动叫你：“来一局？”你有点意外。你们打完一局，他笑了：“原来你还挺强。”“以后可以一起。”',
       choices: [
-        { label: '继续玩', effect: { affinity: 14, mental: 10 } },
-        { label: '下次再说', effect: { affinity: 7 } },
-      ],
+        { label: '继续玩', effect: { affinity: 14, mental: 10 }, result: '你们连打了好几局，配合越来越默契。他话也多起来，还会主动给你发信号。最后他关掉屏幕说“今天很开心”，你发现他第一次对你笑得那么自然。' },
+        { label: '下次再说', effect: { affinity: 7, mental: 0 }, result: '你说“下次吧，今天还有卷子没写”。他点点头，默默关掉了游戏。之后很久他都没再主动找你玩，你有点后悔，但不知道怎么开口。' }
+      ]
     },
     interactions: {
       meal: {
         label: '请客吃饭',
         stories: [
-          { text: '他一边吃一边聊游戏。', effect: { affinity: 11, money: -40, mental: 8 } },
-          { text: '你们讨论策略。', effect: { affinity: 11, money: -40, mental: 8 } },
-          { text: '他慢慢话多起来。', effect: { affinity: 12, money: -40, mental: 9 } },
-          { text: '气氛轻松。', effect: { affinity: 11, money: -40, mental: 8 } },
-          { text: '他说“挺开心的”。', effect: { affinity: 12, money: -40, mental: 9 } },
-        ],
+          { text: '他一边吃一边聊最近玩的游戏，从剧情到操作细节，讲得眉飞色舞。你发现他其实很会说，只是平时不爱开口。', effect: { affinity: 11, money: -40, mental: 8 } },
+          { text: '你们讨论游戏策略，他分析得头头是道，像在解数学题。你说“你这个脑子用来学习肯定年级第一”，他不好意思地挠头。', effect: { affinity: 11, money: -40, mental: 8 } },
+          { text: '他慢慢话多起来，从游戏聊到动漫再聊到科技新闻。你发现他懂得特别多，只是需要一个愿意听的人。', effect: { affinity: 12, money: -40, mental: 9 } },
+          { text: '你们安静吃饭，他偶尔抬头看你一眼，确认你还在听。你故意低头吃饭不理他，他就会小声说“你还在听吗”。你觉得他有点像怕被抛弃的小动物。', effect: { affinity: 11, money: -40, mental: 8 } },
+          { text: '他说“挺开心的”，然后赶紧低头喝汤。你知道他说的是今天有人陪他吃饭。你笑着说“开心就好”，他耳根红了。', effect: { affinity: 12, money: -40, mental: 9 } }
+        ]
       },
       play: {
         label: '一起玩耍',
         stories: [
-          { text: '你们一起打游戏，配合越来越默契。', effect: { affinity: 10, mental: 11 } },
-          { text: '他教你操作。', effect: { affinity: 10, mental: 10 } },
-          { text: '你们聊剧情。', effect: { affinity: 10, mental: 10 } },
-          { text: '他开始主动找你。', effect: { affinity: 11, mental: 11 } },
-          { text: '他说“下次继续”。', effect: { affinity: 11, mental: 11 } },
-        ],
-      },
-    },
+          { text: '你们一起打游戏，从各自为战到学会打配合。赢了你会和他击掌，输了他说“没事再来”。你发现和他玩比一个人玩有趣多了。', effect: { affinity: 10, mental: 11 } },
+          { text: '他教你一个游戏的复杂操作，仔仔细细讲了半小时，还画了示意图。你学得很慢，他也没有不耐烦。你终于学会时他比你还激动。', effect: { affinity: 10, mental: 10 } },
+          { text: '（不愉快）你约他打游戏，他说要复习拒绝了。你有点不高兴，觉得他在找借口。后来才知道他上次月考没考好，被他爸训了一顿。你主动去安慰他，他眼眶红红的。', effect: { affinity: 6, mental: 3 } },
+          { text: '你们聊游戏剧情，他讲到某个角色的结局时声音有点哽咽。你没笑话他，安静地听他说完。他擦擦眼睛说“谢谢”，你拍了拍他的肩膀。', effect: { affinity: 11, mental: 11 } },
+          { text: '（不愉快）你们在机房玩游戏被老师抓到，他一个人揽下了责任，说你只是路过。你被放走了，他被罚写检讨。你想帮他一起写，他摆手说“不用”。后来你把检讨偷偷塞进他书包，他看到了，什么也没说。', effect: { affinity: 7, mental: 4 } }
+        ]
+      }
+    }
   },
-
   {
     id: 'zheng_s',
     name: '小郑',
@@ -390,36 +381,35 @@ const CLASSMATE_POOL = [
     defaultAffinity: 52,
     desc: '总是第一个站出来帮忙的人，班级里的“润滑剂”，和谁都能处得来。',
     bondEvent: {
-      story: '你有点崩，他什么都没问。\n\n只是递水给你：“先缓一下。”\n\n你突然有点想说话。\n\n他说：“我在。”',
+      story: '你有点崩溃，趴在桌上。他什么都没问，只是递了杯水给你：“先缓一下。”你突然有点想说话。他说：“我在。”',
       choices: [
-        { label: '说出来', effect: { affinity: 16, mental: 14 } },
-        { label: '点头', effect: { affinity: 9, mental: 8 } },
-      ],
+        { label: '说出来', effect: { affinity: 16, mental: 14 }, result: '你把最近的烦恼一股脑倒了出来，他安静地听，偶尔点头。说完你长舒一口气，他说“以后难受随时找我”。你看着他，觉得有人接住你的感觉真好。' },
+        { label: '点头', effect: { affinity: 9, mental: 8 }, result: '你接过水喝了一口，摇了摇头说“没事”。他看了你一会儿，没再追问，只是在你桌上放了一颗糖。你后来吃了那颗糖，觉得比什么安慰的话都暖。' }
+      ]
     },
     interactions: {
       meal: {
         label: '请客吃饭',
         stories: [
-          { text: '他总是照顾你。', effect: { affinity: 13, money: -50, mental: 9 } },
-          { text: '他说“慢慢来”。', effect: { affinity: 13, money: -50, mental: 9 } },
-          { text: '气氛很安心。', effect: { affinity: 13, money: -50, mental: 9 } },
-          { text: '你被照顾到了。', effect: { affinity: 14, money: -50, mental: 10 } },
-          { text: '他说“别客气”。', effect: { affinity: 13, money: -50, mental: 9 } },
-        ],
+          { text: '他总是帮你夹菜，看你吃得少还会问“是不是不合口味”。你说“不用这么照顾我”，他笑笑说“顺手的事”。你心里觉得被重视了。', effect: { affinity: 13, money: -50, mental: 9 } },
+          { text: '他说“慢慢来”，然后跟你讲他自己高一时候的不适应。你听着他的故事，觉得原来不是只有你一个人这么难。', effect: { affinity: 13, money: -50, mental: 9 } },
+          { text: '气氛很安心，你甚至不用刻意找话题。他偶尔问一句你最近怎么样，你说“还行”，他就点点头不再多问。你知道他在关心你。', effect: { affinity: 13, money: -50, mental: 9 } },
+          { text: '你被照顾到了，比如他会记得你不吃香菜，帮你挑出来。你开玩笑说“你是不是对我太好了”，他认真想了想说“对朋友好不需要理由吧”。', effect: { affinity: 14, money: -50, mental: 10 } },
+          { text: '他说“别客气”，然后把你塞过去的钱推回来。“下次你请我喝奶茶就行。”你知道他是故意给你台阶下。', effect: { affinity: 13, money: -50, mental: 9 } }
+        ]
       },
       play: {
         label: '一起玩耍',
         stories: [
-          { text: '他帮你处理事情。', effect: { affinity: 10, mental: 11 } },
-          { text: '你们一起做活动。', effect: { affinity: 10, mental: 11 } },
-          { text: '他总在关键时刻出现。', effect: { affinity: 11, mental: 11 } },
-          { text: '你越来越依赖他。', effect: { affinity: 11, mental: 12 } },
-          { text: '他说“我一直在”。', effect: { affinity: 12, mental: 12 } },
-        ],
-      },
-    },
+          { text: '你遇到麻烦，他二话不说放下手里的事来帮你。搞定之后你道谢，他摆摆手说“小事”。你发现他在班级里人缘好是有原因的。', effect: { affinity: 10, mental: 11 } },
+          { text: '你们一起组织班级活动，他负责协调所有人，每个人都觉得被照顾到了。你跟在他后面学到了怎么跟人沟通。', effect: { affinity: 10, mental: 11 } },
+          { text: '（不愉快）你心情不好不想说话，他却一直追着问“怎么了”“是不是谁欺负你了”。你烦了，吼了一句“你能不能别管我”。他愣住了，然后默默走开。晚上他发消息道歉，你也道了歉。第二天他还像往常一样帮你占座。', effect: { affinity: 5, mental: 3 } },
+          { text: '你越来越依赖他，遇到难题第一个想到的是他。有一天他发烧没来上学，你发现自己连饭卡都忘了带。你突然意识到不能什么都靠他。', effect: { affinity: 8, mental: 5 } },
+          { text: '（不愉快）他答应帮你补习数学，但是那天他临时被老师叫去开会，放了你鸽子。你在教室等了一个小时，发消息他没回。你有点生气，后来他气喘吁吁跑来说“对不起”，你看到他满头大汗，气就消了。', effect: { affinity: 6, mental: 4 } }
+        ]
+      }
+    }
   },
-
   {
     id: 'huang_s',
     name: '小黄',
@@ -428,33 +418,34 @@ const CLASSMATE_POOL = [
     defaultAffinity: 47,
     desc: '反应快，嘴毒但不坏，关键时刻总能看透问题。',
     bondEvent: {
-      story: '你被一道题卡住，他看了一眼：“你想多了。”\n\n他一句话点醒你。\n\n你愣住。\n\n他笑：“脑子不错，就是容易绕。”',
+      story: '你被一道题卡住，他看了一眼：“你想多了。”他一句话点醒你。你愣住。他笑：“脑子不错，就是容易绕。”',
       choices: [
-        { label: '继续问', effect: { affinity: 15, learning: 12 } },
-        { label: '吐槽他', effect: { affinity: 9, mental: 6 } },
-      ],
+        { label: '继续问', effect: { affinity: 15, learning: 12 }, result: '你顺势又掏出几道类似的题，他嘴上说“你是把我当免费家教了”，但还是帮你都理了一遍。最后他说“下次自己先想十分钟再来问我”。你记住了。' },
+        { label: '吐槽他', effect: { affinity: 9, mental: 6 }, result: '你怼他“就你厉害行了吧”，他也不生气，笑着说“本来就是”。你被他噎得说不出话，但心里其实觉得他说得对。后来你主动找他问题，他阴阳怪气地说了句“哟，开窍了”。' }
+      ]
     },
     interactions: {
       meal: {
         label: '请客吃饭',
         stories: [
-          { text: '他一边吃一边吐槽你。', effect: { affinity: 12, money: -50, mental: 9 } },
-          { text: '你反击，他笑了。', effect: { affinity: 12, money: -50, mental: 9 } },
-          { text: '你们互怼很开心。', effect: { affinity: 13, money: -50, mental: 10 } },
-          { text: '他说“你进步了”。', effect: { affinity: 13, money: -50, mental: 10 } },
-          { text: '气氛轻松。', effect: { affinity: 12, money: -50, mental: 9 } },
-        ],
+          { text: '他一边吃一边吐槽你今天上课打瞌睡的样子，学得惟妙惟肖。你脸红了，反击说他上次被老师点名答不上来。他笑了：“行，扯平了。”', effect: { affinity: 12, money: -50, mental: 9 } },
+          { text: '你反击他的毒舌，他反而更来劲了，两个人互怼引来周围同学围观。最后他举手投降：“行了行了，你赢了，这顿饭我请。”', effect: { affinity: 12, money: -50, mental: 9 } },
+          { text: '你们互怼很开心，你发现他其实是在用一种别扭的方式关心你。比如他会说“你昨天那张卷子最后一道大题居然做出来了，太阳打西边出来了”。', effect: { affinity: 13, money: -50, mental: 10 } },
+          { text: '他说“你进步了”，语气不像在开玩笑。你愣了一下，他立刻补了一句“不过离我还差得远”。你翻了个白眼，但心里有点高兴。', effect: { affinity: 13, money: -50, mental: 10 } },
+          { text: '气氛轻松，你问他为什么总是一副看穿一切的样子。他想了想说“因为我不想被人看穿”。你觉得这句话背后可能有故事，但没再问。', effect: { affinity: 12, money: -50, mental: 9 } }
+        ]
       },
       play: {
         label: '一起玩耍',
         stories: [
-          { text: '你们斗嘴一整天。', effect: { affinity: 10, mental: 11 } },
-          { text: '他总能接住你的话。', effect: { affinity: 10, mental: 11 } },
-          { text: '你们默契变好。', effect: { affinity: 11, mental: 11 } },
-          { text: '他偶尔认真帮你。', effect: { affinity: 11, mental: 10 } },
-          { text: '他说“别想太复杂”。', effect: { affinity: 11, mental: 10 } },
-        ],
-      },
-    },
+          { text: '你们斗嘴一整天，从教室斗到食堂再到操场。谁也不服谁，但谁也没真生气。最后他笑了：“你是我见过最犟的人。”你说“彼此彼此”。', effect: { affinity: 10, mental: 11 } },
+          { text: '他总能接住你的话，你觉得跟他聊天很过瘾。有一次你说了一句冷笑话，全班只有他笑了，你突然觉得找到了知音。', effect: { affinity: 10, mental: 11 } },
+          { text: '（不愉快）他在众人面前拆穿了你一个善意的谎言，你有点下不来台，觉得他太不顾及你的感受。你冷着脸走了，他追上来拦住你：“我不是故意的，我就是嘴快。”你没理他，后来他给你买了瓶水放在桌上，你才消气。', effect: { affinity: 4, mental: 3 } },
+          { text: '他偶尔认真帮你，比如在你被一道题困住时，他不说风凉话，直接给你画了一张清晰的思路图。你抬头看他，他说“看什么看，赶紧做”。', effect: { affinity: 11, mental: 10 } },
+          { text: '（不愉快）他跟你打赌考试排名，输了的人要请客。结果你赢了，但他赖账说“下次一定”。你有点失望，不是心疼那顿饭，而是觉得他说话不算话。后来他主动请你吃了顿好的，说“欠你的还了”。', effect: { affinity: 6, mental: 4, money: 10 } }
+        ]
+      }
+    }
   }
 ]
+

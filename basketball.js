@@ -5,6 +5,7 @@
 
 function startBasketball() {
   if (player.monthStarted && !useEnergy()) return
+  markActivityUsed('basketball')
   tryInvite('篮球', () => openBasketball())
 }
 
