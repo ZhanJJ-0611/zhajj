@@ -297,8 +297,21 @@ function handleTitleStart() {
       enterGame()
     }
   } else {
-    showTagSelection()
+    showDisclaimer(() => showTagSelection())
   }
+}
+
+function showDisclaimer(callback) {
+  showModal(`
+    <div class="modal-title">📋 游戏说明</div>
+    <div style="font-size:13px;line-height:1.85;color:var(--text-secondary)">
+      <p style="margin:0 0 10px">本游戏所有内容（包括人物、事件、学校及对话等）均属虚构创作，与现实无关，如有雷同，纯属巧合。</p>
+      <p style="margin:0 0 10px">本游戏借助 AI 工具辅助开发，部分内容经由人工智能生成并经人工审校。</p>
+      <p style="margin:0 0 10px">本游戏以高中生活为背景，旨在帮助玩家重温青春岁月，不宣扬任何违法、不当或有害的价值观念，不含歧视性、暴力性或低俗内容，无不良价值导向。</p>
+      <p style="margin:0 0 10px">游戏内数值与现实存在差异，仅供娱乐，请理性看待。</p>
+      <p style="margin:0;color:var(--text-muted);font-size:12px">点击「确定」即表示您已阅读上述说明并同意继续。</p>
+    </div>
+  `, callback)
 }
 
 function initActiveTeachers() {
@@ -1036,6 +1049,7 @@ function applyChanges(changes) {
 // ─── 页面路由 ────────────────────────────────────────────────
 
 function switchPage(page) {
+  if (!document.getElementById('modal-overlay').classList.contains('hidden')) return
   if (_placementActive || (currentExam && !currentExam.submitted) || (currentGaokao && !currentGaokao.submitted) || (currentOlympiad && !currentOlympiad.submitted) || (currentEsportsExam && !currentEsportsExam.submitted)) return
   if (page !== 'study') { currentQuiz = null; clearQuizTimer() }
   currentPage = page
@@ -1044,6 +1058,7 @@ function switchPage(page) {
   )
   const pages = { home: renderHome, social: renderSocial, study: renderStudy, fun: renderFun }
   document.getElementById('content').innerHTML = ''
+  window.scrollTo(0, 0)
   pages[page]?.()
 }
 
@@ -2002,36 +2017,56 @@ function startEsportsTheoryExam(project, callback) {
 function renderEsportsExam() {
   const ex = currentEsportsExam
   const c  = document.getElementById('content')
+  const answered  = ex.answers.filter(a => a !== null).length
+  const canSubmit = answered === ex.questions.length
 
-  const questionsHtml = ex.questions.map((q, i) => {
-    const optsHtml = q.opts.map((opt, j) => {
-      const sel = ex.answers[i] === j
-      return `<button class="quiz-opt ${sel ? 'quiz-opt-selected' : ''}" onclick="setEsportsAnswer(${i},${j})">${opt}</button>`
-    }).join('')
-    return `
-      <div class="quiz-question">
-        <div class="quiz-q-text">${i + 1}. ${q.q}</div>
-        <div class="quiz-opts">${optsHtml}</div>
-      </div>`
-  }).join('')
-
-  const allAnswered = ex.answers.every(a => a !== null)
+  const questionsHtml = ex.questions.map((q, idx) => `
+    <div class="exam-q-block">
+      <div class="exam-q-meta">
+        <span class="exam-q-num">${idx + 1}</span>
+      </div>
+      <div class="exam-q-text">${q.q}</div>
+      <div class="exam-q-opts">
+        ${q.opts.map((opt, i) => `
+          <label class="exam-opt ${ex.answers[idx] === i ? 'chosen' : ''}">
+            <input type="radio" name="eq${idx}" value="${i}" onchange="setEsportsAnswer(${idx},${i})" ${ex.answers[idx] === i ? 'checked' : ''}>
+            ${opt}
+          </label>`).join('')}
+      </div>
+    </div>`).join('')
 
   c.innerHTML = `
-    <div class="card">
-      <div class="card-label">🎮 ${ex.project} 理论知识考核</div>
-      <div style="color:var(--text-muted);font-size:13px;margin-bottom:14px">共 5 题，答对 4 题及以上进入实战测试</div>
-      ${questionsHtml}
-      <button class="btn btn-primary full-width" style="margin-top:14px"
-        ${allAnswered ? '' : 'disabled'}
-        onclick="submitEsportsTheoryExam()">提交答案</button>
+    <div class="exam-paper">
+      <div class="exam-paper-head">
+        <div class="exam-paper-school">电竞选手招募</div>
+        <div class="exam-paper-title">${ex.project} 理论知识考核</div>
+        <div class="exam-paper-info">共 ${ex.questions.length} 题 · 单项选择 · 已答 <span id="es-answered">${answered}</span> 题</div>
+      </div>
+      <div class="exam-progress">
+        <div class="exam-progress-fill" id="es-progress" style="width:${(answered / ex.questions.length * 100).toFixed(0)}%"></div>
+      </div>
+      <div class="exam-paper-body">${questionsHtml}</div>
+      <div class="exam-submit-row">
+        <button class="btn btn-primary full-width" ${canSubmit ? '' : 'disabled'} id="es-submit" onclick="submitEsportsTheoryExam()">
+          ${canSubmit ? '交卷' : `还有 ${ex.questions.length - answered} 题未作答`}
+        </button>
+      </div>
     </div>`
 }
 
 function setEsportsAnswer(idx, choice) {
   if (!currentEsportsExam || currentEsportsExam.submitted) return
   currentEsportsExam.answers[idx] = choice
-  renderEsportsExam()
+  const answered  = currentEsportsExam.answers.filter(a => a !== null).length
+  const total     = currentEsportsExam.questions.length
+  const canSubmit = answered === total
+  const el = id => document.getElementById(id)
+  if (el('es-answered')) el('es-answered').textContent = answered
+  if (el('es-progress'))  el('es-progress').style.width = (answered / total * 100).toFixed(0) + '%'
+  const btn = el('es-submit')
+  if (btn) { btn.disabled = !canSubmit; btn.textContent = canSubmit ? '交卷' : `还有 ${total - answered} 题未作答` }
+  document.querySelectorAll(`[name="eq${idx}"]`).forEach(r =>
+    r.closest('.exam-opt').classList.toggle('chosen', parseInt(r.value) === choice))
 }
 
 function submitEsportsTheoryExam() {
@@ -2492,7 +2527,7 @@ function classmateCard(def, rel) {
                       : '不太熟悉'
 
   const bondedBadge = rel.bonded ? `<span class="bonded-badge">✨ 知己</span>` : ''
-  const mealCost = -(def.interactions.meal.effect.money || 0)
+  const mealCost = -(def.interactions.meal.stories[0]?.effect?.money || 0)
   const canAffordMeal = player.money >= mealCost
 
   return `
@@ -2549,7 +2584,7 @@ function teacherCard(def, rel) {
                       : '不太熟悉'
 
   const bondedBadge = rel.bonded ? `<span class="bonded-badge">✨ 知己</span>` : ''
-  const giftCost = -(def.interactions.gift.effect.money || 0)
+  const giftCost = -(def.interactions.gift.stories[0]?.effect?.money || 0)
   const canAffordGift = player.money >= giftCost
 
   return `
@@ -3018,24 +3053,16 @@ function renderFun() {
   const c = document.getElementById('content')
   const calMonth = getMonthInfo(player.month).month
   const isVacation = [2, 7, 8].includes(calMonth)
-  const partTimeCard = isVacation ? `
-    <div class="card" style="margin-top:10px">
-      <div class="card-label">假期打工</div>
-      <div class="card-sub-label">假期兼职，通过连连看完成任务，进度越高获得零花钱越多</div>
-      <div class="game-grid">
+  const partTimeGame = isVacation ? `
         <div class="game-card" onclick="startLinkGame()">
           <div class="game-icon">💼</div>
           <div class="game-name">打工</div>
           <div class="game-cost">消耗 2精力</div>
           <div class="game-eff">最多 +500元</div>
-        </div>
-      </div>
-    </div>
-  ` : ''
+        </div>` : ''
   c.innerHTML = `
     <div class="card">
       <div class="card-label">选择活动</div>
-      <div class="card-sub-label">运动可提升心理和身体健康，有时会遇到同学邀约</div>
       <div class="game-grid">
         ${GAMES.map(g => `
           <div class="game-card" onclick="${g.fn}">
@@ -3045,9 +3072,9 @@ function renderFun() {
             <div class="game-eff">获得 ${g.eff}</div>
           </div>
         `).join('')}
+        ${partTimeGame}
       </div>
     </div>
-    ${partTimeCard}
   `
 }
 
