@@ -92,6 +92,7 @@ function submitProfExam() {
   const ex = currentExam
   const correct = ex.questions.filter((q, i) => ex.answers[i] === q.ans).length
   const total   = ex.questions.length  // 9
+  const failedProfExam = correct < 3
 
   let grade, mentalEff, gradeDesc, gradeColor
   if      (correct >= 7) { grade = 'A'; mentalEff =   8; gradeDesc = '优秀';  gradeColor = '#4caf72' }
@@ -116,6 +117,12 @@ function submitProfExam() {
       <span class="${mentalEff > 0 ? 'chg-pos' : mentalEff < 0 ? 'chg-neg' : ''}">${mentalEff > 0 ? '+' + mentalEff : mentalEff === 0 ? '无变化' : mentalEff}</span>
     </div>
   `, () => {
+    if (failedProfExam) {
+      currentExam = null
+      saveState()
+      showGameOverModal('📋 会考不合格退学', '你在高二学业水平测试中获得 D 评级，学校认定你未达到继续就读要求，最终作出退学处理。你的高中旅程就此终止。')
+      return
+    }
     currentExam = null
     saveState()
     document.getElementById('bottom-nav').classList.remove('hidden')
@@ -338,6 +345,18 @@ function submitOlympiadExam() {
 
 // ─── 高考 ──────────────────────────────────────────────────────
 
+function showGaokaoExamIntro(callback) {
+  player.gaokaoExamPromptShown = true
+  saveState()
+  showModal(`
+    <div class="modal-title">高考即将开始</div>
+    <div class="event-box" style="margin-bottom:12px;line-height:1.8">
+      三年的高中旅程已经走到最后一程。<br>
+      做好准备后，你将正式进入高考考场。
+    </div>
+  `, callback)
+}
+
 function startGaokao() {
   const subjects = player.selectedSubjects || [...CORE_SUBJECTS, ...ELECTIVE_SUBJECTS.slice(0, 3)]
   const questions = []
@@ -353,6 +372,7 @@ function startGaokao() {
     queryCompleted: false,
     queryNameInput: player.name || '',
     queryPasswordInput: '',
+    querySystemNotice: '',
     queryPromptShown: false,
   }
   currentPage = 'home'
@@ -429,7 +449,11 @@ function submitGaokao() {
                  + player.mental   / 100 * 0.10
                  + player.health   / 100 * 0.10
   const qiangjiBonus = hasTag('qiangjiben') ? 40 : 0
-  const rawScore = Math.round(Math.max(200, Math.min(710, rawBase * 510 + 200 + qiangjiBonus)))
+  const loverBonus = hasLoverClassmate() ? 10 : 0
+  const confidantBonus = getBondedClassmates().length >= 2 ? 10 : 0
+  const mentorBonus = getBondedTeachers().length >= 2 ? 10 : 0
+  const baseScore = Math.round(Math.max(200, Math.min(680, rawBase * 480 + 200)))
+  const rawScore = Math.round(Math.max(200, Math.min(710, baseScore + qiangjiBonus + loverBonus + confidantBonus + mentorBonus)))
 
   // Draw performance event
   const r = Math.random()
@@ -446,13 +470,27 @@ function submitGaokao() {
   ex.rawScore        = rawScore
   ex.perfKey         = perfKey
   ex.finalScore      = finalScore
-  player.gaokaoResult = { rawScore, perfKey, finalScore }
+  ex.loverBonus      = loverBonus
+  ex.confidantBonus  = confidantBonus
+  ex.mentorBonus     = mentorBonus
+  player.gaokaoResult = { rawScore, perfKey, finalScore, loverBonus, confidantBonus, mentorBonus }
   saveState()
 
-  showGaokaoMemorialScene(() => {
-    ex.queryPromptShown = true
-    saveState()
-    showGaokaoScoreQueryIntro(() => showGaokaoScoreQueryForm())
+  showModal(`
+    <div class="modal-title">高考发挥</div>
+    <div style="text-align:center;padding:20px 0 14px">
+      <div style="font-size:30px;font-weight:900;color:${perf.color};letter-spacing:2px">${perfKey}</div>
+      <div style="font-size:20px;font-weight:700;color:${perf.color};margin-top:10px">
+        ${perf.delta !== 0 ? (perf.delta > 0 ? '+' : '') + perf.delta + ' 分' : '分数不变'}
+      </div>
+    </div>
+    <div class="event-box">${perf.desc}</div>
+  `, () => {
+    showGaokaoMemorialScene(() => {
+      ex.queryPromptShown = true
+      saveState()
+      showGaokaoScoreQueryIntro(() => showGaokaoScoreQueryForm())
+    })
   })
 }
 
@@ -543,11 +581,20 @@ function showGaokaoScoreQueryIntro(callback) {
 function showGaokaoScoreQueryForm() {
   if (!currentGaokao) return
   const ex = currentGaokao
+  const systemNoticeHtml = ex.querySystemNotice
+    ? `
+      <div class="gaokao-query-notice">
+        <div class="gaokao-query-notice-title">系统提示</div>
+        <div>${escapeHtml(ex.querySystemNotice)}</div>
+      </div>
+    `
+    : ''
 
   showModal(`
     <div class="gaokao-reg-system">
       <div class="gaokao-reg-topbar">山河省普通高校招生考试成绩查询系统</div>
       <div class="gaokao-reg-title">考生成绩查询</div>
+      ${systemNoticeHtml}
 
       <div class="gaokao-reg-field">
         <label class="gaokao-reg-label">姓名</label>
@@ -618,15 +665,13 @@ function submitGaokaoScoreQuery() {
   saveState()
 
   if (ex.queryAttempts === 1) {
-    showModal(`
-      <div class="modal-title">网络波动</div>
-      <div class="event-box" style="margin-bottom:12px;line-height:1.8">
-        当前查询人数过多，无法查询，请稍后再试。
-      </div>
-    `, () => showGaokaoScoreQueryForm())
+    ex.querySystemNotice = '当前查询人数过多，无法查询，请稍后再试。'
+    saveState()
+    showGaokaoScoreQueryForm()
     return
   }
 
+  ex.querySystemNotice = ''
   ex.queryCompleted = true
   saveState()
   document.getElementById('modal-overlay').classList.add('hidden')
@@ -637,12 +682,12 @@ function submitGaokaoScoreQuery() {
 }
 
 function renderGaokaoResult() {
-  document.getElementById('bottom-nav').classList.remove('hidden')
+  syncNavigationLockUI()
   const c    = document.getElementById('content')
   const data = currentGaokao?.finalScore ? currentGaokao : player.gaokaoResult
   if (!data) { c.innerHTML = renderGraduation(); return }
 
-  const { finalScore, rawScore, perfKey } = data
+  const { finalScore, rawScore, perfKey, loverBonus = 0, confidantBonus = 0, mentorBonus = 0 } = data
   const perf = GAOKAO_PERF[perfKey] || GAOKAO_PERF['正常发挥']
   const tier = getUniversityTier(finalScore)
   const avg  = player.examHistory.length
@@ -669,6 +714,9 @@ function renderGaokaoResult() {
       <div class="info-row"><span class="muted">月考平均分</span><span class="info-val">${avg}</span></div>
       <div class="info-row"><span class="muted">高考原始分</span><span class="info-val">${rawScore}</span></div>
       ${hasTag('qiangjiben') ? `<div class="info-row"><span class="muted">🏆 强基计划加分</span><span class="info-val" style="color:#c9952a">+40</span></div>` : ''}
+      ${loverBonus > 0 ? `<div class="info-row"><span class="muted">💞 比翼双飞加成</span><span class="info-val" style="color:#ef6aa8">+10</span></div>` : ''}
+      ${confidantBonus > 0 ? `<div class="info-row"><span class="muted">🤝 同舟共济加成</span><span class="info-val" style="color:#4d9fd4">+10</span></div>` : ''}
+      ${mentorBonus > 0 ? `<div class="info-row"><span class="muted">🎓 良师益友加成</span><span class="info-val" style="color:#c9952a">+10</span></div>` : ''}
     </div>
     <div class="card">
       <button class="btn full-width" onclick="resetGame()">重新开始</button>
@@ -681,6 +729,7 @@ function saveResultCard() {
   const { finalScore, perfKey } = data
   const perf = GAOKAO_PERF[perfKey] || GAOKAO_PERF['正常发挥']
   const tier = getUniversityTier(finalScore)
+  const playerName = ((player.name || '').trim() || '你')
 
   const dpr = Math.min(window.devicePixelRatio || 1, 2)
   const W = 540, H = 800
@@ -691,83 +740,114 @@ function saveResultCard() {
   ctx.scale(dpr, dpr)
 
   const font = (size, weight) => `${weight || '500'} ${size}px "PingFang SC","Microsoft YaHei",sans-serif`
+  const drawCenteredText = (text, y, size, color, weight = '500') => {
+    ctx.fillStyle = color
+    ctx.font = font(size, weight)
+    ctx.fillText(text, W / 2, y)
+  }
+  const drawWrappedText = (text, x, y, maxW, lineH) => {
+    let line = ''
+    for (const ch of text) {
+      const test = line + ch
+      if (ctx.measureText(test).width > maxW) {
+        ctx.fillText(line, x, y)
+        line = ch
+        y += lineH
+      } else line = test
+    }
+    if (line) ctx.fillText(line, x, y)
+  }
 
   // Background
-  ctx.fillStyle = '#f7f4ee'
+  const bg = ctx.createLinearGradient(0, 0, 0, H)
+  bg.addColorStop(0, '#fbf8f2')
+  bg.addColorStop(1, '#f2ece1')
+  ctx.fillStyle = bg
   ctx.fillRect(0, 0, W, H)
-  // Top accent
+
   ctx.fillStyle = '#3d5a4c'
   ctx.fillRect(0, 0, W, 8)
-  // Bottom accent
-  ctx.fillStyle = '#3d5a4c'
   ctx.fillRect(0, H - 8, W, 8)
-
-  ctx.textAlign = 'center'
-
-  // School
-  ctx.fillStyle = '#8a8479'
-  ctx.font = font(13)
-  ctx.fillText('水 衡 高 中', W / 2, 52)
-
-  // Exam title
-  ctx.fillStyle = '#2a2925'
-  ctx.font = font(15, 'bold')
-  ctx.fillText('普通高等学校招生全国统一考试', W / 2, 84)
-
-  // Divider
-  ctx.strokeStyle = '#e2ddd5'; ctx.lineWidth = 1
-  ctx.beginPath(); ctx.moveTo(40, 104); ctx.lineTo(W - 40, 104); ctx.stroke()
-
-  // Score label
-  ctx.fillStyle = '#8a8479'
-  ctx.font = font(13)
-  ctx.fillText('高考成绩', W / 2, 136)
-
-  // Score number
+  ctx.strokeStyle = '#d7cfbf'
+  ctx.lineWidth = 1.4
+  ctx.strokeRect(24, 24, W - 48, H - 48)
+  ctx.strokeRect(36, 36, W - 72, H - 72)
+  ctx.strokeStyle = '#3d5a4c55'
+  ;[
+    [52, 52, 16, 16],
+    [W - 52, 52, -16, 16],
+    [52, H - 52, 16, -16],
+    [W - 52, H - 52, -16, -16],
+  ].forEach(([x, y, dx, dy]) => {
+    ctx.beginPath()
+    ctx.moveTo(x, y + dy)
+    ctx.lineTo(x, y)
+    ctx.lineTo(x + dx, y)
+    ctx.stroke()
+  })
   ctx.fillStyle = '#3d5a4c'
-  ctx.font = font(88, '900')
-  ctx.fillText(finalScore + ' 分', W / 2, 258)
+  ;[W / 2 - 84, W / 2 - 56, W / 2 - 28, W / 2 + 28, W / 2 + 56, W / 2 + 84].forEach(x => {
+    ctx.beginPath()
+    ctx.arc(x, 118, 2, 0, Math.PI * 2)
+    ctx.fill()
+  })
 
-  // Divider
-  ctx.beginPath(); ctx.moveTo(40, 282); ctx.lineTo(W - 40, 282); ctx.stroke()
-
-  // Performance event
-  ctx.fillStyle = perf.color
-  ctx.font = font(20, 'bold')
-  ctx.fillText(perfKey + (perf.delta !== 0 ? `（${perf.delta > 0 ? '+' : ''}${perf.delta}）` : ''), W / 2, 322)
-
-  // University name
-  ctx.fillStyle = '#2a2925'
-  ctx.font = font(34, 'bold')
-  ctx.fillText(tier.school, W / 2, 388)
-
-  // Badge
-  ctx.fillStyle = '#8a8479'
-  ctx.font = font(14)
-  ctx.fillText(tier.badge, W / 2, 416)
-
-  // Divider
-  ctx.strokeStyle = '#e2ddd5'
-  ctx.beginPath(); ctx.moveTo(40, 436); ctx.lineTo(W - 40, 436); ctx.stroke()
-
-  // Description (wrapped)
-  ctx.fillStyle = '#5a5650'
-  ctx.font = font(13)
-  ctx.textAlign = 'left'
-  const maxW = W - 80, lineH = 24
-  let x0 = 40, y = 464, line = ''
-  for (const ch of tier.desc) {
-    const test = line + ch
-    if (ctx.measureText(test).width > maxW) { ctx.fillText(line, x0, y); line = ch; y += lineH }
-    else line = test
-  }
-  if (line) ctx.fillText(line, x0, y)
-
-  // Footer
   ctx.textAlign = 'center'
+
+  drawCenteredText('水 衡 高 中', 60, 16, '#8a8479', '600')
+  drawCenteredText('普通高等学校招生全国统一考试', 90, 17, '#2a2925', 'bold')
+  ctx.strokeStyle = '#e2ddd5'
+  ctx.lineWidth = 1
+  ctx.beginPath()
+  ctx.moveTo(54, 136)
+  ctx.lineTo(W - 54, 136)
+  ctx.stroke()
+  drawCenteredText(`${playerName}的高考成绩`, 178, 28, '#2a2925', '900')
+  drawCenteredText('GAOKAO SCORE REPORT', 208, 13, '#9a9488', '600')
+
+  ctx.fillStyle = '#3d5a4c'
+  ctx.font = font(100, '900')
+  ctx.fillText(finalScore + ' 分', W / 2, 304)
+
+  ctx.beginPath()
+  ctx.moveTo(54, 334)
+  ctx.lineTo(W - 54, 334)
+  ctx.stroke()
+
+  ctx.fillStyle = perf.color
+  ctx.font = font(24, 'bold')
+  ctx.fillText(perfKey + (perf.delta !== 0 ? `（${perf.delta > 0 ? '+' : ''}${perf.delta}）` : ''), W / 2, 382)
+
+  ctx.fillStyle = '#2a2925'
+  ctx.font = font(44, '900')
+  ctx.fillText(`🎓 ${tier.school} 🎓`, W / 2, 456)
+
+  drawCenteredText(tier.badge, 490, 16, '#8a8479', '600')
+  ctx.beginPath()
+  ctx.moveTo(54, 518)
+  ctx.lineTo(W - 54, 518)
+  ctx.stroke()
+  ctx.fillStyle = '#5a5650'
+  ctx.font = font(16)
+  ctx.textAlign = 'left'
+  drawWrappedText(tier.desc, 56, 560, W - 112, 30)
+
+  ctx.textAlign = 'center'
+  ctx.strokeStyle = '#d7cfbf'
+  ctx.beginPath()
+  ctx.moveTo(116, 690)
+  ctx.lineTo(220, 690)
+  ctx.stroke()
+  ctx.beginPath()
+  ctx.moveTo(W - 116, 690)
+  ctx.lineTo(W - 220, 690)
+  ctx.stroke()
+  drawCenteredText('✦', 695, 16, '#b8b3aa', '700')
   ctx.fillStyle = '#b8b3aa'
-  ctx.font = font(11)
-  ctx.fillText('水衡高中模拟器', W / 2, H - 22)
+  ctx.font = font(13, '600')
+  ctx.fillText('水衡高中模拟器', W / 2, H - 54)
+  ctx.font = font(12, '500')
+  ctx.fillText('start.sh-simulatior.fun', W / 2, H - 32)
 
   cv.toBlob(blob => {
     const url = URL.createObjectURL(blob)
@@ -783,7 +863,7 @@ function saveResultCard() {
 
 function renderBaosongEnding() {
   scrollToTop()
-  document.getElementById('bottom-nav').classList.remove('hidden')
+  syncNavigationLockUI()
   const c = document.getElementById('content')
   const school = Math.random() < 0.5 ? '清北大学' : '麻绳理工'
   player.baosongSchool = player.baosongSchool || school
@@ -816,6 +896,7 @@ function renderBaosongEnding() {
 
 function saveBaosongCard() {
   const school = player.baosongSchool || '清华大学'
+  const playerName = ((player.name || '').trim() || '你')
   const dpr = Math.min(window.devicePixelRatio || 1, 2)
   const W = 540, H = 800
   const cv = document.createElement('canvas')
@@ -825,66 +906,97 @@ function saveBaosongCard() {
   ctx.scale(dpr, dpr)
 
   const font = (size, weight) => `${weight || '500'} ${size}px "PingFang SC","Microsoft YaHei",sans-serif`
+  const drawCenteredText = (text, y, size, color, weight = '500') => {
+    ctx.fillStyle = color
+    ctx.font = font(size, weight)
+    ctx.fillText(text, W / 2, y)
+  }
+  const drawWrappedText = (text, x, y, maxW, lineH) => {
+    let line = ''
+    for (const ch of text) {
+      const test = line + ch
+      if (ctx.measureText(test).width > maxW) {
+        ctx.fillText(line, x, y)
+        line = ch
+        y += lineH
+      } else line = test
+    }
+    if (line) ctx.fillText(line, x, y)
+  }
 
-  // Gold gradient background
   const bg = ctx.createLinearGradient(0, 0, 0, H)
-  bg.addColorStop(0, '#fef9e7')
-  bg.addColorStop(1, '#fef0c7')
+  bg.addColorStop(0, '#fff9ea')
+  bg.addColorStop(1, '#f8e8b4')
   ctx.fillStyle = bg
   ctx.fillRect(0, 0, W, H)
 
-  // Gold top/bottom accents
   ctx.fillStyle = '#c9952a'
   ctx.fillRect(0, 0, W, 8)
   ctx.fillRect(0, H - 8, W, 8)
 
-  // Decorative side lines
   ctx.strokeStyle = '#c9952a44'
   ctx.lineWidth = 1
-  ctx.beginPath(); ctx.moveTo(20, 20); ctx.lineTo(20, H - 20); ctx.stroke()
-  ctx.beginPath(); ctx.moveTo(W - 20, 20); ctx.lineTo(W - 20, H - 20); ctx.stroke()
+  ctx.beginPath()
+  ctx.moveTo(20, 20)
+  ctx.lineTo(20, H - 20)
+  ctx.stroke()
+  ctx.beginPath()
+  ctx.moveTo(W - 20, 20)
+  ctx.lineTo(W - 20, H - 20)
+  ctx.stroke()
+  ctx.strokeStyle = '#e2c46d'
+  ctx.strokeRect(34, 34, W - 68, H - 68)
+  ctx.strokeRect(48, 48, W - 96, H - 96)
+  ctx.strokeStyle = '#c9952a55'
+  ;[
+    [62, 62, 16, 16],
+    [W - 62, 62, -16, 16],
+    [62, H - 62, 16, -16],
+    [W - 62, H - 62, -16, -16],
+  ].forEach(([x, y, dx, dy]) => {
+    ctx.beginPath()
+    ctx.moveTo(x, y + dy)
+    ctx.lineTo(x, y)
+    ctx.lineTo(x + dx, y)
+    ctx.stroke()
+  })
+  ctx.fillStyle = '#c9952a'
+  ;[[72, 72], [W - 72, 72], [72, H - 72], [W - 72, H - 72]].forEach(([x, y]) => {
+    ctx.beginPath()
+    ctx.arc(x, y, 3, 0, Math.PI * 2)
+    ctx.fill()
+  })
 
   ctx.textAlign = 'center'
 
-  // Hidden ending label
-  ctx.fillStyle = '#c9952a'
-  ctx.font = font(12)
-  ctx.fillText('✨  隐 藏 结 局 解 锁  ✨', W / 2, 52)
-
-  // Title
-  ctx.fillStyle = '#8b6000'
-  ctx.font = font(38, '900')
-  ctx.fillText('惊 天 奇 才', W / 2, 118)
-
-  // Divider
+  drawCenteredText('✨  隐 藏 结 局 解 锁  ✨', 56, 13, '#c9952a', '700')
+  drawCenteredText('惊 天 奇 才', 114, 42, '#8b6000', '900')
+  drawCenteredText(`${playerName}的高考成绩`, 152, 24, '#7a5608', '800')
   ctx.strokeStyle = '#c9952a66'
   ctx.lineWidth = 1
-  ctx.beginPath(); ctx.moveTo(80, 140); ctx.lineTo(W - 80, 140); ctx.stroke()
+  ctx.beginPath()
+  ctx.moveTo(80, 176)
+  ctx.lineTo(W - 80, 176)
+  ctx.stroke()
 
-  // School name
   ctx.fillStyle = '#5a3a00'
-  ctx.font = font(48, '900')
-  ctx.fillText(school, W / 2, 228)
+  ctx.font = font(50, '900')
+  ctx.fillText(`🏛️ ${school} 🏛️`, W / 2, 258)
 
-  // Badge
-  ctx.fillStyle = '#c9952a'
-  ctx.font = font(14)
-  ctx.fillText('全国奥林匹克竞赛满分得主', W / 2, 268)
-
-  // Divider
+  drawCenteredText('全国奥林匹克竞赛满分得主', 300, 16, '#c9952a', '700')
   ctx.strokeStyle = '#c9952a44'
-  ctx.beginPath(); ctx.moveTo(60, 294); ctx.lineTo(W - 60, 294); ctx.stroke()
+  ctx.beginPath()
+  ctx.moveTo(60, 328)
+  ctx.lineTo(W - 60, 328)
+  ctx.stroke()
+  ctx.font = font(76)
+  ctx.fillText('🏆', W / 2, 420)
+  ctx.beginPath()
+  ctx.moveTo(60, 452)
+  ctx.lineTo(W - 60, 452)
+  ctx.stroke()
 
-  // Trophy emoji area
-  ctx.font = font(72)
-  ctx.fillText('🏆', W / 2, 390)
-
-  // Stats divider
-  ctx.strokeStyle = '#c9952a44'
-  ctx.beginPath(); ctx.moveTo(60, 420); ctx.lineTo(W - 60, 420); ctx.stroke()
-
-  // Stats
-  ctx.font = font(13)
+  ctx.font = font(16)
   ctx.textAlign = 'left'
   const stats = [
     ['触发时间', '高二 · 5月'],
@@ -892,7 +1004,7 @@ function saveBaosongCard() {
     ['心理健康', String(player.mental)],
     ['身体健康', String(player.health)],
   ]
-  let sy = 456
+  let sy = 496
   stats.forEach(([label, val]) => {
     ctx.fillStyle = '#a07820'
     ctx.fillText(label, 60, sy)
@@ -900,20 +1012,21 @@ function saveBaosongCard() {
     ctx.textAlign = 'right'
     ctx.fillText(val, W - 60, sy)
     ctx.textAlign = 'left'
-    sy += 32
+    sy += 38
   })
 
-  // Desc
   ctx.fillStyle = '#a07820'
-  ctx.font = font(12)
-  ctx.textAlign = 'center'
+  ctx.font = font(14)
+  ctx.textAlign = 'left'
   const desc = '以无可争辩的实力震惊全场，高中旅程以最耀眼的方式画上句号'
-  ctx.fillText(desc, W / 2, sy + 20)
+  drawWrappedText(desc, 60, sy + 24, W - 120, 28)
 
-  // Footer
+  ctx.textAlign = 'center'
   ctx.fillStyle = '#c9b06a'
-  ctx.font = font(11)
-  ctx.fillText('水衡高中模拟器', W / 2, H - 22)
+  ctx.font = font(13, '600')
+  ctx.fillText('水衡高中模拟器', W / 2, H - 54)
+  ctx.font = font(12, '500')
+  ctx.fillText('start.sh-simulatior.fun', W / 2, H - 32)
 
   cv.toBlob(blob => {
     const url = URL.createObjectURL(blob)

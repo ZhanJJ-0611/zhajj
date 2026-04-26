@@ -40,7 +40,7 @@ function showStudyEventPopup(callback) {
 function showMonthlyEventPopups(callback) {
   player.eventShown = true
   saveState()
-  showStudyEventPopup(() => {
+  const continueWithNormalFlow = () => showStudyEventPopup(() => {
     const ev = player.currentEvent
     const afterEvents = () => {
       if (player.month === 13 && canTriggerOlympiadEvent()) {
@@ -65,6 +65,25 @@ function showMonthlyEventPopups(callback) {
       }
     })
   })
+
+  if (player.pendingScumbagPunishment) {
+    player.loverInteractionThisRound = false
+    player.loverInteractionStreak = 0
+    player.pendingLoverScandal = false
+    player.loverNeglectStreak = 0
+    player.pendingLoverNeglect = false
+    showScumbagPunishmentEvent(continueWithNormalFlow)
+    return
+  }
+  if (player.pendingLoverScandal) {
+    showLoverScandalEvent(continueWithNormalFlow)
+    return
+  }
+  if (player.pendingLoverNeglect) {
+    showLoverNeglectEvent(continueWithNormalFlow)
+    return
+  }
+  continueWithNormalFlow()
 }
 
 function getLastExamScore() {
@@ -105,6 +124,263 @@ function showRandomEventPopup(callback) {
     <div class="event-box" style="margin-bottom:10px">${ev.text}</div>
     <div class="effect-tags">${effectTagsHtml}</div>
   `, callback)
+}
+
+function showScumbagPunishmentEvent(callback) {
+  const formerLovers = getLoverClassmates()
+  const formerNames = formerLovers
+    .map(rel => CLASSMATE_POOL.find(c => c.id === rel.id)?.name)
+    .filter(Boolean)
+
+  relations.classmates.forEach(rel => {
+    const wasLover = rel.lover
+    rel.affinity = 20
+    rel.bonded = false
+    rel.lover = false
+    rel.romanceEventDone = false
+    rel.romanceDeclined = false
+    if (wasLover) rel.interactionBlocked = true
+  })
+
+  player.pendingScumbagPunishment = false
+  saveState()
+
+  const blockedNamesHtml = formerNames.length
+    ? `
+      <div class="event-box" style="margin-top:10px;margin-bottom:10px">
+        被你伤透心、从此不再理你的对象：${formerNames.join('、')}
+      </div>
+    `
+    : ''
+
+  showModal(`
+    <div class="modal-title">渣人有恶报</div>
+    <div class="event-box" style="margin-bottom:10px;line-height:1.8">
+      你脚踏多条船的事终于彻底败露。<br>
+      操场、走廊、班群、小卖部，八卦像长了腿一样瞬间传遍全年级。<br>
+      昨天还在和你说悄悄话的人，今天已经统一把你列入“避雷名单”。
+    </div>
+    ${blockedNamesHtml}
+    <hr class="modal-divider">
+    <div class="modal-row"><span>所有同学好感度</span><span class="chg-neg">统一变为 20</span></div>
+    <div class="modal-row"><span>恋人关系</span><span class="chg-neg">全部清空</span></div>
+    <div class="modal-row"><span>前任互动权限</span><span class="chg-neg">永久关闭</span></div>
+  `, callback)
+}
+
+function updateLoverInteractionStreakOnMonthStart() {
+  if (player.pendingScumbagPunishment) {
+    player.loverInteractionThisRound = false
+    player.loverInteractionStreak = 0
+    player.pendingLoverScandal = false
+    player.loverNeglectStreak = 0
+    player.pendingLoverNeglect = false
+    return
+  }
+
+  const hadLoverInteraction = !!player.loverInteractionThisRound
+  const hasCurrentLover = hasLoverClassmate()
+
+  if (hadLoverInteraction && hasCurrentLover) {
+    player.loverInteractionStreak = (player.loverInteractionStreak || 0) + 1
+    player.loverNeglectStreak = 0
+    if (player.loverInteractionStreak >= 3) {
+      player.pendingLoverScandal = true
+      player.loverScandalCount = (player.loverScandalCount || 0) + 1
+      player.loverInteractionStreak = 0
+    }
+  } else if (!hadLoverInteraction && hasCurrentLover) {
+    player.loverInteractionStreak = 0
+    player.loverNeglectStreak = (player.loverNeglectStreak || 0) + 1
+    if (player.loverNeglectStreak >= 3) {
+      player.pendingLoverNeglect = true
+      player.loverNeglectCount = (player.loverNeglectCount || 0) + 1
+      player.loverNeglectStreak = 0
+    }
+  } else {
+    player.loverInteractionStreak = 0
+    player.loverNeglectStreak = 0
+  }
+
+  player.loverInteractionThisRound = false
+}
+
+function markClassmateAsEx(rel) {
+  if (!rel) return
+  rel.lover = false
+  rel.exLover = true
+  rel.bonded = false
+  rel.affinity = 20
+  rel.romanceDeclined = false
+}
+
+function expelPlayerForEarlyRomance(title, desc) {
+  player.pendingLoverScandal = false
+  player.loverInteractionThisRound = false
+  player.loverInteractionStreak = 0
+  player.loverNeglectStreak = 0
+  player.pendingLoverNeglect = false
+  player.monthStarted = false
+  player.month = TOTAL_MONTHS + 1
+  saveState()
+  showGameOverModal(title, desc)
+}
+
+function showLoverScandalEvent(callback) {
+  const loverNames = getLoverClassmates()
+    .map(rel => CLASSMATE_POOL.find(c => c.id === rel.id)?.name)
+    .filter(Boolean)
+  const loverText = loverNames.length
+    ? `班主任把你和${loverNames.join('、')}最近的互动看得一清二楚。`
+    : '班主任已经察觉到你最近和某位同学的关系不太对劲。'
+
+  player.pendingLoverScandal = false
+  saveState()
+
+  if ((player.loverScandalCount || 0) >= 2) {
+    showModal(`
+      <div class="modal-title">东窗事发</div>
+      <div class="event-box" style="margin-bottom:12px;line-height:1.8">
+        ${loverText}<br>
+        上次谈话后的警告显然没有起作用。<br>
+        班主任这次没有再留情面，直接把早恋情况上报学校。<br>
+        很快，处分决定就下来了。
+      </div>
+    `, () => expelPlayerForEarlyRomance(
+      '开除退学',
+      '你在被明确警告后再次因早恋被抓，学校最终作出开除退学处理。你的高中生活就此戛然而止。'
+    ))
+    return
+  }
+
+  window._loverScandalFight = () => {
+    _modalCb = null
+    document.getElementById('modal-overlay').classList.add('hidden')
+    document.getElementById('modal-ok').style.display = ''
+    expelPlayerForEarlyRomance(
+      '开除退学',
+      '面对班主任的谈话，你选择了高调抗争。学校认定你态度恶劣，最终作出开除退学处理。'
+    )
+  }
+
+  window._loverScandalEvade = () => {
+    _modalCb = null
+    document.getElementById('modal-overlay').classList.add('hidden')
+    document.getElementById('modal-ok').style.display = ''
+    showModal(`
+      <div class="modal-title">老师忠告</div>
+      <div class="event-box" style="margin-bottom:12px;line-height:1.8">
+        你低下头，含糊地把这次谈话应付了过去。<br>
+        班主任盯着你看了很久，最后只留下一句：<br>
+        “这次我当你年轻不懂事，但如果再让我发现一次，处分绝不会只是谈话。”<br>
+        你勉强点头，把这次风波先混了过去。
+      </div>
+    `, callback)
+  }
+
+  showModal(`
+    <div class="modal-title">东窗事发</div>
+    <div class="event-box" style="margin-bottom:14px;line-height:1.8">
+      ${loverText}<br>
+      连续几个月的异常互动终于引起了班主任的注意。<br>
+      这天下午，你被单独叫到了办公室。老师语气严肃，明确指出你正在早恋，并要求你立刻表态。
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn full-width" onclick="_loverScandalFight()">高调抗争</button>
+      <button class="btn btn-primary full-width" onclick="_loverScandalEvade()">含糊应付</button>
+    </div>
+  `, null, true, true)
+}
+
+function showLoverNeglectEvent(callback) {
+  const loverRel = getLoverClassmates()[0] || null
+  const loverName = loverRel ? (CLASSMATE_POOL.find(c => c.id === loverRel.id)?.name || '恋人') : '恋人'
+
+  player.pendingLoverNeglect = false
+  player.loverInteractionThisRound = false
+  player.loverInteractionStreak = 0
+  player.loverNeglectStreak = 0
+  saveState()
+
+  if (!loverRel) {
+    callback()
+    return
+  }
+
+  if ((player.loverNeglectCount || 0) >= 2) {
+    markClassmateAsEx(loverRel)
+    saveState()
+    showModal(`
+      <div class="modal-title">喜新厌旧</div>
+      <div class="event-box" style="margin-bottom:12px;line-height:1.8">
+        你已经连续很久没有主动去见 ${loverName}。<br>
+        上次挽回后的承诺也没能兑现。<br>
+        这一次，对方没有再给你解释的机会，只是很平静地说：<br>
+        “到这里吧，我不想再一个人等了。” 
+      </div>
+      <hr class="modal-divider">
+      <div class="modal-row"><span>${loverName} 的关系状态</span><span class="chg-neg">变为前任</span></div>
+      <div class="modal-row"><span>${loverName} 好感度</span><span class="chg-neg">变为 20</span></div>
+    `, callback)
+    return
+  }
+
+  const canRecover = (player.money ?? 0) >= 300
+
+  window._loverRecover = () => {
+    if ((player.money ?? 0) < 300) return
+    _modalCb = null
+    document.getElementById('modal-overlay').classList.add('hidden')
+    document.getElementById('modal-ok').style.display = ''
+    player.money = Math.max(0, (player.money ?? 0) - 300)
+    saveState()
+    showModal(`
+      <div class="modal-title">挽回成功</div>
+      <div class="event-box" style="margin-bottom:12px;line-height:1.8">
+        你花了不少心思和零花钱去补偿 ${loverName}，总算把这段关系勉强拉了回来。<br>
+        对方虽然没有继续追问，但也认真提醒了你：<br>
+        “如果真的在乎，就多陪陪我，别总让我一个人猜。” 
+      </div>
+      <hr class="modal-divider">
+      <div class="modal-row"><span>零花钱</span><span class="chg-neg">-300</span></div>
+    `, callback)
+  }
+
+  window._loverBreakup = () => {
+    _modalCb = null
+    document.getElementById('modal-overlay').classList.add('hidden')
+    document.getElementById('modal-ok').style.display = ''
+    applyChanges({ mental: -30, health: -15 })
+    markClassmateAsEx(loverRel)
+    saveState()
+    showModal(`
+      <div class="modal-title">残忍分手</div>
+      <div class="event-box" style="margin-bottom:12px;line-height:1.8">
+        你没有再继续挽留，只是任由这段关系在沉默里断掉。<br>
+        ${loverName} 看着你，很久都没有再说话，最后只留下一句：<br>
+        “原来我真的没那么重要。” 
+      </div>
+      <hr class="modal-divider">
+      <div class="modal-row"><span>心理健康</span><span class="chg-neg">-30</span></div>
+      <div class="modal-row"><span>身体健康</span><span class="chg-neg">-15</span></div>
+      <div class="modal-row"><span>${loverName} 的关系状态</span><span class="chg-neg">变为前任</span></div>
+      <div class="modal-row"><span>${loverName} 好感度</span><span class="chg-neg">变为 20</span></div>
+    `, callback)
+  }
+
+  showModal(`
+    <div class="modal-title">喜新厌旧</div>
+    <div class="event-box" style="margin-bottom:14px;line-height:1.8">
+      你已经连续三个回合没有主动和 ${loverName} 互动了。<br>
+      对方终于忍不住找上你，语气失望得发沉：<br>
+      “你是不是根本没那么在乎我？如果一直都是我在等，那这段关系还有什么意义？”<br>
+      话说到这里，分手几乎只差你一句回应。
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn full-width ${canRecover ? '' : 'btn-disabled'}" onclick="_loverRecover()" ${canRecover ? '' : 'disabled'}>诚意挽回（300零花钱）</button>
+      <button class="btn btn-primary full-width" onclick="_loverBreakup()">残忍分手</button>
+    </div>
+  `, null, true, true)
 }
 
 function showChoiceEventPopup(callback) {
@@ -223,13 +499,26 @@ function applyAffinityEffect(ae) {
   const all = [...relations.teachers, ...relations.classmates]
   if (ae.id) {
     const p = all.find(x => x.id === ae.id)
-    if (p) p.affinity = clamp(p.affinity + ae.delta)
+    if (p) {
+      if (relations.classmates.includes(p)) {
+        addClassmateAffinity(p, ae.delta)
+        unlockClassmateBond(p)
+      }
+      else p.affinity = clamp(p.affinity + ae.delta)
+    }
   } else if (ae.group === 'teachers') {
     relations.teachers.forEach(p => { p.affinity = clamp(p.affinity + ae.delta) })
   } else if (ae.group === 'classmates') {
-    relations.classmates.forEach(p => { p.affinity = clamp(p.affinity + ae.delta) })
+    relations.classmates.forEach(p => {
+      addClassmateAffinity(p, ae.delta)
+      unlockClassmateBond(p)
+    })
   } else if (ae.group === 'all') {
-    all.forEach(p => { p.affinity = clamp(p.affinity + ae.delta) })
+    relations.teachers.forEach(p => { p.affinity = clamp(p.affinity + ae.delta) })
+    relations.classmates.forEach(p => {
+      addClassmateAffinity(p, ae.delta)
+      unlockClassmateBond(p)
+    })
   }
   saveState()
 }
@@ -365,6 +654,7 @@ function pickChoiceEvent() {
 }
 
 function autoStartMonth() {
+  updateLoverInteractionStreakOnMonthStart()
   if (!player.currentEvent) {
     player.currentEvent = pickMonthlyEvent()
   }

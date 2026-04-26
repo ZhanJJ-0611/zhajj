@@ -10,12 +10,24 @@ function setActiveNav(page) {
   )
 }
 
+function isNavigationLocked() {
+  return !!currentGaokao || !!player.gaokaoResult || !!player.baosong || !!player.weireai
+}
+
+function syncNavigationLockUI() {
+  const nav = document.getElementById('bottom-nav')
+  if (!nav) return
+  nav.classList.toggle('hidden', isNavigationLocked())
+}
+
 function renderPage(page) {
+  if (isNavigationLocked()) page = 'home'
   currentPage = page
   setActiveNav(page)
   const pages = { home: renderHome, social: renderSocial, study: renderStudy, fun: renderFun }
   document.getElementById('content').innerHTML = ''
   scrollToTop()
+  syncNavigationLockUI()
   pages[page]?.()
 }
 
@@ -40,7 +52,7 @@ function resumeCurrentView() {
 
 function switchPage(page) {
   if (!document.getElementById('modal-overlay').classList.contains('hidden')) return
-  if (_placementActive || currentQuiz || (currentExam && !currentExam.submitted) || (currentGaokao && !currentGaokao.submitted) || (currentOlympiad && !currentOlympiad.submitted) || (currentEsportsExam && !currentEsportsExam.submitted)) return
+  if (_placementActive || currentQuiz || (currentExam && !currentExam.submitted) || (currentGaokao && !currentGaokao.submitted) || (currentOlympiad && !currentOlympiad.submitted) || (currentEsportsExam && !currentEsportsExam.submitted) || isNavigationLocked()) return
   renderPage(page)
   saveState()
 }
@@ -209,6 +221,7 @@ function buildScoreChart(history) {
 
 function renderHome() {
   scrollToTop()
+  syncNavigationLockUI()
   const c = document.getElementById('content')
   const done = player.month > TOTAL_MONTHS
 
@@ -221,7 +234,14 @@ function renderHome() {
       renderGaokaoResult(); return
     }
     if (player.gaokaoResult) { renderGaokaoResult(); return }
-    if (player.selectedSubjects) { startGaokao(); return }
+    if (player.selectedSubjects) {
+      if (!player.gaokaoExamPromptShown) {
+        showGaokaoExamIntro(() => startGaokao())
+      } else {
+        startGaokao()
+      }
+      return
+    }
     c.innerHTML = renderGraduation()
     return
   }
@@ -338,6 +358,7 @@ function endMonth() {
   if (!player.monthStarted || player.month > TOTAL_MONTHS) return
 
   const currentMonth = player.month
+  const loverCount = getLoverClassmates().length
   const score  = calcExamScore()
   const lgain  = clamp(Math.ceil(player.effort * 0.06 + player.learning * 0.04 + Math.random() * 4) - 2)
   const effortBonus = player.effort > 80 ? 10 : 0
@@ -351,6 +372,9 @@ function endMonth() {
 
   player.examHistory.push({ month: currentMonth, score })
   applyChanges(changes)
+  if (loverCount >= 2 && currentMonth < TOTAL_MONTHS) {
+    player.pendingScumbagPunishment = true
+  }
 
   player.month++
   player.monthStarted = false
@@ -396,7 +420,10 @@ function endMonth() {
     <hr class="modal-divider">
     ${chgRows}
   `, () => {
-    if (isGameOver) { startGaokao(); return }
+    if (isGameOver) {
+      showGaokaoExamIntro(() => startGaokao())
+      return
+    }
     const continueMainFlow = () => {
       if (currentMonth === 15 && !player.gaokaoRegistrationDone) {
         showGaokaoRegistrationIntro(() => showMonthlyEventPopups(renderHome))
@@ -417,7 +444,7 @@ function endMonth() {
 function calcExamScore() {
   const base = player.learning * 5.25 + player.mental * 1.125 + player.health * 1.125
   const noise = (Math.random() * 80) - 40
-  return Math.min(750, Math.max(0, Math.round(base + noise)))
+  return Math.min(680, Math.max(200, Math.round(base + noise)))
 }
 
 function resetGame() {
@@ -440,6 +467,7 @@ function doResetGame() {
   _tagRerollUsed = false
   clearRuntimeState()
   saveState()
+  document.getElementById('bottom-nav').classList.remove('hidden')
   renderStatusBar()
   renderEnergyBar()
   showTitleScreen()

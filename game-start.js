@@ -119,7 +119,7 @@ function initActiveTeachers() {
   const shuffled = [...TEACHER_POOL].sort(() => Math.random() - 0.5)
   const picked = shuffled.slice(0, 4)
   player.activeTeachers = picked.map(t => t.id)
-  relations.teachers = picked.map(t => ({ id: t.id, affinity: t.defaultAffinity, bonded: false }))
+  relations.teachers = picked.map(t => ({ id: t.id, affinity: t.defaultAffinity, bonded: false, hostilityEventDone: false }))
   saveState()
 }
 
@@ -148,7 +148,7 @@ function filterTeachersForSubjects() {
     const needed = 4 - relations.teachers.length
     candidates.slice(0, needed).forEach(t => {
       player.activeTeachers.push(t.id)
-      relations.teachers.push({ id: t.id, affinity: t.defaultAffinity, bonded: false })
+      relations.teachers.push({ id: t.id, affinity: t.defaultAffinity, bonded: false, hostilityEventDone: false })
     })
   }
 
@@ -160,7 +160,16 @@ function initActiveClassmates() {
   const shuffled = [...CLASSMATE_POOL].sort(() => Math.random() - 0.5)
   const picked = shuffled.slice(0, 4)
   player.activeClassmates = picked.map(c => c.id)
-  relations.classmates = picked.map(c => ({ id: c.id, affinity: c.defaultAffinity, bonded: false }))
+  relations.classmates = picked.map(c => ({
+    id: c.id,
+    affinity: c.defaultAffinity,
+    bonded: false,
+    lover: false,
+    exLover: false,
+    romanceEventDone: false,
+    romanceDeclined: false,
+    interactionBlocked: false,
+  }))
   saveState()
 }
 

@@ -16,16 +16,39 @@ function loadState() {
     const sr = localStorage.getItem('hs_relations')
     if (sr) {
       const loaded = JSON.parse(sr)
-      const reconstructRel = (pool, activeIds, saved) => {
+      const reconstructRel = (pool, activeIds, saved, extraBuilder = () => ({})) => {
         const defs = activeIds.map(id => pool.find(t => t.id === id)).filter(Boolean)
         return defs.map(def => {
           const sv = saved.find(t => t.id === def.id)
-          return { id: def.id, affinity: sv?.affinity ?? def.defaultAffinity, bonded: sv?.bonded ?? false }
+          return {
+            id: def.id,
+            affinity: sv?.affinity ?? def.defaultAffinity,
+            bonded: sv?.bonded ?? false,
+            ...extraBuilder(sv),
+          }
         })
       }
       relations = {
-        teachers: reconstructRel(TEACHER_POOL, player.activeTeachers || [], loaded.teachers || []),
-        classmates: reconstructRel(CLASSMATE_POOL, player.activeClassmates || [], loaded.classmates || []),
+        teachers: reconstructRel(
+          TEACHER_POOL,
+          player.activeTeachers || [],
+          loaded.teachers || [],
+          sv => ({
+            hostilityEventDone: sv?.hostilityEventDone ?? false,
+          })
+        ),
+        classmates: reconstructRel(
+          CLASSMATE_POOL,
+          player.activeClassmates || [],
+          loaded.classmates || [],
+          sv => ({
+            lover: sv?.lover ?? false,
+            exLover: sv?.exLover ?? false,
+            romanceEventDone: sv?.romanceEventDone ?? false,
+            romanceDeclined: sv?.romanceDeclined ?? false,
+            interactionBlocked: sv?.interactionBlocked ?? false,
+          })
+        ),
       }
     } else {
       relations = deepClone(DEFAULT_RELATIONS)

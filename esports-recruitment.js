@@ -203,6 +203,7 @@ function startEsportsPracticeTest(project, callback) {
 
 function renderWeireaiEnding() {
   scrollToTop()
+  syncNavigationLockUI()
   const project = player.esportsProject || '电竞'
   const c = document.getElementById('content')
   c.innerHTML = `
@@ -227,6 +228,7 @@ function renderWeireaiEnding() {
 
 function saveWeireaiCard() {
   const project = player.esportsProject || '电竞'
+  const playerName = ((player.name || '').trim() || '你')
   const dpr = Math.min(window.devicePixelRatio || 1, 2)
   const W = 540, H = 800
   const cv = document.createElement('canvas')
@@ -236,10 +238,27 @@ function saveWeireaiCard() {
   ctx.scale(dpr, dpr)
 
   const font = (size, weight) => `${weight || '500'} ${size}px "PingFang SC","Microsoft YaHei",sans-serif`
+  const drawCenteredText = (text, y, size, color, weight = '500') => {
+    ctx.fillStyle = color
+    ctx.font = font(size, weight)
+    ctx.fillText(text, W / 2, y)
+  }
+  const drawWrappedText = (text, x, y, maxW, lineH) => {
+    let line = ''
+    for (const ch of text) {
+      const test = line + ch
+      if (ctx.measureText(test).width > maxW) {
+        ctx.fillText(line, x, y)
+        line = ch
+        y += lineH
+      } else line = test
+    }
+    if (line) ctx.fillText(line, x, y)
+  }
 
   const bg = ctx.createLinearGradient(0, 0, 0, H)
-  bg.addColorStop(0, '#fef9e7')
-  bg.addColorStop(1, '#fef0c7')
+  bg.addColorStop(0, '#fff9ea')
+  bg.addColorStop(1, '#f8e8b4')
   ctx.fillStyle = bg
   ctx.fillRect(0, 0, W, H)
 
@@ -251,39 +270,56 @@ function saveWeireaiCard() {
   ctx.lineWidth = 1
   ctx.beginPath(); ctx.moveTo(20, 20); ctx.lineTo(20, H - 20); ctx.stroke()
   ctx.beginPath(); ctx.moveTo(W - 20, 20); ctx.lineTo(W - 20, H - 20); ctx.stroke()
+  ctx.strokeStyle = '#e2c46d'
+  ctx.strokeRect(34, 34, W - 68, H - 68)
+  ctx.strokeRect(48, 48, W - 96, H - 96)
+  ctx.strokeStyle = '#c9952a55'
+  ;[
+    [62, 62, 16, 16],
+    [W - 62, 62, -16, 16],
+    [62, H - 62, 16, -16],
+    [W - 62, H - 62, -16, -16],
+  ].forEach(([x, y, dx, dy]) => {
+    ctx.beginPath()
+    ctx.moveTo(x, y + dy)
+    ctx.lineTo(x, y)
+    ctx.lineTo(x + dx, y)
+    ctx.stroke()
+  })
+  ctx.fillStyle = '#c9952a'
+  ;[[72, 72], [W - 72, 72], [72, H - 72], [W - 72, H - 72]].forEach(([x, y]) => {
+    ctx.beginPath()
+    ctx.arc(x, y, 3, 0, Math.PI * 2)
+    ctx.fill()
+  })
 
   ctx.textAlign = 'center'
 
-  ctx.fillStyle = '#c9952a'
-  ctx.font = font(12)
-  ctx.fillText('✨  隐 藏 结 局 解 锁  ✨', W / 2, 52)
+  drawCenteredText('✨  隐 藏 结 局 解 锁  ✨', 56, 13, '#c9952a', '700')
 
-  ctx.fillStyle = '#8b6000'
-  ctx.font = font(36, '900')
-  ctx.fillText('为 热 爱 正 名', W / 2, 116)
+  drawCenteredText('为 热 爱 正 名', 114, 40, '#8b6000', '900')
+  drawCenteredText(`${playerName}的录取结果`, 152, 24, '#7a5608', '800')
 
   ctx.strokeStyle = '#c9952a66'
   ctx.lineWidth = 1
-  ctx.beginPath(); ctx.moveTo(80, 138); ctx.lineTo(W - 80, 138); ctx.stroke()
+  ctx.beginPath(); ctx.moveTo(80, 176); ctx.lineTo(W - 80, 176); ctx.stroke()
 
   ctx.fillStyle = '#5a3a00'
-  ctx.font = font(42, '900')
-  ctx.fillText(project, W / 2, 220)
+  ctx.font = font(48, '900')
+  ctx.fillText(`🎮 ${project} 🎮`, W / 2, 258)
 
-  ctx.fillStyle = '#c9952a'
-  ctx.font = font(13)
-  ctx.fillText('GNR电竞俱乐部 · 招募通过', W / 2, 258)
+  drawCenteredText('GNR电竞俱乐部 · 招募通过', 300, 16, '#c9952a', '700')
 
   ctx.strokeStyle = '#c9952a44'
-  ctx.beginPath(); ctx.moveTo(60, 284); ctx.lineTo(W - 60, 284); ctx.stroke()
+  ctx.beginPath(); ctx.moveTo(60, 328); ctx.lineTo(W - 60, 328); ctx.stroke()
 
-  ctx.font = font(68)
-  ctx.fillText('🏆', W / 2, 378)
+  ctx.font = font(76)
+  ctx.fillText('🏆', W / 2, 420)
 
   ctx.strokeStyle = '#c9952a44'
-  ctx.beginPath(); ctx.moveTo(60, 408); ctx.lineTo(W - 60, 408); ctx.stroke()
+  ctx.beginPath(); ctx.moveTo(60, 452); ctx.lineTo(W - 60, 452); ctx.stroke()
 
-  ctx.font = font(13)
+  ctx.font = font(16)
   ctx.textAlign = 'left'
   const stats = [
     ['触发时间', '高二 · 5月'],
@@ -291,7 +327,7 @@ function saveWeireaiCard() {
     ['心理健康', String(player.mental)],
     ['身体健康', String(player.health)],
   ]
-  let sy = 444
+  let sy = 496
   stats.forEach(([label, val]) => {
     ctx.fillStyle = '#a07820'
     ctx.fillText(label, 60, sy)
@@ -299,17 +335,20 @@ function saveWeireaiCard() {
     ctx.textAlign = 'right'
     ctx.fillText(val, W - 60, sy)
     ctx.textAlign = 'left'
-    sy += 32
+    sy += 38
   })
 
   ctx.fillStyle = '#a07820'
-  ctx.font = font(12)
-  ctx.textAlign = 'center'
-  ctx.fillText('没有人天生擅长，只是比别人更热爱', W / 2, sy + 18)
+  ctx.font = font(14)
+  ctx.textAlign = 'left'
+  drawWrappedText('没有人天生擅长，只是比别人更热爱。你的高中旅程，最终在另一条赛道上闪闪发光。', 60, sy + 24, W - 120, 28)
 
+  ctx.textAlign = 'center'
   ctx.fillStyle = '#c9b06a'
-  ctx.font = font(11)
-  ctx.fillText('水衡高中模拟器', W / 2, H - 22)
+  ctx.font = font(13, '600')
+  ctx.fillText('水衡高中模拟器', W / 2, H - 54)
+  ctx.font = font(12, '500')
+  ctx.fillText('start.sh-simulatior.fun', W / 2, H - 32)
 
   cv.toBlob(blob => {
     const url = URL.createObjectURL(blob)

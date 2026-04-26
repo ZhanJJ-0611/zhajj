@@ -209,7 +209,8 @@ function buySnacks() {
       }
       markActivityUsed('snacks')
       applyChanges({ money: -300, mental: 10 })
-      rel.affinity = clamp(rel.affinity + 20)
+      addClassmateAffinity(rel, 20)
+      const justBonded = unlockClassmateBond(rel)
       saveState()
       showModal(`
         <div class="modal-title">🍿 一起买零食 🎉</div>
@@ -218,7 +219,7 @@ function buySnacks() {
         <div class="modal-row"><span>零花钱</span><span class="chg-neg">-300</span></div>
         <div class="modal-row"><span>心理健康</span><span class="chg-pos">+10</span></div>
         <div class="modal-row"><span>与 ${def.name} 好感度</span><span class="chg-pos">+20</span></div>
-      `)
+      `, () => handleClassmateAffinityMilestone(rel, def, justBonded, () => {}))
     }
   )
 }
@@ -248,7 +249,8 @@ function getMassage() {
       }
       markActivityUsed('massage')
       applyChanges({ money: -750, health: 20 })
-      rel.affinity = clamp(rel.affinity + 20)
+      addClassmateAffinity(rel, 20)
+      const justBonded = unlockClassmateBond(rel)
       saveState()
       showModal(`
         <div class="modal-title">💆 一起理疗 🎉</div>
@@ -257,17 +259,18 @@ function getMassage() {
         <div class="modal-row"><span>零花钱</span><span class="chg-neg">-750</span></div>
         <div class="modal-row"><span>身体健康</span><span class="chg-pos">+20</span></div>
         <div class="modal-row"><span>与 ${def.name} 好感度</span><span class="chg-pos">+20</span></div>
-      `)
+      `, () => handleClassmateAffinityMilestone(rel, def, justBonded, () => {}))
     }
   )
 }
 
 // 买零食/理疗专用邀约：20% 触发，1.5x 费用，仅正面结果，好感+20
 function tryShopInvite(title, baseCost, soloFn, togetherFn) {
-  if (!player.monthStarted || Math.random() >= 0.2 || relations.classmates.length === 0) {
+  const availableClassmates = getInteractableClassmates()
+  if (!player.monthStarted || Math.random() >= 0.2 || availableClassmates.length === 0) {
     soloFn(); return
   }
-  const rel = relations.classmates[rndInt(relations.classmates.length)]
+  const rel = availableClassmates[rndInt(availableClassmates.length)]
   const def = CLASSMATE_POOL.find(c => c.id === rel.id)
   if (!def) { soloFn(); return }
 
@@ -303,10 +306,11 @@ function tryShopInvite(title, baseCost, soloFn, togetherFn) {
 }
 
 function tryInvite(activityName, onDone) {
-  if (!player.monthStarted || Math.random() >= 0.6 || relations.classmates.length === 0) {
+  const availableClassmates = getInteractableClassmates()
+  if (!player.monthStarted || Math.random() >= 0.6 || availableClassmates.length === 0) {
     onDone(false); return
   }
-  const rel = relations.classmates[rndInt(relations.classmates.length)]
+  const rel = availableClassmates[rndInt(availableClassmates.length)]
   const def = CLASSMATE_POOL.find(c => c.id === rel.id)
   if (!def) { onDone(false); return }
 
@@ -351,7 +355,8 @@ function applyInviteOutcome(rel, def, activityName, onDone) {
   ]
   const desc = good ? goodDescs[rndInt(goodDescs.length)] : badDescs[rndInt(badDescs.length)]
 
-  rel.affinity = clamp(rel.affinity + aff)
+  addClassmateAffinity(rel, aff)
+  const justBonded = unlockClassmateBond(rel)
   applyChanges({ mental, health })
   saveState()
 
@@ -362,7 +367,7 @@ function applyInviteOutcome(rel, def, activityName, onDone) {
     <div class="modal-row"><span>????</span><span class="${mental >= 0 ? 'chg-pos' : 'chg-neg'}">${mental >= 0 ? '+' : ''}${mental}</span></div>
     <div class="modal-row"><span>????</span><span class="${health > 0 ? 'chg-pos' : 'chg-neg'}">${health > 0 ? '+' : ''}${health}</span></div>
     <div class="modal-row"><span>? ${def.name} ???</span><span class="${aff >= 0 ? 'chg-pos' : 'chg-neg'}">${aff >= 0 ? '+' : ''}${aff}</span></div>
-  `, onDone)
+  `, () => handleClassmateAffinityMilestone(rel, def, justBonded, onDone))
 }
 
 // ─── 跑步游戏 ────────────────────────────────────────────────
@@ -744,7 +749,8 @@ function buySnacks() {
       }
       markActivityUsed('snacks')
       applyChanges({ money: -300, mental: 10 })
-      rel.affinity = clamp(rel.affinity + 20)
+      addClassmateAffinity(rel, 20)
+      const justBonded = unlockClassmateBond(rel)
       saveState()
       showModal(`
         <div class="modal-title">🍿 一起买零食</div>
@@ -753,7 +759,7 @@ function buySnacks() {
         <div class="modal-row"><span>零花钱</span><span class="chg-neg">-300</span></div>
         <div class="modal-row"><span>心理健康</span><span class="chg-pos">+10</span></div>
         <div class="modal-row"><span>与 ${def.name} 好感度</span><span class="chg-pos">+20</span></div>
-      `)
+      `, () => handleClassmateAffinityMilestone(rel, def, justBonded, () => {}))
     }
   )
 }
@@ -783,7 +789,8 @@ function getMassage() {
       }
       markActivityUsed('massage')
       applyChanges({ money: -750, health: 20 })
-      rel.affinity = clamp(rel.affinity + 20)
+      addClassmateAffinity(rel, 20)
+      const justBonded = unlockClassmateBond(rel)
       saveState()
       showModal(`
         <div class="modal-title">💆 一起理疗</div>
@@ -792,17 +799,18 @@ function getMassage() {
         <div class="modal-row"><span>零花钱</span><span class="chg-neg">-750</span></div>
         <div class="modal-row"><span>身体健康</span><span class="chg-pos">+20</span></div>
         <div class="modal-row"><span>与 ${def.name} 好感度</span><span class="chg-pos">+20</span></div>
-      `)
+      `, () => handleClassmateAffinityMilestone(rel, def, justBonded, () => {}))
     }
   )
 }
 
 function tryShopInvite(title, baseCost, soloFn, togetherFn) {
-  if (!player.monthStarted || Math.random() >= 0.2 || relations.classmates.length === 0) {
+  const availableClassmates = getInteractableClassmates()
+  if (!player.monthStarted || Math.random() >= 0.2 || availableClassmates.length === 0) {
     soloFn()
     return
   }
-  const rel = relations.classmates[rndInt(relations.classmates.length)]
+  const rel = availableClassmates[rndInt(availableClassmates.length)]
   const def = CLASSMATE_POOL.find(c => c.id === rel.id)
   if (!def) { soloFn(); return }
 
@@ -839,11 +847,12 @@ function tryShopInvite(title, baseCost, soloFn, togetherFn) {
 }
 
 function tryInvite(activityName, onDone) {
-  if (!player.monthStarted || Math.random() >= 0.6 || relations.classmates.length === 0) {
+  const availableClassmates = getInteractableClassmates()
+  if (!player.monthStarted || Math.random() >= 0.6 || availableClassmates.length === 0) {
     onDone(false)
     return
   }
-  const rel = relations.classmates[rndInt(relations.classmates.length)]
+  const rel = availableClassmates[rndInt(availableClassmates.length)]
   const def = CLASSMATE_POOL.find(c => c.id === rel.id)
   if (!def) { onDone(false); return }
 
@@ -888,7 +897,8 @@ function applyInviteOutcome(rel, def, activityName, onDone) {
   ]
   const desc = good ? goodDescs[rndInt(goodDescs.length)] : badDescs[rndInt(badDescs.length)]
 
-  rel.affinity = clamp(rel.affinity + aff)
+  addClassmateAffinity(rel, aff)
+  const justBonded = unlockClassmateBond(rel)
   applyChanges({ mental, health })
   saveState()
 
@@ -899,7 +909,7 @@ function applyInviteOutcome(rel, def, activityName, onDone) {
     <div class="modal-row"><span>心理健康</span><span class="${mental >= 0 ? 'chg-pos' : 'chg-neg'}">${mental >= 0 ? '+' : ''}${mental}</span></div>
     <div class="modal-row"><span>身体健康</span><span class="${health > 0 ? 'chg-pos' : 'chg-neg'}">${health > 0 ? '+' : ''}${health}</span></div>
     <div class="modal-row"><span>与 ${def.name} 好感度</span><span class="${aff >= 0 ? 'chg-pos' : 'chg-neg'}">${aff >= 0 ? '+' : ''}${aff}</span></div>
-  `, onDone)
+  `, () => handleClassmateAffinityMilestone(rel, def, justBonded, onDone))
 }
 
 function startRunning() {

@@ -1093,6 +1093,11 @@ body {
   color: var(--text-muted);
 }
 
+.mile-icon {
+  min-width: 16px;
+  text-align: right;
+}
+
 .pcard-actions {
   display: flex;
   gap: 8px;
@@ -1115,6 +1120,12 @@ body {
   opacity: 0.6;
 }
 
+.blocked-interact-hint {
+  color: #c05050;
+  opacity: 0.9;
+  font-weight: 700;
+}
+
 .bonded-badge {
   font-size: 11px;
   font-weight: 700;
@@ -1123,6 +1134,28 @@ body {
   background: linear-gradient(135deg, #fef3c7, #fde68a);
   color: #92400e;
   border: 1px solid #f0cc80;
+}
+
+.romance-badge {
+  background: linear-gradient(135deg, #ffe4ef, #ffc7dc);
+  color: #c44782;
+  border-color: #f4a8c8;
+}
+
+.romance-affinity-num {
+  color: #d45a93;
+}
+
+.romance-track {
+  background: linear-gradient(90deg, #fde4ef, #f7d2e5);
+}
+
+.romance-fill {
+  box-shadow: 0 0 10px rgba(239,106,168,.22);
+}
+
+.romance-milestones .mile.reached {
+  color: #d45a93;
 }
 
 /* 关系升华弹窗图标 */
@@ -1136,6 +1169,68 @@ body {
 @keyframes bond-pop {
   from { transform: scale(0.5); opacity: 0; }
   to   { transform: scale(1);   opacity: 1; }
+}
+
+.bond-event-modal {
+  background: linear-gradient(180deg, #fffaf0 0%, #fff1cc 100%);
+  border: 1px solid #e7ca74;
+  border-radius: 16px;
+  padding: 8px 10px 2px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.78), 0 10px 24px rgba(201,149,42,.12);
+}
+
+.bond-event-title {
+  color: #b88414;
+}
+
+.bond-event-box {
+  background: linear-gradient(180deg, #fffdf6 0%, #fff5da 100%);
+  border-color: #ecd38b;
+}
+
+.bond-event-btn {
+  border-color: #e3c571;
+  color: #9a6d12;
+}
+
+.bond-event-btn-primary {
+  background: linear-gradient(135deg, #d8a532, #c9952a);
+  border-color: #c9952a;
+}
+
+.bond-event-btn-primary:hover {
+  background: linear-gradient(135deg, #cc9a28, #b9851d);
+}
+
+.romance-event-modal {
+  background: linear-gradient(180deg, #fff9fc 0%, #fff0f6 100%);
+  border: 1px solid #f3c1d9;
+  border-radius: 16px;
+  padding: 8px 10px 2px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.7);
+}
+
+.romance-event-title {
+  color: #d4518d;
+}
+
+.romance-event-box {
+  background: linear-gradient(180deg, #fff7fb 0%, #ffeef6 100%);
+  border-color: #f2bfd7;
+}
+
+.romance-btn {
+  border-color: #efc2d7;
+  color: #b24d7e;
+}
+
+.romance-btn-primary {
+  background: linear-gradient(135deg, #ef6aa8, #d95191);
+  border-color: #d95191;
+}
+
+.romance-btn-primary:hover {
+  background: linear-gradient(135deg, #e25f9e, #c84584);
 }
 
 /* === 精力条 === */
@@ -1372,7 +1467,7 @@ body {
 
 .title-main {
   font-size: 46px;
-  font-family: 'FZYaoti', '方正姚体', 'FZYaoti_GBK', 'STKaiti', '楷体', cursive;
+  font-family: 'FZYaoti', '方正姚体', 'FZYaoti_GBK', 'SimHei', 'Microsoft YaHei', sans-serif;
   font-weight: 400;
   color: var(--text);
   letter-spacing: 6px;
@@ -1560,6 +1655,24 @@ body {
   font-weight: 800;
   color: #173b72;
   margin-bottom: 14px;
+}
+
+.gaokao-query-notice {
+  margin-bottom: 12px;
+  border: 1px solid #f0c36d;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #fff9eb 0%, #fff3d6 100%);
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #9a6200;
+}
+
+.gaokao-query-notice-title {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  margin-bottom: 4px;
 }
 
 .gaokao-reg-field {
