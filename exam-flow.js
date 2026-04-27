@@ -440,6 +440,28 @@ function setGaokaoAnswer(idx, choice) {
     r.closest('.exam-opt').classList.toggle('chosen', parseInt(r.value) === choice))
 }
 
+function getGaokaoBonusSummary(data = {}) {
+  const qiangjiBonus = Number(data.qiangjiBonus ?? (hasTag('qiangjiben') ? 40 : 0)) || 0
+  const loverBonus = Number(data.loverBonus ?? 0) || 0
+  const confidantBonus = Number(data.confidantBonus ?? 0) || 0
+  const mentorBonus = Number(data.mentorBonus ?? 0) || 0
+  const totalBonus = Number(data.totalBonus ?? (qiangjiBonus + loverBonus + confidantBonus + mentorBonus)) || 0
+  const rawScore = Number(data.rawScore ?? 0) || 0
+  const baseScore = Number(data.baseScore ?? Math.max(200, Math.min(680, rawScore - totalBonus))) || 0
+  return { baseScore, rawScore, qiangjiBonus, loverBonus, confidantBonus, mentorBonus, totalBonus }
+}
+
+function buildGaokaoBonusRows(summary, labelClass = 'muted') {
+  const rows = []
+  if (summary.qiangjiBonus > 0) rows.push(['🏆 强基计划加分', summary.qiangjiBonus, '#c9952a'])
+  if (summary.loverBonus > 0) rows.push(['💞 比翼双飞加成', summary.loverBonus, '#ef6aa8'])
+  if (summary.confidantBonus > 0) rows.push(['🤝 同舟共济加成', summary.confidantBonus, '#4d9fd4'])
+  if (summary.mentorBonus > 0) rows.push(['🎓 良师益友加成', summary.mentorBonus, '#c9952a'])
+  return rows.map(([label, value, color]) => `
+    <div class="info-row"><span class="${labelClass}">${label}</span><span class="info-val" style="color:${color}">+${value}</span></div>
+  `).join('')
+}
+
 function submitGaokao() {
   if (!currentGaokao) return
   const ex = currentGaokao
@@ -453,6 +475,7 @@ function submitGaokao() {
   const confidantBonus = getBondedClassmates().length >= 2 ? 10 : 0
   const mentorBonus = getBondedTeachers().length >= 2 ? 10 : 0
   const baseScore = Math.round(Math.max(200, Math.min(680, rawBase * 480 + 200)))
+  const totalBonus = qiangjiBonus + loverBonus + confidantBonus + mentorBonus
   const rawScore = Math.round(Math.max(200, Math.min(710, baseScore + qiangjiBonus + loverBonus + confidantBonus + mentorBonus)))
 
   // Draw performance event
@@ -467,31 +490,52 @@ function submitGaokao() {
   const finalScore = Math.max(150, Math.min(750, rawScore + perf.delta))
 
   ex.submitted       = true
+  ex.baseScore       = baseScore
   ex.rawScore        = rawScore
   ex.perfKey         = perfKey
   ex.finalScore      = finalScore
+  ex.qiangjiBonus    = qiangjiBonus
   ex.loverBonus      = loverBonus
   ex.confidantBonus  = confidantBonus
   ex.mentorBonus     = mentorBonus
-  player.gaokaoResult = { rawScore, perfKey, finalScore, loverBonus, confidantBonus, mentorBonus }
+  ex.totalBonus      = totalBonus
+  player.gaokaoResult = { baseScore, rawScore, perfKey, finalScore, qiangjiBonus, loverBonus, confidantBonus, mentorBonus, totalBonus }
   saveState()
 
-  showModal(`
-    <div class="modal-title">高考发挥</div>
-    <div style="text-align:center;padding:20px 0 14px">
-      <div style="font-size:30px;font-weight:900;color:${perf.color};letter-spacing:2px">${perfKey}</div>
-      <div style="font-size:20px;font-weight:700;color:${perf.color};margin-top:10px">
-        ${perf.delta !== 0 ? (perf.delta > 0 ? '+' : '') + perf.delta + ' 分' : '分数不变'}
+  const showPerfModal = () => {
+    showModal(`
+      <div class="modal-title">高考发挥</div>
+      <div style="text-align:center;padding:20px 0 14px">
+        <div style="font-size:30px;font-weight:900;color:${perf.color};letter-spacing:2px">${perfKey}</div>
+        <div style="font-size:20px;font-weight:700;color:${perf.color};margin-top:10px">
+          ${perf.delta !== 0 ? (perf.delta > 0 ? '+' : '') + perf.delta + ' 分' : '分数不变'}
+        </div>
       </div>
-    </div>
-    <div class="event-box">${perf.desc}</div>
-  `, () => {
-    showGaokaoMemorialScene(() => {
-      ex.queryPromptShown = true
-      saveState()
-      showGaokaoScoreQueryIntro(() => showGaokaoScoreQueryForm())
+      <div class="event-box">${perf.desc}</div>
+    `, () => {
+      showGaokaoMemorialScene(() => {
+        ex.queryPromptShown = true
+        saveState()
+        showGaokaoScoreQueryIntro(() => showGaokaoScoreQueryForm())
+      })
     })
-  })
+  }
+
+  if (totalBonus > 0) {
+    const bonusSummary = getGaokaoBonusSummary({ baseScore, rawScore, qiangjiBonus, loverBonus, confidantBonus, mentorBonus, totalBonus })
+    showModal(`
+      <div class="modal-title">高考加分结算</div>
+      <div class="event-box">你在高中阶段积累下来的关系与成就，在高考成绩里兑现成了额外加分。</div>
+      <hr class="modal-divider">
+      <div class="info-row"><span class="muted">加分前基准分</span><span class="info-val">${bonusSummary.baseScore}</span></div>
+      ${buildGaokaoBonusRows(bonusSummary)}
+      <div class="info-row"><span class="muted">加分总计</span><span class="chg-pos">+${bonusSummary.totalBonus}</span></div>
+      <div class="info-row"><span class="muted">发挥前分数</span><span class="info-val">${bonusSummary.rawScore}</span></div>
+    `, showPerfModal)
+    return
+  }
+
+  showPerfModal()
 }
 
 function renderGaokaoQueryPending() {
@@ -509,9 +553,9 @@ function renderGaokaoQueryPending() {
 function getGaokaoMemorialCopy() {
   const dominant = getDominantJourneyCategory()
   const copies = {
-    social: '这三年里\n你把很多精力\n都留给了人与人之间的联结\n那些并肩走过的课间\n深夜聊过的心事\n还有一句句“没事，我在”\n都成了今天回头时\n最柔软的光',
-    study: '这三年里\n你把最多的精力\n埋进了一页页试卷和笔记里\n草稿纸堆成山\n错题改了又改\n那些看似枯燥的日夜\n最终都化成了此刻\n落在手心里的重量',
-    activity: '这三年里\n你没有只把自己\n交给题海和排名\n你也认真地奔跑过\n大笑过 出汗过 透过气\n那些离开课桌的时刻\n让你在走到今天时\n仍然像一个鲜活的人',
+    social: '这三年里，你把很多精力都留给了人与人之间的联结，那些并肩走过的课间、深夜聊过的心事，还有一句句“没事，我在”，都成了今天回头时最柔软的光。',
+    study: '这三年里，你把最多的精力埋进了一页页试卷和笔记里，草稿纸堆成山，错题改了又改，那些看似枯燥的日夜，最终都化成了此刻落在手心里的重量。',
+    activity: '这三年里，你没有只把自己交给题海和排名，你也认真地奔跑过、大笑过、出汗过、透过气，那些离开课桌的时刻，让你在走到今天时仍然像一个鲜活的人。',
   }
   return copies[dominant] || copies.study
 }
@@ -687,7 +731,8 @@ function renderGaokaoResult() {
   const data = currentGaokao?.finalScore ? currentGaokao : player.gaokaoResult
   if (!data) { c.innerHTML = renderGraduation(); return }
 
-  const { finalScore, rawScore, perfKey, loverBonus = 0, confidantBonus = 0, mentorBonus = 0 } = data
+  const { finalScore, rawScore, perfKey } = data
+  const bonusSummary = getGaokaoBonusSummary(data)
   const perf = GAOKAO_PERF[perfKey] || GAOKAO_PERF['正常发挥']
   const tier = getUniversityTier(finalScore)
   const avg  = player.examHistory.length
@@ -712,11 +757,10 @@ function renderGaokaoResult() {
       <div class="info-row"><span class="muted">最终心理健康</span><span class="info-val">${player.mental}</span></div>
       <div class="info-row"><span class="muted">最终身体健康</span><span class="info-val">${player.health}</span></div>
       <div class="info-row"><span class="muted">月考平均分</span><span class="info-val">${avg}</span></div>
-      <div class="info-row"><span class="muted">高考原始分</span><span class="info-val">${rawScore}</span></div>
-      ${hasTag('qiangjiben') ? `<div class="info-row"><span class="muted">🏆 强基计划加分</span><span class="info-val" style="color:#c9952a">+40</span></div>` : ''}
-      ${loverBonus > 0 ? `<div class="info-row"><span class="muted">💞 比翼双飞加成</span><span class="info-val" style="color:#ef6aa8">+10</span></div>` : ''}
-      ${confidantBonus > 0 ? `<div class="info-row"><span class="muted">🤝 同舟共济加成</span><span class="info-val" style="color:#4d9fd4">+10</span></div>` : ''}
-      ${mentorBonus > 0 ? `<div class="info-row"><span class="muted">🎓 良师益友加成</span><span class="info-val" style="color:#c9952a">+10</span></div>` : ''}
+      <div class="info-row"><span class="muted">加分前基准分</span><span class="info-val">${bonusSummary.baseScore}</span></div>
+      ${buildGaokaoBonusRows(bonusSummary)}
+      ${bonusSummary.totalBonus > 0 ? `<div class="info-row"><span class="muted">加分总计</span><span class="chg-pos">+${bonusSummary.totalBonus}</span></div>` : ''}
+      <div class="info-row"><span class="muted">发挥前分数</span><span class="info-val">${rawScore}</span></div>
     </div>
     <div class="card">
       <button class="btn full-width" onclick="resetGame()">重新开始</button>
@@ -727,6 +771,7 @@ function saveResultCard() {
   const data = currentGaokao?.finalScore ? currentGaokao : player.gaokaoResult
   if (!data) return
   const { finalScore, perfKey } = data
+  const bonusSummary = getGaokaoBonusSummary(data)
   const perf = GAOKAO_PERF[perfKey] || GAOKAO_PERF['正常发挥']
   const tier = getUniversityTier(finalScore)
   const playerName = ((player.name || '').trim() || '你')
@@ -785,12 +830,6 @@ function saveResultCard() {
     ctx.lineTo(x + dx, y)
     ctx.stroke()
   })
-  ctx.fillStyle = '#3d5a4c'
-  ;[W / 2 - 84, W / 2 - 56, W / 2 - 28, W / 2 + 28, W / 2 + 56, W / 2 + 84].forEach(x => {
-    ctx.beginPath()
-    ctx.arc(x, 118, 2, 0, Math.PI * 2)
-    ctx.fill()
-  })
 
   ctx.textAlign = 'center'
 
@@ -809,28 +848,23 @@ function saveResultCard() {
   ctx.font = font(100, '900')
   ctx.fillText(finalScore + ' 分', W / 2, 304)
 
-  ctx.beginPath()
-  ctx.moveTo(54, 334)
-  ctx.lineTo(W - 54, 334)
-  ctx.stroke()
-
   ctx.fillStyle = perf.color
   ctx.font = font(24, 'bold')
   ctx.fillText(perfKey + (perf.delta !== 0 ? `（${perf.delta > 0 ? '+' : ''}${perf.delta}）` : ''), W / 2, 382)
 
+  if (bonusSummary.totalBonus > 0) {
+    drawCenteredText(`加分合计 +${bonusSummary.totalBonus} ｜ 发挥前 ${bonusSummary.rawScore} 分`, 416, 14, '#8a8479', '600')
+  }
+
   ctx.fillStyle = '#2a2925'
   ctx.font = font(44, '900')
-  ctx.fillText(`🎓 ${tier.school} 🎓`, W / 2, 456)
+  ctx.fillText(`🎓 ${tier.school} 🎓`, W / 2, bonusSummary.totalBonus > 0 ? 472 : 456)
 
-  drawCenteredText(tier.badge, 490, 16, '#8a8479', '600')
-  ctx.beginPath()
-  ctx.moveTo(54, 518)
-  ctx.lineTo(W - 54, 518)
-  ctx.stroke()
+  drawCenteredText(tier.badge, bonusSummary.totalBonus > 0 ? 506 : 490, 16, '#8a8479', '600')
   ctx.fillStyle = '#5a5650'
   ctx.font = font(16)
   ctx.textAlign = 'left'
-  drawWrappedText(tier.desc, 56, 560, W - 112, 30)
+  drawWrappedText(tier.desc, 56, bonusSummary.totalBonus > 0 ? 560 : 544, W - 112, 30)
 
   ctx.textAlign = 'center'
   ctx.strokeStyle = '#d7cfbf'
@@ -845,9 +879,9 @@ function saveResultCard() {
   drawCenteredText('✦', 695, 16, '#b8b3aa', '700')
   ctx.fillStyle = '#b8b3aa'
   ctx.font = font(13, '600')
-  ctx.fillText('水衡高中模拟器', W / 2, H - 54)
+  ctx.fillText('水衡高中模拟器', W / 2, H - 68)
   ctx.font = font(12, '500')
-  ctx.fillText('start.sh-simulatior.fun', W / 2, H - 32)
+  ctx.fillText('start.sh-simulatior.fun', W / 2, H - 48)
 
   cv.toBlob(blob => {
     const url = URL.createObjectURL(blob)

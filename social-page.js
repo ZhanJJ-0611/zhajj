@@ -44,6 +44,39 @@ function renderSocial() {
   `
 }
 
+const CLASSMATE_GENDER_MAP = {
+  wang: 'male',
+  li_s: 'female',
+  zhao: 'female',
+  chen_s: 'male',
+  lin_s: 'male',
+  zhang_s: 'male',
+  wu_s: 'female',
+  liu_s: 'female',
+  sun_s: 'male',
+  zhou_s: 'female',
+  zheng_s: 'male',
+  huang_s: 'female',
+}
+
+const TEACHER_GENDER_MAP = {
+  wang_yw: 'female',
+  li_sx: 'male',
+  zhang_yy: 'female',
+  chen_wl: 'male',
+  lin_hx: 'female',
+  zhao_ls: 'male',
+  zhou_dl: 'male',
+  sun_sw: 'female',
+  zhao_politics: 'male',
+}
+
+function getGenderBadge(def, role) {
+  const gender = role === 'teacher' ? TEACHER_GENDER_MAP[def.id] : CLASSMATE_GENDER_MAP[def.id]
+  if (!gender) return ''
+  return `<span class="person-tag gender-tag ${gender === 'male' ? 'gender-tag-male' : 'gender-tag-female'}">${gender === 'male' ? '♂' : '♀'}</span>`
+}
+
 const CLASSMATE_ROMANCE_EVENTS = {
   wang: {
     story: '晚风吹过操场，林和像平时那样先问你冷不冷、累不累，话到一半却忽然安静下来。他攥了攥袖口，低声说：“我好像总是先顾着所有人，可最近我最想顾着的人，变成你了。”他抬头看你，目光难得没有躲开，“你愿不愿意……让我以后更偏心你一点？”',
@@ -269,6 +302,7 @@ function showClassmateRomanceEvent(rel, def, onDone = () => {}) {
       rel.lover = true
       rel.exLover = false
       rel.romanceDeclined = false
+      player.loverInteractionThisRound = true
       if (aff) addClassmateAffinity(rel, aff)
     } else {
       rel.romanceDeclined = true
@@ -367,9 +401,9 @@ function classmateCard(def, rel) {
   const affinityColor = getClassmateAffinityColor(rel)
   const affinityLabel = getClassmateAffinityLabel(rel)
   const bondedBadge = getClassmateBadge(rel)
+  const genderBadge = getGenderBadge(def, 'classmate')
   const affinityIcon = rel.lover || rel.affinity > 100 ? '❤️' : '✨'
-  const mealCost = getClassmateInteractionCost(def, 'meal')
-  const canAffordMeal = player.money >= mealCost
+  const canTreat = (player.money || 0) > 0
   const interacted = (player.usedInteractions || []).includes(def.id)
   const blocked = isClassmateInteractionBlocked(rel)
 
@@ -380,6 +414,7 @@ function classmateCard(def, rel) {
         <div class="person-info">
           <div class="person-name">
             ${def.name}
+            ${genderBadge}
             <span class="person-tag">${def.trait}</span>
             ${bondedBadge}
           </div>
@@ -406,8 +441,8 @@ function classmateCard(def, rel) {
           ? `<div class="interact-used-hint blocked-interact-hint">关系已经彻底破裂，无法再互动</div>`
           : interacted
           ? `<div class="interact-used-hint">本月已互动</div>`
-          : `<button class="btn btn-sm interact-btn" onclick="interactClassmate('${def.id}','meal')"${!canAffordMeal ? ' style="opacity:.5"' : ''}>
-               🍜 请客 <span style="font-size:.75em;opacity:.7">-${mealCost}💰</span>
+          : `<button class="btn btn-sm interact-btn" onclick="interactClassmate('${def.id}','meal')"${!canTreat ? ' style="opacity:.5"' : ''}>
+               🍜 请客
              </button>
              <button class="btn btn-sm interact-btn" onclick="interactClassmate('${def.id}','play')">
                🎮 玩耍
@@ -437,8 +472,8 @@ function teacherCard(def, rel) {
                       : '剑拔弩张'
 
   const bondedBadge = rel.bonded ? `<span class="bonded-badge">✨ 恩师</span>` : ''
-  const giftCost = getTeacherInteractionCost(def, 'gift')
-  const canAffordGift = player.money >= giftCost
+  const genderBadge = getGenderBadge(def, 'teacher')
+  const canGift = (player.money || 0) > 0
   const interacted = (player.usedInteractions || []).includes(def.id)
 
   return `
@@ -448,6 +483,7 @@ function teacherCard(def, rel) {
         <div class="person-info">
           <div class="person-name">
             ${def.name}
+            ${genderBadge}
             <span class="person-tag">${def.trait} · ${def.subject}</span>
             ${bondedBadge}
           </div>
@@ -472,8 +508,8 @@ function teacherCard(def, rel) {
       <div class="pcard-actions">
         ${interacted
           ? `<div class="interact-used-hint">本月已互动</div>`
-          : `<button class="btn btn-sm interact-btn" onclick="interactTeacher('${def.id}','gift')"${!canAffordGift ? ' style="opacity:.5"' : ''}>
-               🎁 赠礼 <span style="font-size:.75em;opacity:.7">-${giftCost}💰</span>
+          : `<button class="btn btn-sm interact-btn" onclick="interactTeacher('${def.id}','gift')"${!canGift ? ' style="opacity:.5"' : ''}>
+               🎁 赠礼
              </button>
              <button class="btn btn-sm interact-btn" onclick="interactTeacher('${def.id}','chat')">
                💬 请教
@@ -519,9 +555,8 @@ function interactTeacher(id, type) {
   if (!story) return
 
   if (type === 'gift') {
-    const giftCost = -(story.effect.money || 0)
-    if (giftCost > 0 && player.money < giftCost) {
-      showModal(`<div class="modal-title">零花钱不足</div><p class="muted">赠送礼物需要 ${giftCost} 元，当前余额不足。</p>`)
+    if ((player.money || 0) <= 0) {
+      showModal('<div class="modal-title">零花钱不足</div><p class="muted">当前零花钱必须大于 0，才能赠礼。</p>')
       return
     }
   }
@@ -530,6 +565,7 @@ function interactTeacher(id, type) {
 
   if (!player.usedInteractions) player.usedInteractions = []
   if (!player.usedInteractions.includes(id)) player.usedInteractions.push(id)
+  if (rel.lover) player.loverInteractionThisRound = true
 
   const { affinity: aff = 0, ...statChanges } = story.effect
   applyChanges(statChanges)
@@ -631,9 +667,8 @@ function interactClassmate(id, type) {
   if (!story) return
 
   if (type === 'meal') {
-    const mealCost = -(story.effect.money || 0)
-    if (mealCost > 0 && player.money < mealCost) {
-      showModal(`<div class="modal-title">零花钱不足</div><p class="muted">请客吃饭需要 ${mealCost} 元，当前余额不足。</p>`)
+    if ((player.money || 0) <= 0) {
+      showModal('<div class="modal-title">零花钱不足</div><p class="muted">当前零花钱必须大于 0，才能请客。</p>')
       return
     }
   }

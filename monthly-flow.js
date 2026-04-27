@@ -2,24 +2,24 @@
    Monthly Flow
    ============================================================ */
 
-// 鈹€鈹€鈹€ 鏈堝害浜嬩欢寮圭獥閾?鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ─── 月度事件弹窗链 ─────────────────────────────────────────
 
 function showStudyEventPopup(callback) {
   const m = player.month
   let title, text, effect
 
   if (m >= 19) {
-    title = '????'
-    text = '???????????????????????????????????'
+    title = '高考冲刺'
+    text = '临近高考，作息越来越紧，身体和心理都承受着更大的压力。'
     effect = { health: -5, mental: -5 }
   } else if (m >= 15) {
-    title = '????'
-    text = '??????????????????????????'
-    effect = { learning: -10 }
+    title = '高三复习'
+    text = '高三的复习节奏明显加快，知识点多、练习密，学习状态有所波动。'
+    effect = { learning: -20 }
   } else {
-    title = '?????'
-    text = '????????????????????????????????'
-    effect = { learning: -30 }
+    title = '日常学习'
+    text = '高中课程逐渐加深，新的内容不断增加，想完全跟上并不轻松。'
+    effect = { learning: -20 }
   }
 
   applyChanges(effect)
@@ -119,8 +119,8 @@ function showRandomEventPopup(callback) {
     return `<span class="effect-tag ${v > 0 ? 'effect-tag-pos' : 'effect-tag-neg'}">${label} ${v > 0 ? '+' : ''}${v}</span>`
   }).join('')
   showModal(`
-    <div class="modal-title">?? ${info.grade} ${info.month}? ? ????</div>
-    ${ev.name ? `<div class="event-name-tag">?${ev.name}?</div>` : ''}
+    <div class="modal-title">${info.grade} ${info.month}月 · 随机事件</div>
+    ${ev.name ? `<div class="event-name-tag">${ev.name}</div>` : ''}
     <div class="event-box" style="margin-bottom:10px">${ev.text}</div>
     <div class="effect-tags">${effectTagsHtml}</div>
   `, callback)
@@ -390,7 +390,7 @@ function showChoiceEventPopup(callback) {
     `<button class="choice-btn" onclick="handleChoicePopup(${i})">${c.label}</button>`
   ).join('')
   showModal(`
-    <div class="modal-title">? ????</div>
+    <div class="modal-title">选择事件</div>
     <div class="choice-event-text">${ev.text}</div>
     <div class="choice-btns">${btnsHtml}</div>
   `, null, true, true)
@@ -416,33 +416,33 @@ function handleChoicePopup(index) {
   _modalCb = null
 
   showModal(`
-    <div class="modal-title">? ?????${choice.label}</div>
+    <div class="modal-title">你选择了：${choice.label}</div>
     <div class="choice-result-box" style="margin-bottom:12px">${choice.desc}</div>
     <hr class="modal-divider">
     ${effectRows}
   `, cb)
 }
 
-// 鈹€鈹€鈹€ 浼氳€冨己鍒跺脊绐?鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ─── 会考强制弹窗 ─────────────────────────────────────────
 
 function showProfExamIntroPopup() {
   if (!player.selectedSubjects) return
   const subjects = ELECTIVE_SUBJECTS.filter(s => !player.selectedSubjects.includes(s))
   showModal(`
-    <div class="modal-title">?? ????</div>
+    <div class="modal-title">学业水平考试</div>
     <div class="event-box" style="margin-bottom:12px">
-      ??????????????????????????????
-      ???????????????????
+      本月将进行学业水平考试。
+      你没有选择的科目会在这次考试中统一结算成绩。
     </div>
     <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">
-      ?????${subjects.join(' ? ')}
+      本次考试科目：${subjects.join('、')}
     </div>
   `, () => {
     startProficiencyExam()
   }, false, true)
 }
 
-// 鈹€鈹€鈹€ 鍒嗙浜嬩欢 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ─── 分科事件 ─────────────────────────────────────────────
 
 function showSubjectSelection(callback) {
   _subjectSelCb      = callback
@@ -457,17 +457,17 @@ function renderSubjectSelModal() {
   ).join('')
   const canConfirm = sel.length === 3
   showModal(`
-    <div class="modal-title">?? ????</div>
+    <div class="modal-title">选择分科</div>
     <div class="event-box" style="margin-bottom:14px">
-      ?????????????????? <strong>??</strong>?<br>
-      <span style="font-size:12px;color:var(--text-muted)">????????????????????????</span>
+      请从以下科目中选择 <strong>3 门</strong> 作为你的选考科目。<br>
+      <span style="font-size:12px;color:var(--text-muted)">选择完成后，将按这些科目进入后续学习与考试。</span>
     </div>
     <div class="subject-sel-grid">${btnsHtml}</div>
     <div style="text-align:center;font-size:12px;color:var(--text-muted);margin:8px 0">
-      ??? ${sel.length} / 3 ?
+      已选择 ${sel.length} / 3 门
     </div>
     <button class="btn btn-primary full-width" ${canConfirm ? '' : 'disabled'} onclick="confirmSubjectSel()">
-      ${canConfirm ? '????' : '?????'}
+      ${canConfirm ? '确认分科' : '请选择 3 门'}
     </button>
   `, null, true, true)
 }
@@ -523,7 +523,7 @@ function applyAffinityEffect(ae) {
   saveState()
 }
 
-// 鈹€鈹€鈹€ 鑷姩寮€鏈?鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ─── 自动开月 ─────────────────────────────────────────────
 
 function getMonthlyEventPools() {
   return player.month >= 15 ? MONTHLY_EVENT_POOLS.high3 : MONTHLY_EVENT_POOLS.high1_2
@@ -665,7 +665,7 @@ function autoStartMonth() {
   }
   player.monthStarted = true
   player.studyCount = 0
-  player.energy = player.maxEnergy ?? 4   // 鍏堥噸缃簿鍔涳紝鍐嶅簲鐢ㄤ簨浠舵晥鏋滐紙浜嬩欢鍙兘鎵ｇ簿鍔涳級
+  player.energy = player.maxEnergy ?? 4   // 先重置精力，再应用事件效果（事件可能扣精力）
   player.usedInteractions = []
   player.usedActivities = []
   player.usedSubjects = []
@@ -673,7 +673,7 @@ function autoStartMonth() {
   if (player.currentEvent?.effect) applyChanges(player.currentEvent.effect)
   if (player.currentEvent?.affinityEffect) applyAffinityEffect(player.currentEvent.affinityEffect)
 
-  // 绮惧姏绫绘爣绛撅紙鍦ㄤ簨浠跺簲鐢ㄥ悗鍐嶈皟鏁达級
+  // 精力类标签（在事件应用后再调整）
   if (hasTag('motor') && Math.random() < 0.3) {
     player.energy = Math.min(player.maxEnergy ?? 4, player.energy + 1)
   }
@@ -683,7 +683,7 @@ function autoStartMonth() {
     player.health = Math.min(100, (player.health || 0) + 5)
   }
 
-  // 瀹跺涵绫绘爣绛?
+  // 家庭类标签
   if (hasTag('kpi'))   player.mental = Math.max(0, (player.mental || 0) - 10)
   if (hasTag('press')) { player.mental = Math.max(0, (player.mental || 0) - 10); player.health = Math.max(0, (player.health || 0) - 10) }
 
@@ -735,7 +735,7 @@ function getDominantJourneyCategory() {
   return best
 }
 
-// 鈹€鈹€鈹€ 鐘舵€佹爮 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ─── 状态栏 ─────────────────────────────────────────────
 
 function renderStatusBar() {
   const keys = ['health', 'mental', 'effort', 'learning']
@@ -765,7 +765,7 @@ function renderEnergyBar() {
 function useEnergy() {
   const cur = player.energy ?? 0
   if (cur <= 0) {
-    showModal('<div class="modal-title">绮惧姏鑰楀敖</div><p class="muted tc" style="padding:4px 0 8px">浠婂ぉ鐨勭簿鍔涘凡缁忕敤瀹屼簡锛?br>浼戞伅涓€涓嬬瓑寰呬笅涓湀鍚с€?/p>')
+    showModal('<div class="modal-title">精力耗尽</div><p class="muted tc" style="padding:4px 0 8px">这个月的精力已经用完了。<br>等下个月再继续安排吧。</p>')
     return false
   }
   player.energy = cur - 1
@@ -809,26 +809,26 @@ function updateSubjectHistory(subject) {
 
   const hist = player.subjectHistory
 
-  // 杩炵画涓夋鍒峰悓涓€绉戠洰
+  // 连续三次只刷同一科目
   if (hist.length >= 3) {
     const tail = hist.slice(-3)
     if (tail.every(s => s === tail[0])) {
       player.pendingBias = {
         type: 'streak', subject: tail[0],
-        message: `????????? ${tail[0]}????????????????????`,
+        message: `你已经连续 3 次刷 ${tail[0]} 了，继续偏科会影响整体成绩。`,
       }
       saveState(); return
     }
   }
 
-  // 杩炵画鍗佹鏈埛鏌愪竴绉戠洰锛堣绉戠洰鏇捐鍒疯繃锛?
+  // 连续十次没有刷某一科目
   if (hist.length >= 11) {
     const last10 = hist.slice(-10)
     const neglected = trackedSubjects.filter(s => hist.includes(s) && !last10.includes(s))
     if (neglected.length > 0) {
       player.pendingBias = {
         type: 'neglect', subject: neglected[0],
-        message: `????? 10 ???? ${neglected[0]}??????????????????`,
+        message: `你已经连续 10 次没有刷 ${neglected[0]} 了，再这样下去会明显偏科。`,
       }
     }
   }
@@ -842,23 +842,23 @@ function getBiasWarnings() {
   const warnings = []
   const trackedSubjects = getTrackedStudySubjects()
 
-  // 鍗冲皢杩炵画涓夋锛堝綋鍓嶈繛缁袱娆★級
+  // 即将连续三次只刷同一科目
   if (hist.length >= 2 && hist[hist.length - 1] === hist[hist.length - 2]) {
-    warnings.push(`鈿狅笍 宸茶繛缁?2 娆″埛 ${hist[hist.length - 1]}锛屽啀鍒峰悓涓€绉戝皢瑙﹀彂鍋忕鎯╃綒`)
+    warnings.push(`⚠️ 你已经连续 2 次刷 ${hist[hist.length - 1]}，再刷一次就会触发偏科惩罚`)
   }
 
-  // 鍗冲皢杩炵画鍗佹鏈埛锛堝綋鍓嶈繛缁節娆℃湭鍒凤級
+  // 即将连续十次没刷某科
   if (hist.length >= 10) {
     const last9 = hist.slice(-9)
     trackedSubjects.filter(s => hist.includes(s) && !last9.includes(s)).slice(0, 2).forEach(s => {
-      warnings.push(`鈿狅笍 ${s} 宸茶繛缁?9 娆℃湭鍒凤紝鍐嶄笉鍒峰皢瑙﹀彂鍋忕鎯╃綒`)
+      warnings.push(`⚠️ ${s} 已经连续 9 次没刷，再不补上就会触发偏科惩罚`)
     })
   }
 
   return warnings
 }
 
-// 鈹€鈹€鈹€ 灏忔父鎴忛娆″紩瀵?鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ─── 小游戏首次引导 ─────────────────────────────────────
 
 function showGameTutorial(key, callback) {
   const tut = GAME_TUTORIALS[key]
@@ -902,11 +902,11 @@ function showStudyEventPopup(callback) {
   } else if (m >= 15) {
     title = '高三复习'
     text = '高三的复习节奏明显加快，知识点多、练习密，学习状态有所波动。'
-    effect = { learning: -10 }
+    effect = { learning: -20 }
   } else {
     title = '日常学习'
     text = '高中课程逐渐加深，新的内容不断增加，想完全跟上并不轻松。'
-    effect = { learning: -30 }
+    effect = { learning: -20 }
   }
 
   applyChanges(effect)

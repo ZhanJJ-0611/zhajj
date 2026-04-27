@@ -75,16 +75,16 @@ function settleSkyFightResult(score, options = {}) {
   if (player.monthStarted) applyChanges({ mental: mg })
 
   const detailText = options.level == null
-    ? '?????????????????'
-    : `???????Lv.${options.level}`
+    ? '本次直接按历史最高得分结算。'
+    : `本次最高达到 Lv.${options.level}`
 
   const showResult = () => {
     if (player.monthStarted) showModal(`
-      <div class="modal-title">??????</div>
+      <div class="modal-title">电子游戏结束</div>
       <div style="font-size:36px;font-weight:800;text-align:center;margin:10px 0">${score}<span style="font-size:14px;font-weight:500;color:var(--text-muted)"> ?</span></div>
       <div style="text-align:center;margin-bottom:10px;color:var(--text-muted);font-size:13px">${detailText}</div>
       <hr class="modal-divider">
-      <div class="modal-row"><span>????</span><span class="chg-pos">+${mg}</span></div>
+      <div class="modal-row"><span>心理健康</span><span class="chg-pos">+${mg}</span></div>
     `)
   }
 
@@ -106,10 +106,10 @@ function openSkyFight() {
   const controls = document.getElementById('snake-controls')
   const ctx      = canvas.getContext('2d')
 
-  document.getElementById('game-title').textContent = '????'
+  document.getElementById('game-title').textContent = '电子游戏'
   controls.style.display = ''   // 全部方向键可用
   overlay.classList.remove('hidden')
-  infoEl.textContent = '?????????????'
+  infoEl.textContent = '移动战机，躲避弹幕并击落敌机'
 
   const W = 300, H = 300
 
@@ -521,11 +521,11 @@ function openSkyFight() {
     ctx.textAlign = 'center'
     ctx.fillStyle = '#f87171'
     ctx.font = 'bold 21px system-ui'
-    ctx.fillText('???????', W / 2, H / 2 - 22)
+    ctx.fillText('战机被击落了', W / 2, H / 2 - 22)
     ctx.fillStyle = 'rgba(255,255,255,0.78)'
     ctx.font = '13px system-ui'
     ctx.fillText(`???${score}`, W / 2, H / 2 + 6)
-    ctx.fillText(`?????Lv.${level}`, W / 2, H / 2 + 26)
+    ctx.fillText(`最高等级 Lv.${level}`, W / 2, H / 2 + 26)
   }
 
   // ── 主循环 ──

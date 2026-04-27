@@ -12,21 +12,21 @@ function renderFun() {
   const used = key => (player.usedActivities || []).includes(key)
   const partTimeGame = isVacation ?         `
         <div class="game-card${used('parttime') ? ' game-card--used' : ''}" onclick="${used('parttime') ? '' : 'startLinkGame()'}">
-          <div class="game-icon">??</div>
-          <div class="game-name">??</div>
-          <div class="game-cost">?? 2 ???</div>
-          <div class="game-eff">?? +500 ?</div>
+          <div class="game-icon">💼</div>
+          <div class="game-name">打工</div>
+          <div class="game-cost">消耗 2 精力</div>
+          <div class="game-eff">收益 +500 元</div>
         </div>` : ''
   c.innerHTML =     `
     <div class="card">
-      <div class="card-label">????</div>
+      <div class="card-label">活动页面</div>
       <div class="game-grid">
         ${GAMES.map(g =>           `
           <div class="game-card${used(g.key) ? ' game-card--used' : ''}" onclick="${used(g.key) ? '' : g.fn}">
             <div class="game-icon">${g.icon}</div>
             <div class="game-name">${g.name}</div>
-            <div class="game-cost">?? ${g.cost}</div>
-            <div class="game-eff">?? ${g.eff}</div>
+            <div class="game-cost">消耗 ${g.cost}</div>
+            <div class="game-eff">效果 ${g.eff}</div>
           </div>
         `).join('')}
         ${partTimeGame}
@@ -37,13 +37,13 @@ function renderFun() {
 
 function getActivityScoreMeta(key) {
   return {
-    running: { name: '??', scoreLabel: '??????', unit: '?' },
-    basketball: { name: '??', scoreLabel: '??????', unit: '?' },
-    swimming: { name: '??', scoreLabel: '??????', unit: '?' },
-    breakout: { name: '???', scoreLabel: '??????', unit: '?' },
-    skyfight: { name: '????', scoreLabel: '??????', unit: '?' },
-    parttime: { name: '??', scoreLabel: '??????', unit: '?' },
-  }[key] || { name: key, scoreLabel: '??????', unit: '?' }
+    running: { name: '跑步', scoreLabel: '历史最高距离', unit: '米' },
+    basketball: { name: '篮球', scoreLabel: '历史最高进球', unit: '球' },
+    swimming: { name: '游泳', scoreLabel: '历史最高距离', unit: '米' },
+    breakout: { name: '乒乓球', scoreLabel: '历史最高得分', unit: '分' },
+    skyfight: { name: '电子游戏', scoreLabel: '历史最高得分', unit: '分' },
+    parttime: { name: '打工', scoreLabel: '历史最高收入', unit: '元' },
+  }[key] || { name: key, scoreLabel: '历史最高成绩', unit: '' }
 }
 
 function getActivityBestScore(key) {
@@ -89,13 +89,14 @@ function showActivityBestScorePrompt(key, onReplay, onQuickFinish) {
   showModal(`
     <div class="modal-title">${meta.name}</div>
     <div class="event-box" style="margin-bottom:12px">
-      ????????????????????????????????????????????
+      你在这个项目里已经创造过不错的成绩。
+      这次可以选择重新挑战，也可以直接按历史最高成绩一键通关。
     </div>
     <div class="card-sub-label" style="text-align:center;margin-bottom:14px">
-      ${meta.scoreLabel}?${bestScore} ${meta.unit}
+      ${meta.scoreLabel}：${bestScore} ${meta.unit}
     </div>
-    <button class="btn full-width" style="margin-bottom:8px" onclick="window._activityBestReplay()">????</button>
-    <button class="btn btn-primary full-width" onclick="window._activityBestQuickFinish()">????</button>
+    <button class="btn full-width" style="margin-bottom:8px" onclick="window._activityBestReplay()">重新挑战</button>
+    <button class="btn btn-primary full-width" onclick="window._activityBestQuickFinish()">一键通关</button>
   `, null, true, true)
 }
 
@@ -106,7 +107,7 @@ function startScoredActivity(options) {
     if (player.monthStarted) {
       const currentEnergy = player.energy ?? 0
       if (currentEnergy < energyCost) {
-        showModal('<div class="modal-title">????</div><p class="muted tc" style="padding:4px 0 8px">????????????????????</p>')
+        showModal('<div class="modal-title">精力不足</div><p class="muted tc" style="padding:4px 0 8px">当前精力不够，无法进行这项活动。</p>')
         return
       }
       for (let i = 0; i < energyCost; i++) {
@@ -121,13 +122,13 @@ function startScoredActivity(options) {
 
 function getActivityScoreMeta(key) {
   return {
-    running: { name: '??', scoreLabel: '??????', unit: '?' },
-    basketball: { name: '??', scoreLabel: '??????', unit: '?' },
-    swimming: { name: '??', scoreLabel: '??????', unit: '?' },
-    breakout: { name: '???', scoreLabel: '??????', unit: '?' },
-    skyfight: { name: '????', scoreLabel: '??????', unit: '?' },
-    parttime: { name: '??', scoreLabel: '??????', unit: '?' },
-  }[key] || { name: key, scoreLabel: '??????', unit: '?' }
+    running: { name: '跑步', scoreLabel: '历史最高距离', unit: '米' },
+    basketball: { name: '篮球', scoreLabel: '历史最高进球', unit: '球' },
+    swimming: { name: '游泳', scoreLabel: '历史最高距离', unit: '米' },
+    breakout: { name: '乒乓球', scoreLabel: '历史最高得分', unit: '分' },
+    skyfight: { name: '电子游戏', scoreLabel: '历史最高得分', unit: '分' },
+    parttime: { name: '打工', scoreLabel: '历史最高收入', unit: '元' },
+  }[key] || { name: key, scoreLabel: '历史最高成绩', unit: '' }
 }
 
 function showActivityBestScorePrompt(key, onReplay, onQuickFinish) {
@@ -150,13 +151,14 @@ function showActivityBestScorePrompt(key, onReplay, onQuickFinish) {
   showModal(`
     <div class="modal-title">${meta.name}</div>
     <div class="event-box" style="margin-bottom:12px">
-      ????????????????????????????????????????????
+      你在这个项目里已经创造过不错的成绩。
+      这次可以选择重新挑战，也可以直接按历史最高成绩一键通关。
     </div>
     <div class="card-sub-label" style="text-align:center;margin-bottom:14px">
-      ${meta.scoreLabel}?${bestScore} ${meta.unit}
+      ${meta.scoreLabel}：${bestScore} ${meta.unit}
     </div>
-    <button class="btn full-width" style="margin-bottom:8px" onclick="window._activityBestReplay()">????</button>
-    <button class="btn btn-primary full-width" onclick="window._activityBestQuickFinish()">????</button>
+    <button class="btn full-width" style="margin-bottom:8px" onclick="window._activityBestReplay()">重新挑战</button>
+    <button class="btn btn-primary full-width" onclick="window._activityBestQuickFinish()">一键通关</button>
   `, null, true, true)
 }
 
@@ -167,7 +169,7 @@ function startScoredActivity(options) {
     if (player.monthStarted) {
       const currentEnergy = player.energy ?? 0
       if (currentEnergy < energyCost) {
-        showModal('<div class="modal-title">????</div><p class="muted tc" style="padding:4px 0 8px">????????????????????</p>')
+        showModal('<div class="modal-title">精力不足</div><p class="muted tc" style="padding:4px 0 8px">当前精力不够，无法进行这项活动。</p>')
         return
       }
       for (let i = 0; i < energyCost; i++) {
@@ -181,7 +183,7 @@ function startScoredActivity(options) {
 }
 
 function showComingSoon(name) {
-  showModal(`<div class="modal-title">${name}</div><p class="muted tc">????????????</p>`)
+  showModal(`<div class="modal-title">${name}</div><p class="muted tc">这个内容还在制作中，敬请期待。</p>`)
 }
 
 function buySnacks() {
@@ -293,14 +295,14 @@ function tryShopInvite(title, baseCost, soloFn, togetherFn) {
   }
 
   showModal(`
-    <div class="modal-title">?? ????</div>
+    <div class="modal-title">同学邀约</div>
     <div class="event-box" style="font-size:13px;margin-bottom:14px;">
-      ${def.emoji} <strong>${def.name}</strong> ????${title.replace(/[????s]/g, '').trim()}??????<br>
-      <span style="font-size:11px;color:var(--text-muted)">?????? ${totalCost} ??????????????????????</span>
+      ${def.emoji} <strong>${def.name}</strong> 想和你一起去${title.replace(/^[^\u4e00-\u9fa5A-Za-z]+/u, '').trim()}。<br>
+      <span style="font-size:11px;color:var(--text-muted)">一起去需要花费 ${totalCost} 元，但有机会提升你们的好感度。</span>
     </div>
     <div style="display:flex;gap:8px;margin-top:4px">
-      <button class="btn full-width" onclick="_declineShopInvite()">???</button>
-      <button class="btn btn-primary full-width" onclick="_acceptShopInvite('${rel.id}')">???</button>
+      <button class="btn full-width" onclick="_declineShopInvite()">自己去</button>
+      <button class="btn btn-primary full-width" onclick="_acceptShopInvite('${rel.id}')">一起去</button>
     </div>
   `, () => soloFn(), true)
 }
@@ -325,14 +327,14 @@ function tryInvite(activityName, onDone) {
   }
 
   showModal(`
-    <div class="modal-title">?? ????</div>
+    <div class="modal-title">同学邀约</div>
     <div class="event-box" style="font-size:13px;margin-bottom:14px;">
-      ${def.emoji} <strong>${def.name}</strong> ?????${activityName}??????<br>
-      <span style="font-size:11px;color:var(--text-muted)">????????????????????</span>
+      ${def.emoji} <strong>${def.name}</strong> 想和你一起去玩${activityName}。<br>
+      <span style="font-size:11px;color:var(--text-muted)">一起行动可能会影响心情、身体状态和你们的关系。</span>
     </div>
     <div style="display:flex;gap:8px;margin-top:4px">
-      <button class="btn full-width" onclick="closeModal()">????</button>
-      <button class="btn btn-primary full-width" onclick="_acceptInvite('${rel.id}')">???</button>
+      <button class="btn full-width" onclick="closeModal()">这次算了</button>
+      <button class="btn btn-primary full-width" onclick="_acceptInvite('${rel.id}')">一起去</button>
     </div>
   `, () => onDone(false), true)
 }
@@ -344,14 +346,14 @@ function applyInviteOutcome(rel, def, activityName, onDone) {
   const health = good ? (rndInt(3) + 2)  : rndInt(2)
 
   const goodDescs = [
-    `?${def.name}???${activityName}?????????????????????`,
-    `${def.name}????????????????????????????`,
-    `??${activityName}??????????????????????????`,
+    `你和 ${def.name} 一起去玩${activityName}，过程很愉快，结束时还有点意犹未尽。`,
+    `${def.name} 一路上都很放松健谈，这次${activityName}让你们熟络了不少。`,
+    `这次${activityName}气氛很好，你玩得开心，和 ${def.name} 的关系也更近了。`,
   ]
   const badDescs = [
-    `?${def.name}?${activityName}????????????????????`,
-    `${def.name}???????????????????${activityName}??????`,
-    `${def.name}??????????????????????????`,
+    `你和 ${def.name} 一起去玩${activityName}，但过程有些尴尬，没有想象中顺利。`,
+    `${def.name} 这次状态一般，整个${activityName}过程都没太放得开。`,
+    `这次${activityName}并没有带来太多快乐，你反而觉得有些疲惫。`,
   ]
   const desc = good ? goodDescs[rndInt(goodDescs.length)] : badDescs[rndInt(badDescs.length)]
 
@@ -361,12 +363,12 @@ function applyInviteOutcome(rel, def, activityName, onDone) {
   saveState()
 
   showModal(`
-    <div class="modal-title">${good ? '???? ??' : '???? ??'}</div>
+    <div class="modal-title">${good ? '邀约顺利' : '邀约一般'}</div>
     <div class="event-box" style="font-size:13px;margin-bottom:12px;">${desc}</div>
     <hr class="modal-divider">
-    <div class="modal-row"><span>????</span><span class="${mental >= 0 ? 'chg-pos' : 'chg-neg'}">${mental >= 0 ? '+' : ''}${mental}</span></div>
-    <div class="modal-row"><span>????</span><span class="${health > 0 ? 'chg-pos' : 'chg-neg'}">${health > 0 ? '+' : ''}${health}</span></div>
-    <div class="modal-row"><span>? ${def.name} ???</span><span class="${aff >= 0 ? 'chg-pos' : 'chg-neg'}">${aff >= 0 ? '+' : ''}${aff}</span></div>
+    <div class="modal-row"><span>心理健康</span><span class="${mental >= 0 ? 'chg-pos' : 'chg-neg'}">${mental >= 0 ? '+' : ''}${mental}</span></div>
+    <div class="modal-row"><span>身体健康</span><span class="${health > 0 ? 'chg-pos' : 'chg-neg'}">${health > 0 ? '+' : ''}${health}</span></div>
+    <div class="modal-row"><span>与 ${def.name} 好感度</span><span class="${aff >= 0 ? 'chg-pos' : 'chg-neg'}">${aff >= 0 ? '+' : ''}${aff}</span></div>
   `, () => handleClassmateAffinityMilestone(rel, def, justBonded, onDone))
 }
 
@@ -381,7 +383,7 @@ function startRunning() {
   startScoredActivity({
     key: 'running',
     onReplay: () => {
-      tryInvite('??', () => openRunningGame())
+      tryInvite('跑步', () => openRunningGame())
     },
     onQuickFinish: (bestScore) => {
       settleRunningResult(bestScore)
@@ -393,7 +395,7 @@ function startRunning() {
   startScoredActivity({
     key: 'running',
     onReplay: () => {
-      tryInvite('??', () => openRunningGame())
+      tryInvite('跑步', () => openRunningGame())
     },
     onQuickFinish: (bestScore) => {
       settleRunningResult(bestScore)
@@ -414,10 +416,10 @@ function settleRunningResult(dist, options = {}) {
   const showResult = () => {
     if (player.monthStarted) {
       showModal(`
-        <div class="modal-title">????</div>
-        <div style="font-size:36px;font-weight:800;text-align:center;margin:10px 0;">${dist}<span style="font-size:15px;font-weight:500;color:var(--text-muted)"> m</span></div>
+        <div class="modal-title">跑步结束</div>
+        <div style="font-size:36px;font-weight:800;text-align:center;margin:10px 0;">${dist}<span style="font-size:15px;font-weight:500;color:var(--text-muted)"> 米</span></div>
         <hr class="modal-divider">
-        <div class="modal-row"><span>????</span><span class="chg-pos">+${hgain}</span></div>
+        <div class="modal-row"><span>身体健康</span><span class="chg-pos">+${hgain}</span></div>
       `)
     }
   }
@@ -437,7 +439,7 @@ function startRunning() {
   startScoredActivity({
     key: 'running',
     onReplay: () => {
-      tryInvite('??', () => openRunningGame())
+      tryInvite('跑步', () => openRunningGame())
     },
     onQuickFinish: (bestScore) => {
       settleRunningResult(bestScore)
@@ -454,10 +456,10 @@ function settleRunningResult(dist, options = {}) {
   const showResult = () => {
     if (player.monthStarted) {
       showModal(`
-        <div class="modal-title">????</div>
-        <div style="font-size:36px;font-weight:800;text-align:center;margin:10px 0;">${dist}<span style="font-size:15px;font-weight:500;color:var(--text-muted)"> m</span></div>
+        <div class="modal-title">跑步结束</div>
+        <div style="font-size:36px;font-weight:800;text-align:center;margin:10px 0;">${dist}<span style="font-size:15px;font-weight:500;color:var(--text-muted)"> 米</span></div>
         <hr class="modal-divider">
-        <div class="modal-row"><span>????</span><span class="chg-pos">+${hgain}</span></div>
+        <div class="modal-row"><span>身体健康</span><span class="chg-pos">+${hgain}</span></div>
       `)
     }
   }
@@ -479,9 +481,9 @@ function openRunningGame() {
   const info    = document.getElementById('game-info')
   const ctx     = canvas.getContext('2d')
 
-  document.getElementById('game-title').textContent = '??'
+  document.getElementById('game-title').textContent = '跑步'
   overlay.classList.remove('hidden')
-  info.textContent = '??????????'
+  info.textContent = '吃到补给，跑得更远'
 
   const SIZE = 300
   const GRID = 15
@@ -545,7 +547,7 @@ function openRunningGame() {
     // 距离显示
     ctx.fillStyle = 'rgba(255,255,255,.9)'
     ctx.font = 'bold 11px system-ui'
-    ctx.fillText(`?? ${score * 50} ?`, 5, 14)
+    ctx.fillText(`距离 ${score * 50} 米`, 5, 14)
   }
 
   function step() {
@@ -579,7 +581,7 @@ function openRunningGame() {
   function endRunning() {
     clearInterval(timer)
     const dist = score * 50
-    info.textContent = `??????? ${dist} ?`
+    info.textContent = `本次跑了 ${dist} 米`
     settleRunningResult(dist, { fromGame: true })
   }
 

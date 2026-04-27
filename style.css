@@ -548,6 +548,24 @@ body {
   padding: 1px 6px;
 }
 
+.gender-tag {
+  min-width: 22px;
+  text-align: center;
+  font-weight: 700;
+}
+
+.gender-tag-male {
+  color: #2f6fd6;
+  background: #eaf2ff;
+  border-color: #cfe0ff;
+}
+
+.gender-tag-female {
+  color: #cf5a8d;
+  background: #ffeaf2;
+  border-color: #f7cade;
+}
+
 .person-affinity-row {
   display: flex;
   align-items: center;
@@ -816,24 +834,24 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
 }
 
 .dir-row {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
 }
 
-.dir-spacer { width: 44px; }
+.dir-spacer { width: 56px; }
 
 .dir-btn {
-  width: 44px;
-  height: 44px;
+  width: 56px;
+  height: 56px;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 12px;
   background: var(--surface);
-  font-size: 18px;
+  font-size: 24px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -1383,7 +1401,8 @@ body {
   line-height: 2.4;
   color: #2c1a0e;
   max-width: 270px;
-  text-align: center;
+  text-align: left;
+  text-indent: 2em;
   letter-spacing: .06em;
   margin: 0;
   min-height: 6rem;

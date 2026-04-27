@@ -75,11 +75,11 @@ function settleBasketballResult(made, options = {}) {
 
   const showResult = () => {
     if (player.monthStarted) showModal(`
-      <div class="modal-title">????</div>
+      <div class="modal-title">篮球结束</div>
       <div style="font-size:36px;font-weight:800;text-align:center;margin:10px 0;">${made}<span style="font-size:15px;font-weight:500;color:var(--text-muted)"> / ${TOTAL} ??</span></div>
       <hr class="modal-divider">
-      <div class="modal-row"><span>????</span><span class="chg-pos">+${hg}</span></div>
-      <div class="modal-row"><span>????</span><span class="chg-pos">+${mg}</span></div>
+      <div class="modal-row"><span>身体健康</span><span class="chg-pos">+${hg}</span></div>
+      <div class="modal-row"><span>心理健康</span><span class="chg-pos">+${mg}</span></div>
     `)
   }
 
@@ -104,7 +104,7 @@ function openBasketball() {
   document.getElementById('game-title').textContent = '??'
   controls.style.display = 'none'
   overlay.classList.remove('hidden')
-  infoEl.textContent = '????????????????'
+  infoEl.textContent = '点击一次定方向，再点一次定力度'
 
   const W = 300, H = 300, CX = W / 2
   const TOTAL = 5
@@ -230,7 +230,7 @@ function openBasketball() {
 
     ctx.fillStyle = 'rgba(255,255,255,.85)'
     ctx.font = 'bold 10px system-ui'; ctx.textAlign = 'center'
-    ctx.fillText(locked ? '?????' : '??????', DBX + DBW / 2, DBY + DBH + 14)
+    ctx.fillText(locked ? '力度锁定' : '点击锁定力度', DBX + DBW / 2, DBY + DBH + 14)
   }
 
   function drawPowBar() {

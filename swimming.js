@@ -71,19 +71,19 @@ function settleSwimmingResult(dist, options = {}) {
   const hg = Math.round(Math.min(dist, 2000) / 2000 * 8)
   const mg = Math.round(Math.min(dist, 2000) / 2000 * 8)
   const scoreText = options.starCount == null
-    ? '?????????????????'
-    : `???????${options.starCount} ?`
+    ? '本次直接按历史最高成绩结算。'
+    : `本次共收集 ${options.starCount} 颗星星`
   rememberActivityBestScore('swimming', dist)
   if (player.monthStarted) applyChanges({ mental: mg, health: hg })
 
   const showResult = () => {
     if (player.monthStarted) showModal(`
-      <div class="modal-title">????</div>
+      <div class="modal-title">游泳结束</div>
       <div style="font-size:32px;font-weight:800;text-align:center;margin:8px 0">${Math.floor(dist)}<span style="font-size:14px;font-weight:500;color:var(--text-muted)"> ?</span></div>
       <div style="text-align:center;margin-bottom:10px;color:var(--text-muted);font-size:13px">${scoreText}</div>
       <hr class="modal-divider">
-      <div class="modal-row"><span>????</span><span class="chg-pos">+${hg}</span></div>
-      <div class="modal-row"><span>????</span><span class="chg-pos">+${mg}</span></div>
+      <div class="modal-row"><span>身体健康</span><span class="chg-pos">+${hg}</span></div>
+      <div class="modal-row"><span>心理健康</span><span class="chg-pos">+${mg}</span></div>
     `)
   }
 
@@ -110,7 +110,7 @@ function openSwimming() {
   document.getElementById('dir-up').style.visibility   = 'hidden'
   document.getElementById('dir-down').style.visibility = 'hidden'
   overlay.classList.remove('hidden')
-  infoEl.textContent = '????????????????'
+  infoEl.textContent = '左右切换泳道，躲人并收集星星'
 
   const W = 300, H = 300
   const LANES    = 3
@@ -333,7 +333,7 @@ function openSwimming() {
     ctx.fillStyle = 'white'
     ctx.font = 'bold 18px system-ui'
     ctx.textAlign = 'center'
-    ctx.fillText('????', W / 2, H / 2 - 24)
+    ctx.fillText('游泳结束', W / 2, H / 2 - 24)
     ctx.font = '13px system-ui'
     ctx.fillStyle = 'rgba(255,255,255,0.8)'
     ctx.fillText(`?? ${Math.floor(dist)} ?`, W / 2, H / 2 + 4)

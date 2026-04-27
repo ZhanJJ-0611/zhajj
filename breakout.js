@@ -81,17 +81,17 @@ function settleBreakoutResult(score, options = {}) {
   if (player.monthStarted) applyChanges({ mental: mg, health: hg })
 
   const detailText = options.broken == null
-    ? '?????????????????'
-    : `?????${options.broken} / ${options.total}`
+    ? '本次直接按历史最高得分结算。'
+    : `本次打掉了 ${options.broken} / ${options.total} 块砖`
 
   const showResult = () => {
     if (player.monthStarted) showModal(`
-      <div class="modal-title">${options.win ? '?????' : '?????'}</div>
+      <div class="modal-title">${options.win ? '全部打完了' : '乒乓球结束'}</div>
       <div style="font-size:36px;font-weight:800;text-align:center;margin:10px 0">${score}<span style="font-size:14px;font-weight:500;color:var(--text-muted)"> ?</span></div>
       <div style="text-align:center;margin-bottom:10px;color:var(--text-muted);font-size:13px">${detailText}</div>
       <hr class="modal-divider">
-      <div class="modal-row"><span>????</span><span class="chg-pos">+${hg}</span></div>
-      <div class="modal-row"><span>????</span><span class="chg-pos">+${mg}</span></div>
+      <div class="modal-row"><span>身体健康</span><span class="chg-pos">+${hg}</span></div>
+      <div class="modal-row"><span>心理健康</span><span class="chg-pos">+${mg}</span></div>
     `)
   }
 
@@ -118,7 +118,7 @@ function openBreakout() {
   document.getElementById('dir-up').style.visibility   = 'hidden'
   document.getElementById('dir-down').style.visibility = 'hidden'
   overlay.classList.remove('hidden')
-  infoEl.textContent = '??????????????'
+  infoEl.textContent = '左右移动挡板，不要让球掉下去'
 
   const W = 300, H = 300
 
@@ -361,7 +361,7 @@ function openBreakout() {
       ctx.fillStyle = '#f87171'
       ctx.font = 'bold 22px system-ui'
       ctx.textAlign = 'center'
-      ctx.fillText('??????', W / 2, H / 2 - 20)
+      ctx.fillText('球掉下去了', W / 2, H / 2 - 20)
       ctx.fillStyle = 'rgba(255,255,255,0.75)'
       ctx.font = '13px system-ui'
       ctx.fillText(`???${score}`, W / 2, H / 2 + 8)
@@ -370,10 +370,10 @@ function openBreakout() {
       ctx.fillStyle = '#fcd34d'
       ctx.font = 'bold 20px system-ui'
       ctx.textAlign = 'center'
-      ctx.fillText('?????', W / 2, H / 2 - 20)
+      ctx.fillText('全部清空', W / 2, H / 2 - 20)
       ctx.fillStyle = 'rgba(255,255,255,0.85)'
       ctx.font = '13px system-ui'
-      ctx.fillText(`?????${score}`, W / 2, H / 2 + 10)
+      ctx.fillText(`最终得分 ${score}`, W / 2, H / 2 + 10)
     }
   }
 

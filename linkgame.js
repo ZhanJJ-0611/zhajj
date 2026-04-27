@@ -66,14 +66,14 @@ function settlePartTimeResult(earn, options = {}) {
   if (player.monthStarted) applyChanges({ money: earn })
 
   const detailText = options.matched == null
-    ? '?????????????????'
+    ? '本次直接按历史最高收入结算。'
     : options.won
-      ? '??????????'
-      : `?????${options.matched} / ${options.total}`
+      ? '你成功完成了全部配对'
+      : `本次完成 ${options.matched} / ${options.total} 组配对`
 
   const showResult = () => {
     if (player.monthStarted) showModal(`
-      <div class="modal-title">????</div>
+      <div class="modal-title">打工结束</div>
       <div style="font-size:36px;font-weight:800;text-align:center;margin:10px 0">${earn}<span style="font-size:14px;font-weight:500;color:var(--text-muted)"> ?</span></div>
       <div style="text-align:center;margin-bottom:10px;color:var(--text-muted);font-size:13px">${detailText}</div>
       <hr class="modal-divider">
@@ -102,7 +102,7 @@ function openLinkGame() {
   document.getElementById('game-title').textContent = '??'
   controls.style.display = 'none'
   overlay.classList.remove('hidden')
-  infoEl.textContent = '????????????'
+  infoEl.textContent = '翻牌配对，赚取零花钱'
 
   const W = 300, H = 300
   const COLS = 4, ROWS = 4
@@ -110,9 +110,9 @@ function openLinkGame() {
   const CELL_W = W / COLS
   const CELL_H = (H - HUD_H) / ROWS
   const TOTAL_PAIRS = (COLS * ROWS) / 2   // 8
-  const TIME_LIMIT  = 120                 // seconds
+  const TIME_LIMIT  = 60                  // seconds
 
-  const TILES = ['?', '?', '?', '?', '?', '?', '?', '?']
+  const TILES = ['🍔', '🎮', '🎧', '📱', '🧋', '🎁', '🚌', '💼']
 
   const C_BG      = '#f7f4ee'
   const C_SURFACE = '#ffffff'
@@ -173,15 +173,15 @@ function openLinkGame() {
       cards[i2].state = 'matched'
       matched++
       infoEl.textContent = matched < TOTAL_PAIRS
-        ? `??????? ${TOTAL_PAIRS - matched} ?`
-        : '???????'
+        ? `继续翻牌，还差 ${TOTAL_PAIRS - matched} 组`
+        : '全部配对完成'
       if (matched >= TOTAL_PAIRS) {
         if (!endTimer) endTimer = setTimeout(doEnd, 700)
       }
     } else {
       cards[i1].state = 'hidden'
       cards[i2].state = 'hidden'
-      infoEl.textContent = '????????????'
+      infoEl.textContent = '继续翻牌完成配对'
     }
     flipped = []
     locked = false
@@ -455,9 +455,9 @@ function openLinkGame() {
   const CELL_W = W / COLS
   const CELL_H = (H - HUD_H) / ROWS
   const TOTAL_PAIRS = (COLS * ROWS) / 2
-  const TIME_LIMIT = 120
+  const TIME_LIMIT = 60
 
-  const TILES = ['书', '笔', '表', '包', '饭', '伞', '灯', '卡']
+  const TILES = ['🍔', '🎮', '🎧', '📱', '🧋', '🎁', '🚌', '💼']
 
   const C_BG = '#f7f4ee'
   const C_SURFACE = '#ffffff'
