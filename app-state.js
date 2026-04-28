@@ -65,5 +65,10 @@ function clearRuntimeState() {
   currentEsportsExam = null
   _placementActive = false
   _placementAnswers = []
-  clearQuizTimer()
+  if (typeof clearQuizTimer === 'function') {
+    clearQuizTimer()
+  } else if (_quizTimer) {
+    clearInterval(_quizTimer)
+    _quizTimer = null
+  }
 }

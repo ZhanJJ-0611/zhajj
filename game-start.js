@@ -191,6 +191,9 @@ function enterGame() {
   initActiveTeachers()
   initActiveClassmates()
   document.getElementById('title-screen').classList.add('hidden')
+  document.getElementById('status-bar').classList.remove('hidden')
+  document.getElementById('energy-bar').classList.remove('hidden')
+  document.getElementById('bottom-nav').classList.remove('hidden')
   if (!player.monthStarted && player.month <= TOTAL_MONTHS) {
     autoStartMonth()
   }
@@ -215,6 +218,39 @@ function enterGame() {
   } else {
     resumeMainFlow()
   }
+}
+
+function startOpeningMonthFlow() {
+  clearRuntimeState()
+  initActiveTeachers()
+  initActiveClassmates()
+
+  player.month = 1
+  player.monthStarted = false
+  player.currentEvent = null
+  player.currentChoiceEvent = null
+  player.choiceEventDone = false
+  player.choiceEventChosen = null
+  player.eventShown = false
+  player.eventDrawHistory = []
+  player.drawnMonthlyEventIds = []
+  player.drawnChoiceEventIds = []
+  player.usedInteractions = []
+  player.usedActivities = []
+  player.usedSubjects = []
+  player.studyCount = 0
+  saveState()
+
+  document.getElementById('title-screen').classList.add('hidden')
+  document.getElementById('status-bar').classList.remove('hidden')
+  document.getElementById('energy-bar').classList.remove('hidden')
+  document.getElementById('bottom-nav').classList.remove('hidden')
+
+  autoStartMonth()
+  renderStatusBar()
+  renderEnergyBar()
+  currentPage = 'home'
+  showMonthlyEventPopups(renderHome)
 }
 
 // ─── 标签选择 ────────────────────────────────────────────────
@@ -512,6 +548,6 @@ function chooseMilitaryOption(idx) {
     <hr class="modal-divider">
     ${statRows}
   `, () => {
-    enterGame()
+    startOpeningMonthFlow()
   })
 }

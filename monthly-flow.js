@@ -641,6 +641,12 @@ function pickMonthlyEvent() {
     const recentIds = history.slice(-3).map(item => item.id)
     const holidayPool = (HOLIDAY_RANDOM_EVENTS || []).filter(event => !drawnIds.has(event.id))
 
+    if (holidayPool.length === 0 && (HOLIDAY_RANDOM_EVENTS || []).length > 0) {
+      player.drawnMonthlyEventIds = []
+      player.eventDrawHistory = []
+      return pickMonthlyEvent()
+    }
+
     const picked = pickEventFromTonePool(holidayPool, recentIds)
       || pickEventFromTonePool(holidayPool)
 
@@ -672,7 +678,15 @@ function pickMonthlyEvent() {
   }
 
   const fallbackPool = [...availablePools.lucky, ...availablePools.unlucky]
-  if (fallbackPool.length === 0) return null
+  if (fallbackPool.length === 0) {
+    const allEvents = [...(pools.lucky || []), ...(pools.unlucky || [])]
+    if (allEvents.length > 0) {
+      player.drawnMonthlyEventIds = []
+      player.eventDrawHistory = []
+      return pickMonthlyEvent()
+    }
+    return null
+  }
 
   const picked = fallbackPool[rndInt(fallbackPool.length)]
   const tone = availablePools.lucky.some(event => event.id === picked.id) ? 'lucky' : 'unlucky'
@@ -687,7 +701,13 @@ function pickChoiceEvent() {
     .map((event, index) => ({ event, index, id: getChoiceEventId(event, index) }))
     .filter(item => !drawnIds.has(item.id))
 
-  if (availableEvents.length === 0) return null
+  if (availableEvents.length === 0) {
+    if (eventPool.length > 0) {
+      player.drawnChoiceEventIds = []
+      return pickChoiceEvent()
+    }
+    return null
+  }
 
   const picked = availableEvents[rndInt(availableEvents.length)]
   player.drawnChoiceEventIds = [...getDrawnChoiceEventIds(), picked.id]
@@ -899,22 +919,6 @@ function getBiasWarnings() {
   return warnings
 }
 
-// ─── 小游戏首次引导 ─────────────────────────────────────
-
-function showGameTutorial(key, callback) {
-  const tut = GAME_TUTORIALS[key]
-  if (!tut) { callback(); return }
-  const seen = player.seenGameTutorials || []
-  if (seen.includes(key)) { callback(); return }
-  player.seenGameTutorials = [...seen, key]
-  saveState()
-  showModal(`
-    <div class="modal-title">${tut.title}</div>
-    <div class="event-box" style="font-size:13px;line-height:1.8;margin-bottom:14px;white-space:pre-line">${tut.desc}</div>
-    <button class="btn btn-primary full-width" onclick="closeModal()">鏄庣櫧浜嗭紝寮€濮嬶紒</button>
-  `, callback, true)
-}
-
 function applyChanges(changes) {
   Object.entries(changes).forEach(([k, d]) => {
     if (k === 'money') {
@@ -922,7 +926,7 @@ function applyChanges(changes) {
     } else if (k === 'energy') {
       player.energy = Math.max(0, Math.min(player.maxEnergy ?? 4, Math.round((player.energy || 0) + d)))
     } else if (k in player) {
-      player[k] = clamp(player[k] + d)
+      player[k] = clamp((player[k] || 0) + d)
     }
   })
   renderStatusBar()
@@ -930,283 +934,7 @@ function applyChanges(changes) {
   saveState()
 }
 
-function showStudyEventPopup(callback) {
-  const m = player.month
-  let title
-  let text
-  let effect
-
-  if (m >= 19) {
-    title = '高考冲刺'
-    text = '临近高考，作息越来越紧，身体和心理都承受着更大的压力。'
-    effect = { health: -5, mental: -5 }
-  } else if (m >= 15) {
-    title = '高三复习'
-    text = '高三的复习节奏明显加快，知识点多、练习密，学习状态有所波动。'
-    effect = { learning: -20 }
-  } else {
-    title = '日常学习'
-    text = '高中课程逐渐加深，新的内容不断增加，想完全跟上并不轻松。'
-    effect = { learning: -20 }
-  }
-
-  applyChanges(effect)
-  saveState()
-
-  const effectTagsHtml = Object.entries(effect).map(([k, v]) => {
-    const label = STAT_LABELS[k] ?? k
-    return `<span class="effect-tag ${v > 0 ? 'effect-tag-pos' : 'effect-tag-neg'}">${label} ${v > 0 ? '+' : ''}${v}</span>`
-  }).join('')
-
-  showModal(`
-    <div class="modal-title">${title}</div>
-    <div class="event-box" style="margin-bottom:10px">${text}</div>
-    <div class="effect-tags">${effectTagsHtml}</div>
-  `, callback)
-}
-
-function showRandomEventPopup(callback) {
-  const ev = player.currentEvent
-  const info = getMonthInfo(player.month)
-  const effectTagsHtml = Object.entries(ev.effect || {}).map(([k, v]) => {
-    const label = STAT_LABELS[k] ?? k
-    return `<span class="effect-tag ${v > 0 ? 'effect-tag-pos' : 'effect-tag-neg'}">${label} ${v > 0 ? '+' : ''}${v}</span>`
-  }).join('')
-
-  showModal(`
-    <div class="modal-title">${info.grade} ${info.month}月 · 随机事件</div>
-    ${ev.name ? `<div class="event-name-tag">${ev.name}</div>` : ''}
-    <div class="event-box" style="margin-bottom:10px">${ev.text}</div>
-    <div class="effect-tags">${effectTagsHtml}</div>
-  `, callback)
-}
-
-function showChoiceEventPopup(callback) {
-  const ev = player.currentChoiceEvent
-  _choicePopupCb = callback
-  const btnsHtml = ev.choices.map((c, i) =>
-    `<button class="choice-btn" onclick="handleChoicePopup(${i})">${c.label}</button>`
-  ).join('')
-
-  showModal(`
-    <div class="modal-title">选择事件</div>
-    <div class="choice-event-text">${ev.text}</div>
-    <div class="choice-btns">${btnsHtml}</div>
-  `, null, true, true)
-}
-
-function handleChoicePopup(index) {
-  const ev = player.currentChoiceEvent
-  if (!ev) return
-  const choice = ev.choices[index]
-  player.choiceEventDone = true
-  player.choiceEventChosen = index
-  saveState()
-  applyChanges(choice.effect)
-
-  const effectRows = Object.entries(choice.effect).map(([k, v]) => {
-    const label = STAT_LABELS[k] ?? k
-    return `<div class="modal-row"><span>${label}</span><span class="${v >= 0 ? 'chg-pos' : 'chg-neg'}">${v >= 0 ? '+' : ''}${v}</span></div>`
-  }).join('')
-
-  const cb = _choicePopupCb
-  _choicePopupCb = null
-  document.getElementById('modal-overlay').classList.add('hidden')
-  _modalNoDismiss = false
-  _modalCb = null
-
-  showModal(`
-    <div class="modal-title">你选择了：${choice.label}</div>
-    <div class="choice-result-box" style="margin-bottom:12px">${choice.desc}</div>
-    <hr class="modal-divider">
-    ${effectRows}
-  `, cb)
-}
-
-function showProfExamIntroPopup() {
-  if (!player.selectedSubjects) return
-  const subjects = ELECTIVE_SUBJECTS.filter(s => !player.selectedSubjects.includes(s))
-  showModal(`
-    <div class="modal-title">学业水平考试</div>
-    <div class="event-box" style="margin-bottom:12px">
-      本月将进行学业水平考试。
-      你没有选择的科目会在这次考试中统一结算成绩。
-    </div>
-    <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">
-      本次考试科目：${subjects.join('、')}
-    </div>
-  `, () => {
-    startProficiencyExam()
-  }, false, true)
-}
-
-function showGaokaoRegistrationIntro(callback) {
-  showModal(`
-    <div class="modal-title">高考报名</div>
-    <div class="event-box" style="margin-bottom:12px;line-height:1.8">
-      高三进入关键阶段，学校开始统一组织高考报名。<br>
-      请认真填写报名信息并设置好密码，这将作为后续查询和确认的重要凭证。
-    </div>
-  `, () => showGaokaoRegistrationForm(callback))
-}
-
-function showGaokaoRegistrationForm(callback) {
-  const playerName = player.name || '未命名考生'
-  showModal(`
-    <div class="gaokao-reg-system">
-      <div class="gaokao-reg-topbar">山河省普通高校招生考试报名系统</div>
-      <div class="gaokao-reg-title">考生报名信息确认</div>
-
-      <div class="gaokao-reg-field">
-        <label class="gaokao-reg-label">姓名</label>
-        <input id="gaokao-reg-name" class="gaokao-reg-input is-locked" type="text" value="${escapeHtml(playerName)}" disabled>
-      </div>
-
-      <div class="gaokao-reg-field">
-        <label class="gaokao-reg-label">密码</label>
-        <input id="gaokao-reg-password" class="gaokao-reg-input" type="password" maxlength="20" placeholder="请输入报名密码">
-      </div>
-
-      <div class="gaokao-reg-field">
-        <label class="gaokao-reg-label">确认密码</label>
-        <input id="gaokao-reg-confirm" class="gaokao-reg-input" type="password" maxlength="20" placeholder="请再次输入报名密码">
-      </div>
-
-      <div id="gaokao-reg-error" class="gaokao-reg-error"></div>
-
-      <button class="btn btn-primary full-width gaokao-reg-submit" onclick="submitGaokaoRegistration()">确认报名</button>
-    </div>
-  `, callback, true, true)
-
-  setTimeout(() => {
-    document.getElementById('gaokao-reg-password')?.focus()
-  }, 0)
-}
-
-function submitGaokaoRegistration() {
-  const passwordInput = document.getElementById('gaokao-reg-password')
-  const confirmInput = document.getElementById('gaokao-reg-confirm')
-  const errorEl = document.getElementById('gaokao-reg-error')
-
-  if (!passwordInput || !confirmInput || !errorEl) return
-
-  const password = passwordInput.value
-  const confirmPassword = confirmInput.value
-
-  if (!password.trim()) {
-    errorEl.textContent = '请输入报名密码。'
-    passwordInput.focus()
-    return
-  }
-
-  if (password !== confirmPassword) {
-    errorEl.textContent = '两次输入的密码不一致，请重新确认。'
-    confirmInput.focus()
-    confirmInput.select()
-    return
-  }
-
-  player.gaokaoRegistrationDone = true
-  player.gaokaoRegistrationPassword = password
-  saveState()
-  closeModal()
-}
-
-function renderSubjectSelModal() {
-  const sel = _subjectSelPending
-  const btnsHtml = ELECTIVE_SUBJECTS.map(s =>
-    `<button class="subject-sel-btn ${sel.includes(s) ? 'active' : ''}" onclick="toggleSubjectSel('${s}')">${s}</button>`
-  ).join('')
-  const canConfirm = sel.length === 3
-
-  showModal(`
-    <div class="modal-title">选择分科</div>
-    <div class="event-box" style="margin-bottom:14px">
-      请从以下科目中选择 <strong>3 门</strong> 作为你的选考科目。<br>
-      <span style="font-size:12px;color:var(--text-muted)">选择完成后，将按这些科目进入后续学习与考试。</span>
-    </div>
-    <div class="subject-sel-grid">${btnsHtml}</div>
-    <div style="text-align:center;font-size:12px;color:var(--text-muted);margin:8px 0">
-      已选择 ${sel.length} / 3 门
-    </div>
-    <button class="btn btn-primary full-width" ${canConfirm ? '' : 'disabled'} onclick="confirmSubjectSel()">
-      ${canConfirm ? '确认分科' : '请选择 3 门'}
-    </button>
-  `, null, true, true)
-}
-
-function useEnergy(category = '') {
-  const cur = player.energy ?? 0
-  if (cur <= 0) {
-    showModal('<div class="modal-title">精力耗尽</div><p class="muted tc" style="padding:4px 0 8px">这个月的精力已经用完了。<br>等下个月再继续安排吧。</p>')
-    return false
-  }
-  player.energy = cur - 1
-  saveState()
-  recordCategoryEnergySpend(category)
-  renderEnergyBar()
-  return true
-}
-
-function updateSubjectHistory(subject) {
-  const trackedSubjects = getTrackedStudySubjects()
-  if (!trackedSubjects.includes(subject)) return
-
-  sanitizeBiasTrackingState()
-  if (!player.subjectHistory) player.subjectHistory = []
-  player.subjectHistory.push(subject)
-  if (player.subjectHistory.length > 11) player.subjectHistory.shift()
-  if (player.pendingBias) { saveState(); return }
-
-  const hist = player.subjectHistory
-
-  if (hist.length >= 3) {
-    const tail = hist.slice(-3)
-    if (tail.every(s => s === tail[0])) {
-      player.pendingBias = {
-        type: 'streak',
-        subject: tail[0],
-        message: `你已经连续 3 次刷 ${tail[0]} 了，继续偏科会影响整体成绩。`,
-      }
-      saveState()
-      return
-    }
-  }
-
-  if (hist.length >= 11) {
-    const last10 = hist.slice(-10)
-    const neglected = trackedSubjects.filter(s => hist.includes(s) && !last10.includes(s))
-    if (neglected.length > 0) {
-      player.pendingBias = {
-        type: 'neglect',
-        subject: neglected[0],
-        message: `你已经连续 10 次没有刷 ${neglected[0]} 了，再这样下去会明显偏科。`,
-      }
-    }
-  }
-  saveState()
-}
-
-function getBiasWarnings() {
-  if (sanitizeBiasTrackingState()) saveState()
-  const hist = player.subjectHistory || []
-  if (player.pendingBias) return []
-  const warnings = []
-  const trackedSubjects = getTrackedStudySubjects()
-
-  if (hist.length >= 2 && hist[hist.length - 1] === hist[hist.length - 2]) {
-    warnings.push(`⚠️ 你已经连续 2 次刷 ${hist[hist.length - 1]}，再刷一次就会触发偏科惩罚`)
-  }
-
-  if (hist.length >= 10) {
-    const last9 = hist.slice(-9)
-    trackedSubjects.filter(s => hist.includes(s) && !last9.includes(s)).slice(0, 2).forEach(s => {
-      warnings.push(`⚠️ ${s} 已经连续 9 次没刷，再不补上就会触发偏科惩罚`)
-    })
-  }
-
-  return warnings
-}
+// ─── 小游戏首次引导 ─────────────────────────────────────
 
 function showGameTutorial(key, callback) {
   const tut = GAME_TUTORIALS[key]

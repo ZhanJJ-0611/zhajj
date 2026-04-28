@@ -74,6 +74,14 @@ function getEventTags(effect) {
 }
 
 function buildEventCard(ev) {
+  if (!ev) {
+    return `
+      <div class="event-type-tags">
+        <span class="event-type-tag event-type-neg">⚠️ 事件缺失</span>
+      </div>
+      <div class="event-box">本月随机事件生成失败，通常说明事件状态还没准备好。重新进入本月流程后应当恢复正常。</div>
+    `
+  }
   const tags = getEventTags(ev.effect)
   const typeTagsHtml = tags.map(t =>
     `<span class="event-type-tag event-type-${t.positive ? 'pos' : 'neg'}">${t.label}</span>`
