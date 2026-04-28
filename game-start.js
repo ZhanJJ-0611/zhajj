@@ -156,20 +156,34 @@ function filterTeachersForSubjects() {
 }
 
 function initActiveClassmates() {
-  if (player.activeClassmates && player.activeClassmates.length > 0) return
-  const shuffled = [...CLASSMATE_POOL].sort(() => Math.random() - 0.5)
-  const picked = shuffled.slice(0, 4)
-  player.activeClassmates = picked.map(c => c.id)
-  relations.classmates = picked.map(c => ({
-    id: c.id,
-    affinity: c.defaultAffinity,
-    bonded: false,
-    lover: false,
-    exLover: false,
-    romanceEventDone: false,
-    romanceDeclined: false,
-    interactionBlocked: false,
-  }))
+  const validDefs = (player.activeClassmates || [])
+    .map(id => CLASSMATE_POOL.find(c => c.id === id))
+    .filter(Boolean)
+
+  const picked = [...validDefs]
+  if (picked.length < 4) {
+    const existingIds = new Set(picked.map(c => c.id))
+    const shuffled = [...CLASSMATE_POOL]
+      .filter(c => !existingIds.has(c.id))
+      .sort(() => Math.random() - 0.5)
+    picked.push(...shuffled.slice(0, 4 - picked.length))
+  }
+
+  const relationMap = new Map((relations.classmates || []).map(rel => [rel.id, rel]))
+  player.activeClassmates = picked.slice(0, 4).map(c => c.id)
+  relations.classmates = picked.slice(0, 4).map(c => {
+    const existing = relationMap.get(c.id)
+    return {
+      id: c.id,
+      affinity: existing?.affinity ?? c.defaultAffinity,
+      bonded: existing?.bonded ?? false,
+      lover: existing?.lover ?? false,
+      exLover: existing?.exLover ?? false,
+      romanceEventDone: existing?.romanceEventDone ?? false,
+      romanceDeclined: existing?.romanceDeclined ?? false,
+      interactionBlocked: existing?.interactionBlocked ?? false,
+    }
+  })
   saveState()
 }
 

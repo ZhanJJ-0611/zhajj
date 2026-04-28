@@ -396,6 +396,28 @@ function showChoiceEventPopup(callback) {
   `, null, true, true)
 }
 
+function getAffinityEffectRows(ae) {
+  const effects = Array.isArray(ae) ? ae : (ae ? [ae] : [])
+  return effects.map(item => {
+    let label = '好感度'
+
+    if (item.id) {
+      const teacher = (typeof TEACHER_POOL !== 'undefined' ? TEACHER_POOL : []).find(t => t.id === item.id)
+      const classmate = (typeof CLASSMATE_POOL !== 'undefined' ? CLASSMATE_POOL : []).find(c => c.id === item.id)
+      label = `${teacher?.name || classmate?.name || '目标对象'} 好感度`
+    } else if (item.group === 'teachers') {
+      label = '所有老师好感度'
+    } else if (item.group === 'classmates') {
+      label = '所有同学好感度'
+    } else if (item.group === 'all') {
+      label = '所有人好感度'
+    }
+
+    const delta = item.delta ?? 0
+    return `<div class="modal-row"><span>${label}</span><span class="${delta >= 0 ? 'chg-pos' : 'chg-neg'}">${delta >= 0 ? '+' : ''}${delta}</span></div>`
+  }).join('')
+}
+
 function handleChoicePopup(index) {
   const ev = player.currentChoiceEvent
   if (!ev) return
@@ -403,24 +425,43 @@ function handleChoicePopup(index) {
   player.choiceEventDone  = true
   player.choiceEventChosen = index
   saveState()
-  applyChanges(choice.effect)
+  const effect = choice.effect || {}
+  const affinityEffects = Array.isArray(choice.affinityEffect)
+    ? choice.affinityEffect
+    : (choice.affinityEffect ? [choice.affinityEffect] : [])
 
-  const effectRows = Object.entries(choice.effect).map(([k, v]) => {
+  if (Object.keys(effect).length) applyChanges(effect)
+  affinityEffects.forEach(applyAffinityEffect)
+
+  const effectRows = Object.entries(effect).map(([k, v]) => {
     const label = STAT_LABELS[k] ?? k
     return `<div class="modal-row"><span>${label}</span><span class="${v >= 0 ? 'chg-pos' : 'chg-neg'}">${v >= 0 ? '+' : ''}${v}</span></div>`
   }).join('')
+  const affinityRows = getAffinityEffectRows(affinityEffects)
+  const summaryRows = `${effectRows}${affinityRows}` || '<div class="modal-row"><span>结果</span><span>已生效</span></div>'
 
   const cb = _choicePopupCb; _choicePopupCb = null
   document.getElementById('modal-overlay').classList.add('hidden')
   _modalNoDismiss = false
   _modalCb = null
 
+  const afterResult = () => {
+    if (!choice.gameOver) {
+      cb?.()
+      return
+    }
+    player.monthStarted = false
+    player.month = TOTAL_MONTHS + 1
+    saveState()
+    showGameOverModal(choice.gameOver.title, choice.gameOver.desc)
+  }
+
   showModal(`
     <div class="modal-title">你选择了：${choice.label}</div>
     <div class="choice-result-box" style="margin-bottom:12px">${choice.desc}</div>
     <hr class="modal-divider">
-    ${effectRows}
-  `, cb)
+    ${summaryRows}
+  `, afterResult)
 }
 
 // ─── 会考强制弹窗 ─────────────────────────────────────────
@@ -684,8 +725,8 @@ function autoStartMonth() {
   }
 
   // 家庭类标签
-  if (hasTag('kpi'))   player.mental = Math.max(0, (player.mental || 0) - 10)
-  if (hasTag('press')) { player.mental = Math.max(0, (player.mental || 0) - 10); player.health = Math.max(0, (player.health || 0) - 10) }
+  if (hasTag('kpi'))   player.mental = Math.max(0, (player.mental || 0) - 5)
+  if (hasTag('press')) { player.mental = Math.max(0, (player.mental || 0) - 5); player.health = Math.max(0, (player.health || 0) - 5) }
 
   player.eventShown = false
   saveState()
