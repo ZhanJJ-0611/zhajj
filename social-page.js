@@ -15,6 +15,17 @@ function renderSocial() {
   const c = document.getElementById('content')
   const isTeacher = currentSocialTab === 'teachers'
 
+  // 兼容旧存档或异常流程导致的人际数据缺失
+  if (!Array.isArray(relations.teachers) || relations.teachers.length === 0 || !Array.isArray(player.activeTeachers) || player.activeTeachers.length === 0) {
+    initActiveTeachers()
+  }
+  if (!Array.isArray(relations.classmates) || relations.classmates.length === 0 || !Array.isArray(player.activeClassmates) || player.activeClassmates.length === 0) {
+    initActiveClassmates()
+  }
+  if (player.selectedSubjects && player.selectedSubjects.length > 0) {
+    filterTeachersForSubjects()
+  }
+
   const bondedCount = (arr) => arr.filter(p => p.bonded || p.lover).length
 
   const cardsHtml = isTeacher
